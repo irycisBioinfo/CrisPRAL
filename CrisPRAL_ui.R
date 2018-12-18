@@ -1,7 +1,8 @@
 #CrisPRAL ui
 #---UI----
 
-shinyUI(fluidPage(# Application title
+#shinyUI(
+  fluidPage(# Application title
   
   tags$head(
     tags$style( #-To scale and center progression bar.
@@ -292,4 +293,4 @@ shinyUI(fluidPage(# Application title
                              )))
       )
     )))
-    )
+    #)

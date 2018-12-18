@@ -95,8 +95,18 @@ kable(add_column( params$table[ Cluster, ], Cluster, .before = 'ID' ),
 \newpage
 
 ## Graphs
- 
-### Distribution of main groups:
+
+```{r , echo=FALSE, results = 'asis' }
+
+subtitle <- "###Distribution of main groups:"
+if (!is.null( params$chartPie )){
+
+cat(sprintf( subtitle ))
+
+}
+
+```
+
 ```{r out.width='100%',echo = FALSE, warning=FALSE, fig.align='center'}
 
 include_graphics(params$chartPie)
