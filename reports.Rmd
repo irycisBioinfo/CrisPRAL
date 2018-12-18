@@ -1,0 +1,171 @@
+---
+title: "Report"
+header-includes:
+- \usepackage{booktabs}
+- \usepackage{float}
+- \usepackage{adjustbox}
+output: 
+    bookdown::pdf_document2:
+      toc: TRUE
+params:
+  chartPie: chartPie
+  chartDS: 'empty'
+  chartDL: 'empty'
+  chartIL: 'empty'
+  chartIS: 'empty'
+  chartMF: 'empty'
+  selection: 'default'
+  table: Tabla
+  alignments: 'empty'
+always_allow_html: yes
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(devtools)
+
+library(knitr)
+library(kableExtra)
+
+library(tidyverse)
+
+library(plotly)
+library(webshot)
+library(dplyr)
+```
+
+
+## Results
+
+<!-- * Selected clusters: `r params$selection` of a total of `r nrow(params$table)`. -->
+
+```{r , echo = FALSE, results='asis', warning=FALSE}
+
+if (length( params$selection ) == nrow( params$table )){
+
+  cat(sprintf(paste( 'All clusters (', nrow(params$table) ,
+                     ') were selected.' , sep = '' )))
+}else{
+
+  cat(sprintf(paste( 'Selected clusters: ', 
+                     paste(params$selection, collapse = ', '),
+                     ' of a total of ',
+                     nrow( params$table ), sep = '' )))
+}
+
+
+```
+
+
+
+```{r table, echo=FALSE, results='asis', warning=FALSE}
+
+if (params$selection == 'default'){ Cluster <- c( 1:10 ) }else{ 
+  Cluster <- params$selection 
+  }
+
+if (length( params$selection ) == nrow( params$table )){
+
+kable(add_column( params$table[ Cluster, ], Cluster, .before = 'ID' ), 
+      caption = 'Clusters', format = "latex", 
+      booktabs = TRUE, longtable = TRUE) %>%
+          kable_styling( font_size = 5 ,latex_options = c("HOLD_position", 
+                                          "repeat_header "))
+}else{
+    
+  kable(add_column( params$table[ Cluster, ], Cluster, .before = 'ID' ), 
+      caption = 'Clusters', format = "latex", 
+      booktabs = TRUE, longtable = FALSE) %>%
+          kable_styling(latex_options = c( "scale_down" ,"HOLD_position"
+                                            ))
+  
+  }
+
+```
+
+<!-- Work in Progress -->
+<!-- ##Alignments -->
+
+<!-- ```{r, echo=FALSE, results='asis', warning=FALSE} -->
+
+<!-- cat(sprintf(as.character(as.data.frame(params$alignments['Cluster1']['Position'])))) -->
+
+<!-- ``` -->
+
+\newpage
+
+## Graphs
+ 
+### Distribution of main groups:
+```{r out.width='100%',echo = FALSE, warning=FALSE, fig.align='center'}
+
+include_graphics(params$chartPie)
+
+```
+
+```{r , echo=FALSE, results = 'asis' }
+
+subtitle <- "###Mutation Frequencies:"
+if (!is.null(params$chartDS) || !is.null(params$chartDL)){
+
+cat(sprintf(subtitle))
+
+}
+
+```
+
+```{r out.width='100%',echo = FALSE, warning=FALSE}
+
+if (!is.null(params$chartMF)){
+  include_graphics(params$chartMF)
+}
+
+```
+
+```{r , echo=FALSE, results = 'asis' }
+
+subtitle <- "###Deletions:"
+if (!is.null(params$chartDS) || !is.null(params$chartDL)){
+
+cat(sprintf(subtitle))
+
+}
+
+```
+
+```{r out.width='50%',echo = FALSE, warning=FALSE}
+
+if (!is.null(params$chartDS)){
+  include_graphics(params$chartDS)
+}
+if (!is.null(params$chartDL)){
+  include_graphics(params$chartDL)
+  }
+
+
+```
+
+```{r , echo=FALSE, results = 'asis' }
+
+subtitle <- "###Insertions:"
+if (!is.null(params$chartIS) || !is.null(params$chartIL)){
+
+cat(sprintf(subtitle))
+
+}
+
+```
+
+
+```{r out.width='50%',echo = FALSE, warning=FALSE}
+
+if (!is.null(params$chartIS)){
+  include_graphics(params$chartIS)
+}
+if (!is.null(params$chartIL)){
+  include_graphics(params$chartIL)
+  }
+
+
+```
+
