@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 
-#Adding Trimmomatic and removing cutadapt and possibly prinseq
+#Adding Trimmomatic and removing cutadapt and possibly prinseq - in process, non functional
 
 use Getopt::Long;
 use Cwd 'abs_path';
