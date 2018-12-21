@@ -48,7 +48,7 @@ Load app.R file through a R compiler.
 ```shell
 	$ Rscript path/to/file/app.R
 ```
-When 
+When executing through the terminal window you will have to manually copy the ip adress displayed and paste it in your browser of preference.
 
 You will find yourself with the main page presenting the mosaic finder functionality. Enter the obligatory fields, Read 1, Read 2, and the reference. You can find demo files for these fields in */Trials* directory.
 
