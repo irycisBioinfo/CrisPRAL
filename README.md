@@ -2,7 +2,7 @@
 ### A tool for CrisPR variant analysis of genome editing experiments and detection of genetical mosaicism in rare diseases.
 
 The purpose of this tool is to allow for the identification, sorting and cuantification of alelic diversity given
-crude .fastq data obtained through New Generation Sequencing (NGS). It can both be used for the analysis of the 
+crude .fastq data obtained through Next Generation Sequencing (NGS). It can both be used for the analysis of the 
 alelic multiplicity that can arise from CrisPR editing protocols in animal models, as the characterization of somatic
 mosaicism associated to the natural genetic therapy phenomenom.
 
@@ -29,7 +29,7 @@ This instructions will attempt to aid in the deployment of the app in your local
 Clone this repository into your system:
 
 ```shell
-    $ git clone https://github.com/irycisBioinfo/CrisPRAL.git    
+	$ git clone https://github.com/irycisBioinfo/CrisPRAL.git    
 ```
 
 or download .zip and unpack.
