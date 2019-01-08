@@ -58,7 +58,17 @@ library( DT )
 appPATH = getwd()
 
 if (substring( appPATH, nchar( appPATH )-8, nchar( appPATH )) != 'CrisPRAL' ){
-  system( 'find /home/ -name "CrisPRAL" > PATH.txt' )
+    system( 'find /home/ -name "CrisPRAL" > PATH.txt' )
+  
+    file_lines = read_lines( 'PATH.txt' )
+    if (length( file_lines ) >= 2){
+      system( paste ('zenity --warning --width 300 --height 100 
+                  --text="More than one directories named -CrisPRAL- have been 
+                  found, make sure there is only one"' ))
+   stopApp()
+   stop()
+    }
+  
   appPATH = read_file( 'PATH.txt' )
   system( 'rm PATH.txt' )
   
