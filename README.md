@@ -19,7 +19,7 @@ This instructions will attempt to aid in the deployment of the app in your local
 ### Prerequisites
 
 * Linux operating system
-* Compilers:
+* interpreter:
   * R
   * perl
   * python
