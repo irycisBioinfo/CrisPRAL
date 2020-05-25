@@ -36,7 +36,7 @@ or download .zip and unpack.
 
 ### Testing
 
-Load app.R file through a R compiler. 
+Load app.R file through a R interpreter. 
 
 * You can use either RStudio by opening the file and running the app through the "Run App" option at the top right corner of the script editor.
 
