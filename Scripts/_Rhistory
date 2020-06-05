@@ -1,0 +1,512 @@
+head(tmp)
+aln[]
+aln[2]
+aln[1]
+aln[2]== aln[1]
+as.character(aln)
+head(as.character(aln))
+alphabet(aln[1])
+alphabet(pattern(aln[1]))
+alphabet(alignedpattern(aln[1]))
+alphabet(alignedPattern(aln[1]))
+runApp()
+unlist(strsplit(as.character(aln@subject), split = ""))
+head(aln@pattern)
+strsplit(as.character(aln@subject), split = "")
+unlist(strsplit(as.character(aln@subject), split = ""))
+2280*0626
+2280*626
+length(strsplit(as.character(aln@subject), split = ""))
+unlist(strsplit(as.character(aln@pattern), split = ""))
+626*228
+strsplit(as.character(aln@pattern), split = "")
+626*225
+unlist(strsplit(as.character(aln@pattern), split = ""))
+981-953
+981+28
+142226+1009
+nchar(aln)
+strsplit(as.character(aln@pattern), split = "")
+strsplit(as.character(aln@pattern), split = "")[1]
+as.factor(VCIDs)
+as_factor(VCIDs)
+as.character(aln@pattern)
+nchar(aln@pattern)
+max(nchar(aln@pattern))
+aln@pattern
+as.character(aln@pattern)
+as.character(aln@pattern) == VCSeq
+source('~/CrisPRAL/GraphicPreprocesing.R')
+IDsSize = VCIDs*SeqSize
+IDsSize = length(VCIDs)*SeqSize
+source('~/CrisPRAL/GraphicPreprocesing.R')
+IDsSize
+VCIDs
+count(Tabla)
+IDsSize = as.integer(count(Tabla)*SeqSize)
+source('~/CrisPRAL/GraphicPreprocesing.R')
+LetterPerPosition
+SpLetterPerPosition
+SpLetterPerPosition = LetterPerPosition %>% spread(Pos,Abundance,fill = 0)
+SpLetterPerPosition
+SpLetterPerPosition['A']
+SpLetterPerPosition[1]
+rownames(SpLetterPerPosition)
+rownames(SpLetterPerPosition) = SpLetterPerPosition[1]
+rownames(SpLetterPerPosition) = as.character(SpLetterPerPosition[1])
+as.character(SpLetterPerPosition[1])
+split(as.character(SpLetterPerPosition[1]), split = "")
+split(x = as.character(SpLetterPerPosition[1]))
+split(x = as.character(SpLetterPerPosition[1]),f='')
+as.string(SpLetterPerPosition[1])
+as.list(SpLetterPerPosition[1])
+as.list(SpLetterPerPosition[1])[1]
+as.list(SpLetterPerPosition[1])[1][1]
+as.list(SpLetterPerPosition[1])[[1]]
+as.character(as.list(SpLetterPerPosition[1])[1])
+as.characters(as.list(SpLetterPerPosition[1])[1])
+as.character(as.list(SpLetterPerPosition[1])[1])
+character(as.list(SpLetterPerPosition[1])[1])
+character(as.list(SpLetterPerPosition[1])[1])
+character(SpLetterPerPosition[1])
+SpLetterPerPosition[1]
+pull(SpLetterPerPosition[1])
+unlist(pull(SpLetterPerPosition[1]))
+unlist(pull(SpLetterPerPosition[1]))[1]
+unlist(pull(SpLetterPerPosition[1])).Levels
+levels(unlist(pull(SpLetterPerPosition[1])))
+rownames(SpLetterPerPosition) = levels(unlist(pull(SpLetterPerPosition[1])))
+rownames(SpLetterPerPosition)
+SpLetterPerPosition
+columnnames(SpLetterPerPosition)
+columnname(SpLetterPerPosition)
+colnames(SpLetterPerPosition)
+SpLetterPerPosition[1]
+select(SpletterPerPosition, -Chr)
+select(SpLetterPerPosition, -Chr)
+select(ungroup(SpLetterPerPosition), -Chr)
+filter(SpLetterPerPosition, -'')
+filter(SpLetterPerPosition, -"")
+rownames(SpLetterPerPosition)
+filter(SpLetterPerPosition, -rownames(SpLetterPerPosition)[1])
+SpLetterPerPosition %>% Summary
+SpLetterPerPosition %>% summarise()
+SpLetterPerPosition
+SpLetterPerPosition %>% ungroup () %>% summarise()
+SpLetterPerPosition %>% filter(-,A,T,G,C)
+SpLetterPerPosition %>% slice(2:6)
+SpLetterPerPosition %>% slice(unlist(2:6))
+SpLetterPerPosition %>% slice(1:6)
+slice(SpLetterPerPosition, 2:6)
+slice(SpLetterPerPosition, 2:5)
+slice(SpLetterPerPosition, 2:6)
+slice(ungroup(SpLetterPerPosition), 2:6)
+ungroup(SpLetterPerPosition)
+SpLetterPerPosition = ungroup(SpLetterPerPosition)
+SpLetterPerPosition = ungroup(SpLetterPerPosition) %>% select(-Chr)
+SpLetterPerPosition
+SpLetterPerPosition %>% slice(2:6)
+sum(SpLetterPerPosition)
+as.matrix(SpLetterPerPosition)
+head(as.matrix(SpLetterPerPosition))
+head(as.matrix.data.frame(SpLetterPerPosition))
+head(as.data.frame(SpLetterPerPosition))
+colSums(SpLetterPerPosition)
+SpLetterPerPosition
+sum(SpLetterPerPosition[1])
+SpLetterPerPosition %>% mutate_all(funs(function(x) x/sum(SpLetterPerPosition[1]))
+)
+SpLetterPerPosition %>% mutate_all(funs(x/sum(SpLetterPerPosition[1])))
+SpLetterPerPosition %>% mutate_all(funs(./sum(SpLetterPerPosition[1])))
+SpLetterPerPosition = ungroup(SpLetterPerPosition) %>%
+select(-Chr) %>%
+mutate_all(funs(function(x) x/sum(SpLetterPerPosition[1])))
+source('~/CrisPRAL/GraphicPreprocesing.R')
+source('~/CrisPRAL/GraphicPreprocesing.R')
+SpLetterPerPosition = LetterPerPosition %>% spread(Pos,Abundance,fill = 0)
+SpLetterPerPosition
+rownames(SpLetterPerPosition) = levels(unlist(pull(SpLetterPerPosition[1])))
+SpLetterPerPosition = ungroup() %>%
+select(-Chr) %>%
+mutate_all(funs(./sum(SpLetterPerPosition[1]))) %>%
+select_if(.<1)
+SpLetterPerPosition = ungroup %>%
+select(-Chr) %>%
+mutate_all(funs(./sum(SpLetterPerPosition[1]))) %>%
+select_if(.<1)
+SpLetterPerPosition = ungroup %>%
+select(-Chr) %>%
+mutate_all(funs(./sum(SpLetterPerPosition[1])))
+SpLetterPerPosition = ungroup %>% select(-Chr) %>% mutate_all(funs(./sum(SpLetterPerPosition[1])))
+SpLetterPerPosition = LetterPerPosition %>% spread(Pos,Abundance,fill = 0)
+rownames(SpLetterPerPosition) = levels(unlist(pull(SpLetterPerPosition[1])))
+SpLetterPerPosition = ungroup %>% select(-Chr) %>% mutate_all(funs(./sum(SpLetterPerPosition[1])))
+SpLetterPerPosition = ungroup %>% select(-Chr) #%>% mutate_all(funs(./sum(SpLetterPerPosition[1])))
+SpLetterPerPosition = ungroup()%>% select(-Chr) #%>% mutate_all(funs(./sum(SpLetterPerPosition[1])))
+SpLetterPerPosition
+rownames(SpLetterPerPosition)
+SpLetterPerPosition = ungroup(SpLetterPerPosition) %>% select(-Chr) #%>% mutate_all(funs(./sum(SpLetterPerPosition[1])))
+SpLetterPerPosition = ungroup(SpLetterPerPosition) %>% select(-Chr) %>% mutate_all(funs(./sum(SpLetterPerPosition[1])))
+SpLetterPerPosition = LetterPerPosition %>% spread(Pos,Abundance,fill = 0)
+rownames(SpLetterPerPosition) = levels(unlist(pull(SpLetterPerPosition[1])))
+SpLetterPerPosition = ungroup(SpLetterPerPosition) %>% select(-Chr) %>% mutate_all(funs(./sum(SpLetterPerPosition[1])))
+SpLetterPerPosition = LetterPerPosition %>% spread(Pos,Abundance,fill = 0)
+rownames(SpLetterPerPosition) = levels(unlist(pull(SpLetterPerPosition[1])))
+SpLetterPerPosition = ungroup(SpLetterPerPosition) %>% select(-Chr) %>% mutate_all(funs(./sum(SpLetterPerPosition[1])))
+SpLetterPerPosition
+SpLetterPerPosition = ungroup(SpLetterPerPosition) %>% select(-Chr) #%>% mutate_all(funs(./sum(SpLetterPerPosition[1])))
+SpLetterPerPosition
+SpLetterPerPosition = LetterPerPosition %>% spread(Pos,Abundance,fill = 0)
+rownames(SpLetterPerPosition) = levels(unlist(pull(SpLetterPerPosition[1])))
+SpLetterPerPosition = ungroup(SpLetterPerPosition) %>% select(-Chr)
+SpLetterPerPosition = mutate_all(funs(./sum(SpLetterPerPosition[1])))
+SpLetterPerPosition = mutate_all(SpLetterPerPosition, funs(./sum(SpLetterPerPosition[1])))
+SpLetterPerPosition
+LetterPerPosition
+p <-ggplot(LetterPerPosition, aes(x = 'Pos', y = 'Abundance'))
+p + geom_bar(stat = 'identity', position = 'stack')
+p <-ggplot(LetterPerPosition, aes(x = Pos, y = Abundance))
+p + geom_bar(stat = 'identity', position = 'stack')
+p <-ggplot(LetterPerPosition, aes(x = Pos, y = Abundance))
+p + geom_bar(stat = 'identity', position = 'fill')
++geom_bar(fill = fl)
+p+geom_bar(fill = fl)
+p+geom_bar(fill = fill)
+p <-ggplot(LetterPerPosition, aes(x = Pos, y = Abundance))
+p + geom_bar(stat = 'identity', position = 'fill')
+RColorBrewer::display.brewer.all()
+p + scale_fill_brewer(palette = 'Dark2')
+p <-ggplot(LetterPerPosition, aes(x = Pos, y = Abundance))
+p + geom_bar(stat = 'identity', position = 'fill')
+p + scale_fill_brewer(palette = 'Dark2')
+p + geom_bar(stat = 'identity', position = 'fill')
+p + scale_fill_brewer(palette = "Dark2")
+p <-ggplot(LetterPerPosition, aes(x = Pos, y = Abundance))
+p + geom_bar(stat = 'identity', position = 'fill')
+p <-ggplot(LetterPerPosition, aes(x = Pos, y = Abundance, fill = Chr))
+p + geom_bar(stat = 'identity', position = 'fill')
+SpLetterPerPosition
+View(LetterPerPosition)
+LetterPerPosition = filter(LetterPerPosition, Pos == 0)
+p + geom_bar(stat = 'identity', position = 'fill')
+LetterPerPosition
+LetterPerPosition = pos %>% group_by(Pos, Chr) %>% count(Chr)
+LetterPerPosition = LetterPerPosition %>% rename(n = 'Abundance')
+LetterPerPosition
+LetterPerPosition = filter(LetterPerPosition, Pos != 0)
+SpLetterPerPosition = LetterPerPosition %>% spread(Pos,Abundance,fill = 0)
+rownames(SpLetterPerPosition) = levels(unlist(pull(SpLetterPerPosition[1])))
+SpLetterPerPosition = ungroup(SpLetterPerPosition) %>% select(-Chr)
+SpLetterPerPosition = mutate_all(SpLetterPerPosition, funs(./sum(SpLetterPerPosition[1])))
+#Ploting
+p <-ggplot(LetterPerPosition, aes(x = Pos, y = Abundance, fill = Chr))
+p + geom_bar(stat = 'identity', position = 'fill')
+SpLetterPerPosition
+LetterPerPosition
+View(LetterPerPosition)
+LetterPerPosition = filter(LetterPerPosition, Chr != 0)
+SpLetterPerPosition = LetterPerPosition %>% spread(Pos,Abundance,fill = 0)
+rownames(SpLetterPerPosition) = levels(unlist(pull(SpLetterPerPosition[1])))
+SpLetterPerPosition = ungroup(SpLetterPerPosition) %>% select(-Chr)
+SpLetterPerPosition = mutate_all(SpLetterPerPosition, funs(./sum(SpLetterPerPosition[1])))
+#Ploting
+p <-ggplot(LetterPerPosition, aes(x = Pos, y = Abundance, fill = Chr))
+p + geom_bar(stat = 'identity', position = 'fill')
+View(LetterPerPosition)
+LetterPerPosition = filter(LetterPerPosition, Chr != NULL)
+LetterPerPosition = filter(LetterPerPosition, Chr == is_empty(NULL))
+LetterPerPosition = pos %>% group_by(Pos, Chr) %>% count(Chr)
+LetterPerPosition = LetterPerPosition %>% rename(n = 'Abundance')
+LetterPerPosition = filter(LetterPerPosition, Chr != is_empty(NULL))
+LetterPerPosition = pos %>% group_by(Pos, Chr) %>% count(Chr)
+LetterPerPosition = LetterPerPosition %>% rename(n = 'Abundance')
+LetterPerPosition = filter(LetterPerPosition, !is.na(Chr))
+View(LetterPerPosition)
+LetterPerPosition = pos %>% group_by(Pos, Chr) %>% count(Chr)
+LetterPerPosition = LetterPerPosition %>% rename(n = 'Abundance')
+LetterPerPosition = filter(LetterPerPosition, Chr != is.na())
+LetterPerPosition = filter(LetterPerPosition, Chr != is.na(Chr))
+LetterPerPosition = filter(LetterPerPosition, Chr == is.na(Chr))
+LetterPerPosition = filter(LetterPerPosition, is.na(Chr))
+LetterPerPosition = pos %>% group_by(Pos, Chr) %>% count(Chr)
+LetterPerPosition = LetterPerPosition %>% rename(n = 'Abundance')
+LetterPerPosition = filter(LetterPerPosition, is.na(Chr))
+LetterPerPosition = filter(LetterPerPosition, !is.na(Chr))
+LetterPerPosition = pos %>% group_by(Pos, Chr) %>% count(Chr)
+LetterPerPosition = LetterPerPosition %>% rename(n = 'Abundance')
+LetterPerPosition = filter(LetterPerPosition, !is.na(Chr))
+LetterPerPosition = filter(LetterPerPosition, Chr != "")
+SpLetterPerPosition = LetterPerPosition %>% spread(Pos,Abundance,fill = 0)
+rownames(SpLetterPerPosition) = levels(unlist(pull(SpLetterPerPosition[1])))
+SpLetterPerPosition = ungroup(SpLetterPerPosition) %>% select(-Chr)
+SpLetterPerPosition = mutate_all(SpLetterPerPosition, funs(./sum(SpLetterPerPosition[1])))
+#Ploting
+p <-ggplot(LetterPerPosition, aes(x = Pos, y = Abundance, fill = Chr))
+p + geom_bar(stat = 'identity', position = 'fill')
+SpLetterPerPositionition = LetterPerPositionition %>% spread(Position,Abundance,fill = 0)
+rownames(SpLetterPerPositionition) = levels(unlist(pull(SpLetterPerPositionition[1])))
+SpLetterPerPositionition = ungroup(SpLetterPerPositionition) %>% select(-Chr)
+SpLetterPerPositionition = mutate_all(SpLetterPerPositionition, funs(./sum(SpLetterPerPositionition[1])))
+#Ploting
+p <-ggplot(LetterPerPositionition, aes(x = Position, y = Abundance, fill = Chr))
+p + geom_bar(stat = 'identity', Positionition = 'fill')
+LetterPerPosition = Position %>% group_by(Position, Chr) %>% count(Chr)
+LetterPerPosition = LetterPerPosition %>% rename(n = 'Base Abundance')
+LetterPerPosition = filter(LetterPerPosition, Chr != "")
+SpLetterPerPosition = LetterPerPosition %>% spread(Position,Abundance,fill = 0)
+rownames(SpLetterPerPosition) = levels(unlist(pull(SpLetterPerPosition[1])))
+SpLetterPerPosition = ungroup(SpLetterPerPosition) %>% select(-Chr)
+SpLetterPerPosition = mutate_all(SpLetterPerPosition, funs(./sum(SpLetterPerPosition[1])))
+#Ploting
+p <-ggplot(LetterPerPosition, aes(x = Position, y = Abundance, fill = Chr))
+p + geom_bar(stat = 'identity', Position = 'fill')
+p <-ggplot(LetterPerPosition, aes(x = Position, y = Abundance, fill = Chr))
+p + geom_bar(stat = 'identity', position = 'fill')
+View(LetterPerPosition)
+source('~/CrisPRAL/GraphicPreprocesing.R')
+LetterPerPosition = LetterPerPosition %>% group_by(Position, Chr) %>% count(Chr)
+LetterPerPosition = LetterPerPosition %>% rename(n = 'Base Abundance')
+LetterPerPosition = filter(LetterPerPosition, Chr != "")
+SpLetterPerPosition = LetterPerPosition %>% spread(Position,Abundance,fill = 0)
+rownames(SpLetterPerPosition) = levels(unlist(pull(SpLetterPerPosition[1])))
+SpLetterPerPosition = LetterPerPosition %>% spread(Position,Base Abundance,fill = 0)
+SpLetterPerPosition = LetterPerPosition %>% spread(Position, Base Abundance, fill = 0)
+SpLetterPerPosition = LetterPerPosition %>% spread(Position, "Base Abundance", fill = 0)
+rownames(SpLetterPerPosition) = levels(unlist(pull(SpLetterPerPosition[1])))
+SpLetterPerPosition = ungroup(SpLetterPerPosition) %>% select(-Chr)
+SpLetterPerPosition = mutate_all(SpLetterPerPosition, funs(./sum(SpLetterPerPosition[1])))
+SpLetterPerPosition
+SpLetterPerPosition = LetterPerPosition %>% spread("Position", "Base Abundance", fill = 0)
+rownames(SpLetterPerPosition) = levels(unlist(pull(SpLetterPerPosition[1])))
+SpLetterPerPosition = ungroup(SpLetterPerPosition) %>% select(-Chr)
+SpLetterPerPosition = mutate_all(SpLetterPerPosition, funs(./sum(SpLetterPerPosition[1])))
+SpLetterPerPosition
+p <-ggplot(LetterPerPosition, aes(x = Position, y = Abundance, fill = Chr))
+p + geom_bar(stat = 'identity', position = 'fill')
+p <-ggplot(LetterPerPosition, aes(x = Position, y = Base Abundance, fill = Chr))
+LetterPerPosition = LetterPerPosition %>% group_by(Position, Chr) %>% count(Chr)
+LetterPerPosition = LetterPerPosition %>% rename(n = 'Base_Abundance')
+LetterPerPosition = filter(LetterPerPosition, Chr != "")
+SpLetterPerPosition = LetterPerPosition %>% spread("Position", "Base_Abundance", fill = 0)
+rownames(SpLetterPerPosition) = levels(unlist(pull(SpLetterPerPosition[1])))
+SpLetterPerPosition = ungroup(SpLetterPerPosition) %>% select(-Chr)
+SpLetterPerPosition = mutate_all(SpLetterPerPosition, funs(./sum(SpLetterPerPosition[1])))
+#Ploting
+p <-ggplot(LetterPerPosition, aes(x = Position, y = Base_Abundance, fill = Chr))
+p + geom_bar(stat = 'identity', position = 'fill')
+LetterPerPosition = LetterPerPosition %>% group_by(Position, Chr) %>% count(Chr)
+LetterPerPosition = LetterPerPosition %>% rename(n = 'Base_Abundance')
+LetterPerPosition = filter(LetterPerPosition, Chr != "")
+SpLetterPerPosition = LetterPerPosition %>% spread("Position", "Base_Abundance", fill = 0)
+rownames(SpLetterPerPosition) = levels(unlist(pull(SpLetterPerPosition[1])))
+SpLetterPerPosition = ungroup(SpLetterPerPosition) %>% select(-Chr)
+SpLetterPerPosition = mutate_all(SpLetterPerPosition, funs(./sum(SpLetterPerPosition[1])))
+#Ploting
+p <-ggplot(LetterPerPosition, aes(x = Position, y = Base_Abundance, fill = Chr))
+p + geom_bar(stat = 'identity', position = 'fill')
+SpLetterPerPosition = LetterPerPosition %>% spread(Position, Base_Abundance, fill = 0)
+rownames(SpLetterPerPosition) = levels(unlist(pull(SpLetterPerPosition[1])))
+SpLetterPerPosition = ungroup(SpLetterPerPosition) %>% select(-Chr)
+SpLetterPerPosition = mutate_all(SpLetterPerPosition, funs(./sum(SpLetterPerPosition[1])))
+#Ploting
+p <-ggplot(LetterPerPosition, aes(x = Position, y = Base_Abundance, fill = Chr))
+p + geom_bar(stat = 'identity', position = 'fill')
+nchar(VCSeq)
+SeqSize
+count(Tabla)
+TableSize
+source('~/CrisPRAL/GraphicPreprocesing.R')
+source("https://bioconductor.org/biocLite.R")
+biocLite("seqLogo")
+library('seqLogo')
+makePWM(SpLetterPerPosition)
+SpLetterPerPosition = filter(SpLetterPerPosition, -'-')
+SpLetterPerPosition = filter(SpLetterPerPosition, --)
+SpLetterPerPosition = filter(SpLetterPerPosition, -"-")
+SpLetterPerPosition = slice_(SpLetterPerPosition, 2:5)
+View(SpletterPerPosition)
+View(SpLetterPerPosition)
+SpLetterPerPosition = slice_(SpLetterPerPosition, 1)
+SpLetterPerPosition = LetterPerPosition %>% spread(Position, Base_Abundance, fill = 0)
+rownames(SpLetterPerPosition) = levels(unlist(pull(SpLetterPerPosition[1])))
+SpLetterPerPosition = ungroup(SpLetterPerPosition) %>% select(-Chr)
+SpLetterPerPosition = mutate_all(SpLetterPerPosition, funs(./sum(SpLetterPerPosition[1])))
+SpLetterPerPosition = slice_(SpLetterPerPosition, 1)
+View(SpLetterPerPosition)
+View(SpletterPerPosition)
+SpLetterPerPosition = slice_(SpLetterPerPosition, 2:5)
+SpLetterPerPosition = LetterPerPosition %>% spread(Position, Base_Abundance, fill = 0)
+rownames(SpLetterPerPosition) = levels(unlist(pull(SpLetterPerPosition[1])))
+SpLetterPerPosition = ungroup(SpLetterPerPosition) %>% select(-Chr)
+SpLetterPerPosition = mutate_all(SpLetterPerPosition, funs(./sum(SpLetterPerPosition[1])))
+SpLetterPerPosition = slice_(SpLetterPerPosition, 5:2)
+SpLetterPerPosition = LetterPerPosition %>% spread(Position, Base_Abundance, fill = 0)
+rownames(SpLetterPerPosition) = levels(unlist(pull(SpLetterPerPosition[1])))
+SpLetterPerPosition = ungroup(SpLetterPerPosition) %>% select(-Chr)
+SpLetterPerPosition = mutate_all(SpLetterPerPosition, funs(./sum(SpLetterPerPosition[1])))
+SpLetterPerPosition = slice(SpLetterPerPosition, 2:5)
+SpLetterPerPosition = slice_(SpLetterPerPosition, 2,3,4,5)
+SpLetterPerPosition = slice_(SpLetterPerPosition, (2,3,4,5))
+SpLetterPerPosition = slice_(SpLetterPerPosition, (2 3 4 5))
+rownames(SpLetterPerPosition)
+rownames(SpLetterPerPosition) = levels(unlist(pull(SpLetterPerPosition[1])))
+rownames(SpLetterPerPosition) = levels(unlist(pull(SpLetterPerPosition[1])))
+rownames(SpLetterPerPosition)
+levels(unlist(pull(SpLetterPerPosition[1]))
+)
+SpLetterPerPosition = LetterPerPosition %>% spread(Position, Base_Abundance, fill = 0)
+rownames(SpLetterPerPosition) = levels(unlist(pull(SpLetterPerPosition[1])))
+rownames(SpLetterPerPosition)
+levels(unlist(pull(SpLetterPerPosition[1])))
+rownames(SpLetterPerPosition)
+rownames(SpLetterPerPosition) = levels(unlist(pull(SpLetterPerPosition[1])))
+rownames(SpLetterPerPosition)
+SpLetterPerPosition = LetterPerPosition %>% spread(Position, Base_Abundance, fill = 0)
+rownames(SpLetterPerPosition) = levels(unlist(pull(SpLetterPerPosition[1])))
+SpLetterPerPosition = LetterPerPosition %>% spread(Position, Base_Abundance, fill = 0)
+#rownames(SpLetterPerPosition) = levels(unlist(pull(SpLetterPerPosition[1])))
+SpLetterPerPosition = ungroup(SpLetterPerPosition) %>% select(-Chr)
+SpLetterPerPosition = mutate_all(SpLetterPerPosition, funs(./sum(SpLetterPerPosition[1])))
+SpLetterPerPosition
+runApp()
+head(VCSeq)
+length(VCSeq)
+tmp
+Tabla
+LetterPerPosition
+TableSize
+which(351 == nchar(aln@pattern))[[1]]
+aln@pattern[202]
+nchar(aln@pattern)
+VCSeq = as.character(aln@pattern)
+VCIDs = pull(Tabla['ID'])
+SizeList = nchar(aln@pattern)
+TableSize = max(SizeList) #Reject sequences larger than 250 bases \ which(x == v)[[1]]
+inter = 1 #Iterator to index Dump vector and avoid inneficiencies.
+while (TableSize > 250){
+iter = iter + 1
+Dump[1] = TableSize
+SizeList = SizeList[-TableSize]
+TableSize = max(SizeList)
+}
+VCSeq = as.character(aln@pattern)
+VCIDs = pull(Tabla['ID'])
+SizeList = nchar(aln@pattern)
+TableSize = max(SizeList) #Reject sequences larger than 250 bases \ which(x == v)[[1]]
+iter = 1 #Iterator to index Dump vector and avoid inneficiencies.
+while (TableSize > 250){
+iter = iter + 1
+Dump[1] = TableSize
+SizeList = SizeList[-TableSize]
+TableSize = max(SizeList)
+}
+VCSeq = as.character(aln@pattern)
+VCIDs = pull(Tabla['ID'])
+SizeList = nchar(aln@pattern)
+TableSize = max(SizeList) #Reject sequences larger than 250 bases \ which(x == v)[[1]]
+iter = 1 #Iterator to index Dump vector and avoid inneficiencies.
+Dump = list()
+while (TableSize > 250){
+iter = iter + 1
+Dump[1] = TableSize
+SizeList = SizeList[-TableSize]
+TableSize = max(SizeList)
+}
+View(Dump)
+x = (2,3,4,5,6,7)
+x = c(2,3,4,5,6,7)
+VCSeq = as.character(aln@pattern)
+VCIDs = pull(Tabla['ID'])
+SizeList = nchar(aln@pattern)
+TableSize = max(SizeList) #Reject sequences larger than 250 bases \ which(x == v)[[1]]
+iter = 1 #Iterator to index Dump vector and avoid inneficiencies.
+Dump = list()
+while (TableSize > 250){
+iter = iter + 1
+Dump[1] = TableSize
+SizeList = SizeList[-which(TableSize == SizeList)[[1]]]
+TableSize = max(SizeList)
+}
+source('~/CrisPRAL/GraphicPreprocesing.R')
+Dump
+source('~/CrisPRAL/GraphicPreprocesing.R')
+Dump
+unlist(Dump)
+source('~/CrisPRAL/GraphicPreprocesing.R')
+source('~/CrisPRAL/GraphicPreprocesing.R')
+source('~/CrisPRAL/GraphicPreprocesing.R')
+source('~/CrisPRAL/GraphicPreprocesing.R')
+source('~/CrisPRAL/GraphicPreprocesing.R')
+IDsSize
+TableSize
+length(Dump)
+length(VCIDs[-(unlist(Dump)))
+length(VCIDs[-(unlist(Dump))])
+621*TableSize
+TableSize*IDsSize
+VCIDs
+length(VCIDs)
+length(VCIDs[-2])
+length(VCIDs[-c(2,3,4)])
+caca = c(2,3,4)
+length(VCIDs[-caca]
+)
+source('~/CrisPRAL/GraphicPreprocesing.R')
+source('~/CrisPRAL/GraphicPreprocesing.R')
+IDsSize
+Dump = unlist(Dump)
+source('~/CrisPRAL/GraphicPreprocesing.R')
+IDsSize
+TableSize
+length(VCIDs)*TableSize
+(length(VCIDs)-length(Dump))*TableSize
+source('~/CrisPRAL/GraphicPreprocesing.R')
+source('~/CrisPRAL/GraphicPreprocesing.R')
+source('~/CrisPRAL/GraphicPreprocesing.R')
+source('~/CrisPRAL/GraphicPreprocesing.R')
+Dump = unlist(Dump)
+IDsSize = (length(VCIDs)-length(Dump))*TableSize
+LetterPerPosition = data.frame(ID=rep(VCIDs[-Dump],TableSize),
+Position = sort(rep(1:TableSize,length(VCIDs[-Dump]))),
+Chr = substring(VCSeq[-Dump],
+sort(rep(1:TableSize,IDsSize)),
+sort(rep(1:TableSize,IDsSize))))
+)
+source('~/CrisPRAL/GraphicPreprocesing.R')
+rep(c(1 2 3 4))
+source('~/CrisPRAL/GraphicPreprocesing.R')
+source('~/CrisPRAL/GraphicPreprocesing.R')
+View(LetterPerPosition)
+p <-ggplot(LetterPerPosition, aes(x = Position, y = Base_Abundance, fill = Chr))
+p + geom_bar(stat = 'identity', position = 'fill')
+VCSeq = as.character(aln@pattern)
+VCIDs = pull(Tabla['ID'])
+SizeList = nchar(aln@pattern)
+TableSize = max(SizeList) #Reject sequences larger than 250 bases \ which(x == v)[[1]]
+iter = 1 #Iterator to index Dump vector and avoid inneficiencies.
+Dump = list()
+while (TableSize > 250){
+iter = iter + 1
+Dump[iter] = TableSize
+SizeList = SizeList[-which(TableSize == SizeList)[[1]]]
+TableSize = max(SizeList)
+}
+Dump = unlist(Dump)
+IDsSize = (length(VCIDs)-length(Dump))*TableSize
+LetterPerPosition = data.frame(ID=rep(VCIDs[-Dump],TableSize),
+Position = sort(rep(1:TableSize,length(VCIDs[-Dump]))),
+Chr = substring(VCSeq[-Dump],
+sort(rep(1:TableSize,length(VCIDs[-Dump]))),
+sort(rep(1:TableSize,length(VCIDs[-Dump])))))
+LetterPerPosition = LetterPerPosition %>% group_by(Position, Chr) %>% count(Chr)
+LetterPerPosition = LetterPerPosition %>% rename(n = 'Base_Abundance')
+LetterPerPosition = filter(LetterPerPosition, Chr != "")
+SpLetterPerPosition = LetterPerPosition %>% spread(Position, Base_Abundance, fill = 0)
+#rownames(SpLetterPerPosition) = levels(unlist(pull(SpLetterPerPosition[1])))
+SpLetterPerPosition = ungroup(SpLetterPerPosition) %>% select(-Chr)
+SpLetterPerPosition = mutate_all(SpLetterPerPosition, funs(./sum(SpLetterPerPosition[1])))
+#Ploting
+p <-ggplot(LetterPerPosition, aes(x = Position, y = Base_Abundance, fill = Chr))
+p + geom_bar(stat = 'identity', position = 'fill')
+#Logo
+SpLetterPerPosition
