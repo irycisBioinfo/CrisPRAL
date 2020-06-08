@@ -1,0 +1,182 @@
+#!/usr/bin/perl
+
+# qsub -pe smp ${NPROC} -S /bin/bash -V -q secondary -N ${JOB_ID} -o ${STDOUT_FILE} -e ${STDERR_FILE} ${EXTRAS} ${CMD}
+
+use strict;
+use Getopt::Long qw(:config no_ignore_case);
+use Data::Dumper;
+use Cwd qw(cwd);
+
+open LOG, ">>/opt/log/qsub.log";
+print LOG scalar(localtime), "\t", cwd(), "\t", join " ", @ARGV, "\n";
+close LOG;
+
+my $wd = cwd();
+
+$ENV{SGE_ROOT} = "$wd";
+mkdir("qtmp");
+$ENV{SGE_CELL} = "qtmp";
+mkdir("qtmp/common");
+open Z, ">qtmp/common/settings.sh";
+close Z;
+chmod 0755, "qtmp/common/settings.sh";
+
+my %opt;
+
+my $nproc;
+# get rid of weird 2-argument -pe option
+for (my $i=0;$i<@ARGV;++$i) {
+    $_=$ARGV[$i];
+    if (/-pe/) {
+        $opt{pe} = $ARGV[$i+1];
+        $nproc = $ARGV[$i+2];
+        splice @ARGV, $i, 3;
+        last;
+    }
+}
+
+GetOptions(\%opt, "A=s", "S=s", "V", "p=s", "q=s", "N=s", "hold_jid=s", "o=s", "e=s", "I", "j=s", "l=s@", "memory|m=s", "M=s", "v=s@", "sync=s", "cwd", "t=s") || die;
+$nproc = 1 if !$nproc;
+
+die "qsub: some weird option not supported: $ARGV[0]\n" if $ARGV[0] =~ /^-/;
+die "qsub: bad args for -pe\n" unless $nproc > 0;
+die "qsub: no command specified\n" unless @ARGV;
+
+for (@ARGV) {
+	if (/\'/) {
+			s/'/"'"/g;
+	} else {
+		if (/\"/) {
+			if (/\'/) {
+				s/'/"'"/g;
+			}
+			$_="'".$_."'";
+		}
+	}
+}
+
+my $cmd = join " ", @ARGV;
+
+if ($opt{o}) {
+	$cmd = "$cmd > $opt{o}"
+} else {
+	die "qsub: need output file (-o)\n";
+}
+
+
+my @opj;
+
+if ($opt{N}) {
+	@opj = ("-j", "qsub$opt{N}");
+    $opt{e} = "STDIN.e$opt{N}" if !$opt{e};
+    $ENV{SGE_TASK_ID} = $opt{N};
+} else {
+    $ENV{SGE_TASK_ID} = time();
+}
+
+# what does qsub do when no jobid is specified?
+$opt{e} = "STDIN.e" if !$opt{e};
+$cmd = "$cmd 2> $opt{e}";
+
+
+$opt{memory} = 1000 * $nproc; 
+
+if ($opt{hold_jid}) {
+    my $running = `/opt/bin/grun -q jo -f '%jid\t%jobx' | grep '$opt{hold_jid}\$'`;
+	print "/opt/bin/grun -q jo -f '%jid\t%jobx' | grep '$opt{hold_jid}\$'\n";
+	$running =~ s/\s+//g;
+    while ($running) {
+        sleep(30);
+    }
+}
+
+if ($ENV{GRUN_HOSTS}) {
+    push @opj, ("-h", $ENV{GRUN_HOSTS});
+}
+
+my $taskid = -1;
+if ($opt{t}) {
+    my ($l, $h) = $opt{t} =~ /(\d+)-(\d+)/;
+    if (!$l) {
+        $l = 0;
+        $h = $opt{t}-1;
+    }
+    $ENV{SGE_TASK_FIRST} = $l;
+    $ENV{SGE_TASK_LAST} = $h;
+    my @jobl;
+    push @opj, "-nowait";
+    for (my $i = $l; $i<= $h; ++$i) {
+        $ENV{SGE_TASK_ID} = $i;
+        push @jobl, dojob();
+    }
+	print "DEBUG START $opt{N}: jobs @jobl\n";
+    if($opt{sync}) {
+        my $running = 1;
+        while ($running) {
+            sleep(15);
+            my $runl = `/opt/bin/grun -q jo -f '%jid\\n'`;
+            #my $runl = `/opt/bin/grun -q jo`;
+			if (!$runl) {
+				print "DEBUG NO JOBS???? [$?] $opt{N}: ((($runl)))\n";
+				next;
+			}
+            my %runl = map {chomp; $_=>1} $runl;
+			my @runl = %runl;
+            $running = 0;
+            for (@jobl) {
+                #if ($runl{$_}) {
+                if ($runl =~ /$_/) {
+                    $running = 1;
+                }
+            }
+			if (!$running) {
+				print "DEBUG DONE $opt{N}: ((( $runl )))\n";
+			} else {
+		        print "DEBUG WAITING $opt{N}: ( $runl )\n";
+			}
+		}
+        sleep(15);
+    } else {
+        print "DEBUG NOSYNC $opt{N}\n";
+    }
+} else {
+    if(!$opt{sync}) {
+        push @opj, "-nowait";
+    } else {
+        print "DEBUG SYNC 1 JOB $opt{N}\n";
+    }
+    dojob();
+}
+
+sub dojob {
+    my $grun_out;
+    my $tmpf = "/opt/tmp/qsub.$$.out";
+    my $ext = "";
+    if ($taskid >=0 ) {
+        $tmpf = "/opt/tmp/qsub.$$.$taskid.out";
+        $ext = " [$taskid]";
+    }
+    open OLDOUT, ">&STDOUT";
+    open OLDERR, ">&STDERR";
+    open STDOUT, ">$tmpf" or die "Can't open STDOUT: $!";
+    open STDERR, ">&STDOUT";
+    my $ret = system("grun", "-v", "-c", $nproc, "-m", $opt{memory}, @opj, $cmd);
+    open STDOUT, ">&OLDOUT";
+    open STDERR, ">&OLDERR";
+    my %grun;
+    open IN, $tmpf;
+    while(<IN>) {
+        my ($k, $v) = m/([^:]+):?\s*(.*)/;
+        $k =~ s/ /_/g;
+        $grun{lc($k)}=$v;;
+    }
+    close IN;
+    unlink $tmpf;
+    if ($ret == 0) {
+        print "Your job $grun{job_id}$ext \(\"$cmd\"\) has been submitted\n";
+    }
+    if ($opt{sync} && ! -s $opt{e}) {
+        unlink($opt{e});
+    }
+    return $grun{job_id};
+}

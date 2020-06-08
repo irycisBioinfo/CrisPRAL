@@ -1,0 +1,248 @@
+#!/usr/bin/perl
+
+use strict;
+
+use IO::File;
+use Data::Dumper;
+use Getopt::Long qw(:config no_ignorecase);
+
+my $min_seen = 0;
+my $distance = 0;
+my $strip = -1;
+my $usepil;
+my $pilsub;
+my $faidx;
+
+GetOptions("minvar=i"=>\$min_seen, "distance"=>\$distance, "strip!"=>\$strip, "pileup"=>\$usepil, "PSUB=s"=>\$pilsub, "faidx=s"=>\$faidx) || die;
+
+die "use -p for default varcall.txt/pileup.txt conversion\n" if -e $pilsub;
+$pilsub = "varcall.txt/pileup.txt" if $usepil && !$pilsub;
+
+die "Usage: $0 [opts] varcall-files...
+    -m       Minimum number of samples with a variant (1)
+    -d       Output a distance matrix instead (1=het, 2=hom, 3=indel)
+    -p       Use associated pileup info for reference depth, default is varcall.txt -> pileup.txt
+    -s       Strip all path info
+    -f REF   Use reference for sort order (necessary if the original file was not lexically sorted!)
+    -P SUBST Use associated pileup info for reference depth, and define SUBST
+" if !@ARGV;
+
+my @in;  my @pil; my $i = 0;
+
+my %refsort;
+if ($faidx) {
+    $faidx = "$faidx.fai" if $faidx !~ /\.fai$/;
+    open(IN, $faidx) || die "can't read $faidx: $!";
+    my $i = 0;
+    while(<IN>) {
+        my ($id) = split /\t/;
+        $refsort{$id}=++$i;
+    }
+    die unless %refsort;
+}
+
+for (@ARGV) {
+    if (defined $pilsub) {
+        my $pil = $_;
+        my ($from, $to) = split /[\/=]/, $pilsub;
+        die "-PSUB must be from/to: $pilsub\n" unless $to;
+        if ($pil =~ s/$from$/$to/) {
+            if (-s $pil) {
+                open($pil[$i], $pil)||die"open $pil:$!\n";
+            } elsif (-s "$pil.gz") {
+                open($pil[$i], "gunzip -c $pil.gz|")||die"open $pil:$!\n";
+            } else {
+                die "file name $pil does not exist";
+            }
+        } else {
+            die "file name $pil does not match $pilsub";
+        }
+    }
+    open($in[$i++], $_)||die"open $_:$!\n";
+}
+
+# print header
+print "chr\tpos\tref" if !$distance;
+print "chr-pos" if $distance;
+# strip common path info
+my $pre = common_prefix(@ARGV); $pre =~ s/[^\/]+$//; $pre = quotemeta($pre);
+my $suf = common_suffix(@ARGV); $suf =~ s/^[^.]+//; $suf = quotemeta($suf);
+for (my $i = 0; $i < @in; ++$i ){
+    print "\t";
+    my $th = $ARGV[$i];
+    if ($strip == -1) {
+        $th =~ s/^$pre//;
+    } elsif ($strip) {
+        $th =~ s/^.*\///;
+    }
+    $th =~ s/$suf$//;
+    print $th;
+}
+print "\n";
+
+my $ok = 1;
+my @keep;
+my $cnt = 0;
+while ($ok) {
+$ok = 0;
+
+my ($l, @d);
+my ($min_i, $min_id, $min_pos);
+# for each file
+for (my $i = 0; $i < @in; ++$i ) {
+    # read if needed
+    if (!defined($keep[$i])) {
+        $l = $in[$i]->getline; chomp $l;
+        next unless $l;
+        # id, pos, ref, depth, skipped, pct, call1, call2...
+        $d[$i] = [split /\t/, $l];
+    } else {
+        # reuse last rounds read
+        $d[$i] = $keep[$i];
+        next unless $d[$i];
+    }
+    # find the min id
+    $ok = 1;
+    if ( ( $d[$i][0] && !defined($min_id) ) ||
+         ( chrlt($d[$i][0],$min_id) ) || 
+         ( ($d[$i][0] eq $min_id) && ($d[$i][1] < $min_pos) )
+       ) {
+        # minimum id
+        $min_i = $i;
+        $min_id = $d[$i][0];
+        $min_pos = $d[$i][1];
+    }
+}
+
+last if !$ok;
+
+die "Error: no id found: ", Dumper \@d if !$min_id;
+
+my $seen;
+for ($i = 0; $i < @in; ++$i ){
+    if ($d[$i] && ($d[$i][0] eq $min_id && $d[$i][1] eq $min_pos) ) {
+        ++$seen;
+        $keep[$i] = undef;                  # read next
+    } else {
+        $keep[$i] = $d[$i];                 # don't read
+    }
+}
+
+# if you don't see enough in common, skip
+if ($seen < $min_seen) {
+    next;
+}
+
+my @p;
+if (@pil) {
+    # seek all the pileups
+    for ($i = 0; $i < @pil; ++$i ){
+        do {
+            # note: chr, pos, ref, depth, pil
+            $p[$i] = [split /\t/, $pil[$i]->getline];
+        } while (   ( chrlt($p[$i][0], $min_id) ) ||
+                    ( ($p[$i][0] eq $min_id) && ($p[$i][1] < $min_pos) )
+                );
+    }
+}
+
+# print the variant
+my $ref = $d[$min_i][2];
+print "$min_id-$min_pos" if $distance;
+print "$min_id\t$min_pos\t", $ref if !$distance;
+
+for ($i = 0; $i < @in; ++$i ){
+    print "\t";
+    if ($d[$i] && ($d[$i][0] eq $min_id && $d[$i][1] eq $min_pos) ) {
+        # output data
+        # todo support alternate matrix formats
+        my $count = $#{$d[$i]};
+        if ($distance) {
+            for (@{$d[$i]}[6 .. $count]) {
+                $distance = 2;
+                if (uc($ref) eq substr($_,0,1)) {
+                    --$distance;
+                }
+                if (substr($_,0,1) eq '*') {
+                    ++$distance;
+                }
+                if (substr($_,0,1) eq '+') {
+                    ++$distance;
+                }
+            }
+            print $distance;
+        } else {
+            print join ";", sort { substr($b,index($b,':')+1) <=> substr($a,index($a,':')+1) } @{$d[$i]}[6 .. $count];
+        }
+    } else {
+        # output blank, keep read for later
+        if ($distance) {
+            print 0;
+        } else {
+            if ($p[$i] && $p[$i][0] eq $min_id && $p[$i][1] eq $min_pos) {
+                if ($p[$i][2] =~ /^[atgc]$/oi) {
+                    my $depth = $p[$i][4] =~ tr/,.//;
+                    if ($depth < 4) {
+                        print "n/a";
+                    } else {
+                        my $sq = 0;
+                        for(my $j=0;$j<length($p[$i][5]);++$j) {
+                            $sq+=ord(substr($p[$i][5],$j,1))-33;
+                        }
+                        $sq = int($sq/length($p[$i][5]));
+                        print uc($p[$i][2]), ":$depth,$sq";
+                    }
+                } else {
+                    print "n/a";
+                }
+            } else {
+                print "";
+            }
+        }
+    }
+}
+
+print "\n";
+};
+
+
+sub common_suffix {
+    my $comm = shift @_;
+    while ($_ = shift @_) {
+        $_ = substr($_,-length($comm)) if (length($_) > length($comm));
+        $comm = substr($comm,-length($_)) if (length($_) < length($comm));
+        if (( $_ ^ $comm ) =~ /(\0*)$/) {
+            $comm = substr($comm, -length($1));
+        } else {
+            return undef;
+        }
+    }
+    return $comm;
+}
+
+sub common_prefix {
+    my $comm = shift @_;
+    while ($_ = shift @_) {
+        $_ = substr($_,0,length($comm)) if (length($_) > length($comm));
+        $comm = substr($comm,0,length($_)) if (length($_) < length($comm));
+        if (( $_ ^ $comm ) =~ /^(\0*)/) {
+            $comm = substr($comm, 0, length($1));
+        } else {
+            return undef;
+        }
+    }
+    return $comm;
+}
+
+sub chrlt {
+    my ($a, $b) = @_;
+    if ($faidx) {
+        return 0 if $a eq $b;
+        return $refsort{$a} < $refsort{$b};
+    } else {
+        $a =~ tr/:/\0/;
+        $b =~ tr/:/\0/;
+        return $a lt $b;
+    }
+}
+
