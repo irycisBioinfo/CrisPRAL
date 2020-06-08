@@ -3,7 +3,7 @@
 observeEvent(input$Run_Example, {
  
  checks$example <- TRUE
- 
+
  required_files <- c('../basic_Trials/Mutation_mus_R1_001.fastq', '../basic_Trials/Mutation_mus_R2_001.fastq', '../basic_trials/Reference.fasta',
                      '../basic_Trials/Primers.fasta', '../basic_Trials/Adapters-MiSeq.fasta')
  
