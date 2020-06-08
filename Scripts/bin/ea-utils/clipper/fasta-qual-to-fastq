@@ -1,0 +1,54 @@
+#!/usr/bin/perl
+
+use EA;
+
+die "usage: $0 <fasta> <qual>\n" unless @ARGV == 2;
+
+my ($fa, $ql) = @ARGV;
+
+# gz compat open fasta and qual files
+zopen(FA, $fa) || die;
+zopen(QL, $ql) || die;
+
+$fid = <FA>;
+$qid = <QL>;
+
+$fid =~ s/\s+$//;	# win32 compat chomp
+$qid =~ s/\s+$//;
+
+while (1) {
+	$seq = '';
+
+	if (!$fid) {
+		exit 0;
+	}
+
+	while($fline = <FA>) {				# read fasta rec
+		$fline =~ s/\s+$//;
+		if ($fline =~ /^>/) {
+			last;
+		}
+		$seq .= $fline;
+	}
+
+	$qual = '';
+	if (!($qid eq $fid)) {
+		die "Line $. : $qid not equal to $fid\n";
+	}
+
+	while($qline = <QL>) {				# read qual rec
+		$qline =~ s/\s+$//;
+		if ($qline =~ /^>/) {
+			last;
+		}
+		for (split / /, $qline) {
+			$qual .= chr($_+33);		# convert to fq qual
+		}
+	}
+
+	$fid =~ s/^>/@/;					
+	print "$fid\n$seq\n+\n$qual\n";
+
+	$fid = $fline;						# line that stopped rec is id
+	$qid = $qline;
+}
