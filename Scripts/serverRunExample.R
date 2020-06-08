@@ -4,8 +4,8 @@ observeEvent(input$Run_Example, {
  
  checks$example <- TRUE
  
- required_files <- c('../basic_Trials/Mut-1_S1_L001_R1_001.fastq', '../basic_Trials/Mut-1_S1_L001_R2_001.fastq', '../basic_trials/Referencia.fasta',
-                     '../basic_Trials/Primer_sample.fasta', '../basic_Trials/Adapters-MiSeq.fasta')
+ required_files <- c('../basic_Trials/Mutation_mus_R1_001.fastq', '../basic_Trials/Mutation_mus_R2_001.fastq', '../basic_trials/Reference.fasta',
+                     '../basic_Trials/Primers.fasta', '../basic_Trials/Adapters-MiSeq.fasta')
  
  if(!any(file.exists(required_files))){
   
@@ -51,7 +51,7 @@ observeEvent(input$Run_Example, {
   
   command = paste(
    CompletePATH,
-   "/pipeline_v6_min_qual_pipedir.pl --r1 ",
+   "/pipeline_v7.pl --r1 ",
    R1_file(),
    " --r2 ",
    R2_file(),
