@@ -7,33 +7,37 @@ base_append <- base::append
 library( shiny )
 library(readr)
 
-#------Setting up work environment-----
-appPATH = getwd()
-
-if (substring( appPATH, nchar( appPATH )-8, nchar( appPATH )) != 'CrisPRAL' ){
- system( 'find /home/ -name "CrisPRAL" > PATH.txt' )
- 
- file_lines = read_lines( 'PATH.txt' )
- if (length( file_lines ) >= 2){
-  system( paste ('zenity --warning --width 300 --height 100 
-                  --text="More than one directories named -CrisPRAL- have been 
-                  found, make sure there is only one"' ))
-  stopApp()
-  stop()
- }
- 
- appPATH = read_file( 'PATH.txt' )
- system( 'rm PATH.txt' )
- 
- CompletePATH = paste(substring( appPATH, 1, nchar( appPATH )-1 ),"/Scripts", sep = '') # nchar - 1 to remove
- #"/n" due to .txt parsing
- 
- setwd( CompletePATH )
- 
-}else{ CompletePATH = appPATH }
 
 #---------------------------------------
-# CompletePATH2 = dirname(sys.frame(1)$ofile)
+# CompletePATH = dirname(sys.frame(1)$ofile)
+CompletePATH = paste(getwd(), '/Scripts', sep = '') #-Server
+setwd( CompletePATH )
+
+#------Setting up work environment-----
+# appPATH = getwd()
+# 
+# if (substring( appPATH, nchar( appPATH )-8, nchar( appPATH )) != 'CrisPRAL' ){
+#  system( 'find /home/ -name "CrisPRAL" > PATH.txt' )
+#  
+#  file_lines = read_lines( 'PATH.txt' )
+#  if (length( file_lines ) >= 2){
+#   system( paste ('zenity --warning --width 300 --height 100 
+#                   --text="More than one directories named -CrisPRAL- have been 
+#                   found, make sure there is only one"' ))
+#   stopApp()
+#   stop()
+#  }
+#  
+#  appPATH = read_file( 'PATH.txt' )
+#  system( 'rm PATH.txt' )
+#  
+#  CompletePATH = paste(substring( appPATH, 1, nchar( appPATH )-1 ),"/Scripts", sep = '') # nchar - 1 to remove
+#  #"/n" due to .txt parsing
+#  
+#  setwd( CompletePATH )
+#  
+# }else{ CompletePATH = appPATH }
+
 
 #-----------Fast loading data-----------
 # load(paste(CompletePATH, '/Scripts/Init.Rdata', sep = ''))
@@ -73,28 +77,32 @@ options("download.file.method" = "libcurl")
 
 #Bioconductor packages
 Biocpkgs <- c("BiocGenerics", "BiocStyle", "BSgenome", 'Biostrings','msa', 'msaR', "checkmate", "ggdendro",
-          "reshape2", "Rsamtools", "scales", "ShortRead",  "viridis", "viridisLite", "zoo")
+          "reshape2", "Rsamtools", "scales", "ShortRead",  "viridis", "viridisLite", "zoo", "mikelove/fastqcTheoreticalGC", 
+          "ngsReports", "wleepang/shiny-directory-input", 'UofABioinformaticsHub/shinyNgsreports')
+
+# BiocManager::install(Biocpkgs)
 
 for (package in Biocpkgs){
- 
+
  if (lapply(package, require, character.only = TRUE) == FALSE){
-  
+
   lapply(package, BiocManager::install)
   lapply(package, require, character.only = TRUE)
-  
+
  }}
 
-#packages for fastqc analysis module
-gitpkgs <- c('ropensci/plotly', "mikelove/fastqcTheoreticalGC", "UofABioinformaticsHub/ngsReports", 'UofABioinformaticsHub/fastqcRShiny')
+#Github packages
+gitpkgs <- c('ropensci/plotly')
 
 for (package in gitpkgs){
- 
+
+
  if (lapply(str_split(package, pattern = '/')[[1]][2], require, character.only = TRUE) == FALSE){
-  
+
   lapply(paste('https://github.com/', package, ".git", sep = '' ), devtools::install_git)
   # lapply(gitpkgs, devtools::install_github('mikelove/fastqcTheoreticalGC'))
   lapply(str_split(package, pattern = '/')[[1]][2], require, character.only = TRUE)
-  
+
  }}
 
 if ( require( 'tinytex' ) == FALSE ){
@@ -112,7 +120,7 @@ if ( require( 'webshot' ) == FALSE ){
 
 #---Modules_Load----
 
-source( paste( CompletePATH, '/Modules/Functions.R', sep = '' ))
+source( str_c( CompletePATH, '/Modules/Functions.R' ))
 source( paste( CompletePATH, '/Modules/input-reset_module.R', sep = '' ))
 source( paste( CompletePATH, '/Modules/downloadFileModule.R', sep = '' ))
 
