@@ -5,7 +5,7 @@
 library( base )
 base_append <- base::append
 library( shiny )
-library(readr)
+library( readr )
 
 
 #---------------------------------------
@@ -47,13 +47,11 @@ setwd( CompletePATH )
 shinypckgs <- c("shinythemes", "shinyWidgets", "shinydashboard", 'shinyFiles', 'shinyBS', 'shinyjs')
 
 for(package in shinypckgs){
- 
  if (lapply(package, require, character.only = TRUE) == FALSE){
-  
   lapply(package, install.packages, character.only = TRUE)
   lapply(package, require, character.only = TRUE)
-  
-}}
+ }}
+
 #BiocManager for bioconductor package handling
 if (!requireNamespace("BiocManager", quietly=TRUE)){
  install.packages("BiocManager")
@@ -70,7 +68,8 @@ for(package in deppkgs){
   lapply(package, install.packages, character.only = TRUE)
   lapply(package, require, character.only = TRUE)
   
- }}
+ }
+}
 count <- dplyr::count
 #devtools::install_github() bugfix
 options("download.file.method" = "libcurl")
@@ -89,7 +88,8 @@ for (package in Biocpkgs){
   lapply(package, BiocManager::install)
   lapply(package, require, character.only = TRUE)
 
- }}
+ }
+}
 
 #Github packages
 gitpkgs <- c('ropensci/plotly')
@@ -103,7 +103,8 @@ for (package in gitpkgs){
   # lapply(gitpkgs, devtools::install_github('mikelove/fastqcTheoreticalGC'))
   lapply(str_split(package, pattern = '/')[[1]][2], require, character.only = TRUE)
 
- }}
+ }
+}
 
 if ( require( 'tinytex' ) == FALSE ){
  

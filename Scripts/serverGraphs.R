@@ -12,7 +12,7 @@ Check_if_graphs_are_altered <- eventReactive(input$Visualization,{
      fluidRow(column(4, offset = 4,
                      div(style='max-width:150px;max-height:150px;width:3%;height:5%;', 
                          img(src="caution-icon.png", height='150', width='150', align="middle")))),
-     h2(paste("These graphs may not represent anymore the data in Clusterization and Alignment.
+     h2(paste("These graphics may not represent anymore the data in Clusterization and Alignment.
               Reload to ensure both results match.",
               sep = ''), align = 'center'),
      easyClose = TRUE,
@@ -150,42 +150,83 @@ observeEvent(input$GG,{
                                  Abundance = rep(Filtered_Graph_Data$Abundance, TableSize))
   
   LetterPerPosition_Total = LetterPerPosition %>%
-   group_by(Position, Chr, Abundance) %>%
-   count(Chr) %>% filter(Chr != '') %>%
-   transmute(Total = Abundance*n) %>% ungroup() %>%
-   select(-Abundance) %>% group_by(Position, Total)
+                             group_by(Position, Chr, Abundance) %>%
+                             count(Chr) %>% filter(Chr != '') %>%
+                             transmute(Total = Abundance*n) %>% ungroup() %>%
+                             select(-Abundance) %>% group_by(Position, Total)
   
-  LetterPerPosition_Norm = LetterPerPosition_Total %>% 
-   ungroup() %>% group_by(Position) %>% 
-   mutate_at(vars(Total),funs(./sum(Total))) %>% 
-   ungroup(Position) %>% group_by(Chr, Position) %>%
-   mutate_at(vars(Total), funs(sum(Total))) %>% 
-   group_by(Total, Position) %>% distinct(Chr)
+  # Commented out since it looks like legacy code to be removed eventually
   
-  #-Isolating deletions
+  # LetterPerPosition_Norm = LetterPerPosition_Total %>% 
+  #                           ungroup() %>% group_by(Position) %>% 
+  #                           mutate_at(vars(Total),funs(./sum(Total))) %>% 
+  #                           ungroup(Position) %>% group_by(Chr, Position) %>%
+  #                           mutate_at(vars(Total), funs(sum(Total))) %>% 
+  #                           group_by(Total, Position) %>% distinct(Chr)
   
-  incProgress( 1/8 ,detail = 'Deletions')
+  #New and improved LetterPerPosition
+  LetterPerPosition_Norm2 = LetterPerPosition_Total %>% 
+                             ungroup() %>% group_by(Position) %>% 
+                             mutate(Percentage = Total/sum(Total)) %>% 
+                             ungroup(Position) %>% group_by(Chr, Position) %>%
+                             mutate_at(vars(Percentage), funs(sum(Percentage))) %>% 
+                             group_by(Percentage, Position) %>% mutate(Total = sum(Total)) %>%  distinct()
+
+  LetterPerPosition_Ref <- tibble(Position = c(1:length(datos$Ref[[1]])))
+  LetterPerPosition_Ref$Base <- as.character(as.vector(datos$Ref[[1]]))
+  colnames(LetterPerPosition_Ref) <- c('Position','Base')
   
-  Deletions_locations <- LetterPerPosition_Total %>% filter(Chr == '-') %>%
-   group_by(Position) %>%
-   mutate(Total = sum(Total)) %>% ungroup() %>%
-   select(Position, Total) %>% distinct()
+  #For LetterPerPosition_SubChange i want to obtain the accumulated mutation probability for each position.
+  LetterPerPosition_SubChange <- left_join(LetterPerPosition_Norm2, LetterPerPosition_Ref)
   
+  #With alternative consensus the most abundant mutation for each position is extracted.
+  Alternative_Consensus <- LetterPerPosition_SubChange %>% filter(as.character(Chr) != Base) %>% filter(as.character(Chr) != '-') %>% 
+                           group_by(Position) %>% filter(Percentage == max(Percentage))
   
-  # Alternative Deletions_locations using alignment data:
-  # Deletions_locations <- as_tibble(indel(datos$aln)@deletion) %>% arrange(start) %>% group_by(start) %>% count()
+  #Deletions_per_position is useful to plot a line graph in conjuntion with BasePerPosition_info 
+  Deletion_per_position <- left_join(LetterPerPosition_Ref, LetterPerPosition_SubChange %>% filter(as.character(Chr) == '-') %>% 
+                                       select(-Base),by = 'Position') %>% mutate(Chr = '-') %>% 
+                                       mutate(Total = case_when(is.na(Total) ~0, TRUE ~as.double(Total))) %>% 
+                                       mutate(Percentage = case_when(is.na(Percentage) ~ 0, TRUE ~ Percentage))
   
+  #-Insert_per_loci to include insertions in summary plot
   #-Insert locations processing
   
   Insert_data = as.data.frame(indel(datos$aln)@insertion)
   DFGraph_Data <- as.data.frame(Graph_Data)
   Insert_data <- Insert_data %>% 
-   mutate(Count = DFGraph_Data['Abundance'][group,]) %>% 
-   select(start, end, Count)
+    mutate(Count = DFGraph_Data['Abundance'][group,]) %>% 
+    select(start, end, Count)
   Insert_per_loci <- as.data.frame(c(1:max(width(datos$Sequences))))
   colnames(Insert_per_loci) <- c('Position')
   Insert_per_loci <- Unravel_Positions(Insert_per_loci, Insert_data)
   colnames(Insert_per_loci) <- c('Position', 'Total_Count')
+  
+  Insert_per_loci <- Insert_per_loci %>% mutate(Percentage = Total_Count/sum(datos$Tabla$Abundance))
+  #New name to distinguish between purposes (summary plot vs bar chart)
+  Insert_per_position <- left_join(LetterPerPosition_Ref, Insert_per_loci, by = 'Position') %>%
+                          select(-Total_Count)
+  
+  
+  LetterPerPosition_SubChange <- LetterPerPosition_SubChange %>% filter(as.character(Chr) != '-') %>% 
+                                 filter(as.character(Chr) != Base) %>% group_by(Position) %>% mutate(Percentage = sum(Percentage)) %>% 
+                                 select(Position, Base, Percentage) %>% distinct()
+  
+  #Fuse info of LetterPerPosition_SubChange and Alternative_Consensus
+  BasePerPosition_info <- left_join(LetterPerPosition_SubChange, Alternative_Consensus %>% select(-Base, -Total, -Percentage), by = 'Position')
+  BasePerPosition_info <- BasePerPosition_info %>% 
+                          mutate(Chr = case_when(Position == lead(Position) ~ paste(Chr, ',' ,lead(Chr), sep = ''), TRUE ~ as.character(Chr))) %>% 
+                          distinct(Position, .keep_all = TRUE)
+ 
+  incProgress( 1/8 , detail = 'Deletions')
+  
+  # Total_Deletions_locations <- Deletion_per_position %>% select(Position, Total) %>% filter(Total != 0)
+  
+  # Alternative Deletions_locations using alignment data:
+  # Deletions_locations <- as_tibble(indel(datos$aln)@deletion) %>% arrange(start) %>% group_by(start) %>% count()
+  
+  #Plot scale range:
+  range = c(0,max(c(Insert_per_loci$Total_Count, Deletion_per_position$Total))+max(c(Insert_per_loci$Total_Count, Deletion_per_position$Total))*0.02)
   
   #-----------------Plotting--------------------------
   
@@ -194,17 +235,50 @@ observeEvent(input$GG,{
   #-Base Frequency
   
   # colorscheme = c('rgba(255, 77, 77, 0.7)', 'rgba(38, 38, 38, 0.7)', 'rgba(77, 77, 255, 0.7)', 'rgba(128, 255, 128, 0.7)', 'rgba(179, 102, 255, 0.7)')
-  colorscheme = c('red', 'black', 'blue', 'green', 'gray')
-  colorscheme = setNames(colorscheme, c('T', 'G', 'C', 'A', '-'))
+  # colorscheme = c('red', 'black', 'blue', 'green', 'gray')
+  # colorscheme = setNames(colorscheme, c('T', 'G', 'C', 'A', '-'))
+  # 
+
+  MF <- plot_ly(BasePerPosition_info %>% ungroup(), x = ~Position, y = ~Percentage, name = 'Variants',
+                type = 'scatter', mode = 'lines', text = ~paste(Chr,'>',Base, ' at Position: ',Position,sep = ''), 
+                hovertemplate = paste('<i>Most abundant change</i>: %{text}'), line = list(shape = 'spline', color = "royalblue")) %>% 
+        add_trace(xaxis='x2', showlegend = FALSE, opacity = 0) %>%
+        add_trace(xaxis='x3', showlegend = FALSE, opacity = 0) %>%
+        add_trace(xaxis='x4', showlegend = FALSE, line = list(color = "royalblue"),opacity = 0) %>%
+        layout(yaxis = list(range=c(0,1), text='Fraction of variation from reference per position'), 
+               xaxis = list(ticktext = BasePerPosition_info$Base[BasePerPosition_info$Base == 'T'], 
+                            tickvals = BasePerPosition_info$Position[BasePerPosition_info$Base == 'T'] , 
+                            tickmode = "array", 
+                            tickangle = 0,
+                            title = 'Reference',
+                            tickfont=list( color='red' )),
+               xaxis2 = list(ticktext = BasePerPosition_info$Base[BasePerPosition_info$Base == 'G'],
+                             tickvals = BasePerPosition_info$Position[BasePerPosition_info$Base == 'G'],
+                             overlaying='x',
+                             tickmode = "array", 
+                             tickangle = 0,
+                             title = 'Reference',
+                             tickfont=list( color='blue' )),
+               xaxis3 = list(ticktext = BasePerPosition_info$Base[BasePerPosition_info$Base == 'C'],
+                             tickvals = BasePerPosition_info$Position[BasePerPosition_info$Base == 'C'],
+                             overlaying='x',
+                             tickmode = "array", 
+                             tickangle = 0,
+                             title = 'Reference',
+                             tickfont=list( color='black' )),
+               xaxis4 = list(ticktext = BasePerPosition_info$Base[BasePerPosition_info$Base == 'A'],
+                             tickvals = BasePerPosition_info$Position[BasePerPosition_info$Base == 'A'],
+                             overlaying='x',
+                             tickmode = "array", 
+                             tickangle = 0,
+                             title = 'Reference',
+                             tickfont=list( color='green' )))
   
-  #Determinaing the range of xaxis en MF plot
-  min_value = 1
-  max_value = width(datos$Ref@ranges)
+  MF <- MF %>% add_lines(data = Deletion_per_position, x = ~Position, y = ~Percentage, name = 'Deletions' ,line = list(shape = 'spline', color = 'tomato'),
+                         text = ~paste('del','>',Base, ' at Position: ',Position,sep = ''), hovertemplate = paste('<i>Deletion abundance: </i>%{text}'))
+  MF <- MF %>% add_lines(data = Insert_per_position, x = ~Position, y = ~Percentage, name = 'Insertions',line = list(shape = 'spline', color = 'limegreen'),
+                         text = ~paste('ins','>',Base, ' at Position: ',Position,sep = ''), hovertemplate = paste('<i>Insertion abundance: </i>%{text}'))
   
-  MF <- plot_ly(LetterPerPosition_Norm, x = ~Position, y = ~Total, 
-                type = 'bar', name = ~Chr, color= ~Chr , 
-                colors = colorscheme, opacity = rep(0.85, nrow(LetterPerPosition_Norm))) %>%
-   layout(xaxis = list(range = range(min_value, max_value)), yaxis = list(title = 'Count'), barmode = 'stack')
   output$Mut_Freq <- renderPlotly({print(MF)})
   
   # charts$tmpFileMF <- paste(datos$tmppipelinedir, str_sub(tempfile(fileext = '.pdf'), start = 16), sep = '')
@@ -216,10 +290,9 @@ observeEvent(input$GG,{
   
   #-Deletions per loci
   
-  DL <- plot_ly(Deletions_locations, x = ~Position, y = ~Total, 
-                type = 'bar',
-                name = 'Deletions') %>%
-   layout(yaxis = list(title = '# of individual reads'))
+  DL <- plot_ly(Deletion_per_position, x = ~Position, y = ~Total, color = 'red',
+                type = 'bar', name = 'Deletions') %>%
+   layout(yaxis = list(title = '# of individual reads', range = range))
   
   output$Del_loc <- renderPlotly({print(DL)})
   
@@ -246,7 +319,7 @@ observeEvent(input$GG,{
   }else{tick_distance_Del <- 5}
   
   
-  DS = plot_ly(datos$Del_Data, y = ~TotalD, x = ~Deletions, type = 'bar' ) %>%
+  DS = plot_ly(datos$Del_Data, y = ~TotalD, x = ~Deletions, type = 'bar', color = 'red') %>%
    layout(yaxis = list(title = '# of individual reads'),
           xaxis = list(title = 'Size of deletion extension',
                        dtick = tick_distance_Del,
@@ -279,8 +352,8 @@ observeEvent(input$GG,{
   }else{tick_distance_In <- 10}
   
   
-  IS = plot_ly(datos$In_Data, y = ~TotalI, x = ~Insertions, type = 'bar', color = 'rgba(255,0,0,1)') %>%
-   layout(yaxis = list(title = '# of individual reads'),
+  IS = plot_ly(datos$In_Data, y = ~TotalI, x = ~Insertions, type = 'bar') %>%
+   layout(yaxis = list(title = '# of individual reads', range = range),
           xaxis = list(title = 'Size of insertion extension',
                        dtick = tick_distance_In,
                        tick0 = 0))
@@ -298,8 +371,8 @@ observeEvent(input$GG,{
   incProgress(1/8)
   
   IL = plot_ly(Insert_per_loci, y = ~Total_Count, x = ~Position, 
-               type = 'bar', color = 'rgba(255,0,0,1)') %>%
-   layout(yaxis = list(title = '# of individual reads'),
+               type = 'bar') %>%
+   layout(yaxis = list(title = '# of individual reads', range = range),
           xaxis = list(range = c(1, 250)))
   output$In_loc <- renderPlotly({print(IL)})
   
