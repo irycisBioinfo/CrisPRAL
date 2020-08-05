@@ -44,7 +44,7 @@ setwd( CompletePATH )
 #---------------------------------------
 
 #shinyEngineering packages:
-shinypckgs <- c("shinythemes", "shinyWidgets", "shinydashboard", 'shinyFiles', 'shinyBS', 'shinyjs')
+shinypckgs <- c("httpuv","shinythemes", "shinyWidgets", "shinydashboard", 'shinyFiles', 'shinyBS', 'shinyjs')
 
 for(package in shinypckgs){
  if (lapply(package, require, character.only = TRUE) == FALSE){
