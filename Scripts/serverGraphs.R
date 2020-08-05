@@ -199,6 +199,7 @@ observeEvent(input$GG,{
     select(start, end, Count)
   Insert_per_loci <- as.data.frame(c(1:max(width(datos$Sequences))))
   colnames(Insert_per_loci) <- c('Position')
+  browser()
   Insert_per_loci <- Unravel_Positions(Insert_per_loci, Insert_data)
   colnames(Insert_per_loci) <- c('Position', 'Total_Count')
   

@@ -192,6 +192,7 @@ find_target_location <- function(Tabla, TablaT){
  perfectMatches <- perfectMatches %>% arrange(desc(Abundance))
  
  Target_loc <- grep(Tabla$ID, pattern = head(perfectMatches)[1,1])
+ 
  if(is_empty(Target_loc)){Target_loc <- 'NONE'}
  Target_text <- 'Targets found in Clusters:'
  

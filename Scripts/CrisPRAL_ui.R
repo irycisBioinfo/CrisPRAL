@@ -144,6 +144,7 @@ fluidPage(# Application title
    checkboxInput("display_advanced", p(strong("Display advanced options"))),
    conditionalPanel(
     condition = "input.display_advanced == true",
+    wellPanel(checkboxInput("reverse_complement", p(strong("Check for reverse complement sequences of the reference")))),
     conditionalPanel(
      condition = "input.single_end == false",    
      wellPanel(

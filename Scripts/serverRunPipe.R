@@ -75,7 +75,7 @@ observeEvent(input$Accept, {
   
   command = paste(
    CompletePATH,
-   "/pipeline_v7.pl --r1 ",
+   "/pipeline_v7.1.pl --r1 ",
    R1_file(),
    " --r2 ",
    R2_file(),
@@ -176,9 +176,9 @@ observeEvent(input$Accept, {
   
   datos$Tabla_raw = datos$cluster %>%
    group_by(ClusterN) %>%
-   mutate(Abundance = n()) %>%
+   mutate(Abundance = n()*2) %>%
    ungroup() %>%
-   mutate(Freq = 100 *Abundance / n()) %>%
+   mutate(Freq = 100 *Abundance / (n()*2)) %>%
    filter(Identity == "*") %>%
    select(ID, Abundance, Freq) %>%
    arrange(desc(Abundance))
@@ -204,7 +204,7 @@ observeEvent(input$Accept, {
   }else{
    if (!is.null(datos$Tabla)){
     Total_Abundance = sum(datos$Tabla_raw['Abundance'])
-    output$Print2 <- renderText(paste("Total amount of Reads: ", Total_Abundance,                                           '
+    output$Print2 <- renderText(paste("Total amount of Reads: ", Total_Abundance, '
                                       :ERROR: File extension unknown; ', Reference(),'.
                                       Keeping previous results.', sep = ''))
     return()
@@ -296,8 +296,8 @@ observeEvent(input$Accept, {
    
    datos$Tabla_Target = inner_join(datos$Tabla_raw, datos$TablaT_unsort_total_indels) %>% 
     mutate(score = round(score,1), Freq = signif(Freq,2)) %>% 
-    arrange(desc(Abundance)) %>% mutate(Abundance = Abundance*2)
-   
+    arrange(desc(Abundance))
+   browser()
    output$Target_Location <- renderText(paste(Target_location()[2], Target_location()[1], sep = ' '))
    
    rownames(datos$Tabla_Target) <- str_c('Cluster', rownames(datos$Tabla_Target))
@@ -314,6 +314,7 @@ observeEvent(input$Accept, {
    
    output$Target_Location <- renderText(Target())
   }
+  #browser()
  })
 })
 

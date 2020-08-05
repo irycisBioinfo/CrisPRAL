@@ -70,6 +70,7 @@ for(package in deppkgs){
   
  }
 }
+
 count <- dplyr::count
 #devtools::install_github() bugfix
 options("download.file.method" = "libcurl")

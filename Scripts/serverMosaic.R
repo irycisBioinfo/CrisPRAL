@@ -97,6 +97,7 @@ Reference <- reactive({
                as.character(PrimerR1_3()), ' -o ', 
                T_Refence_dir,' ',
                RefAsFasta, sep = '' ))
+  
   return(T_Refence_dir)
  }
  else{
