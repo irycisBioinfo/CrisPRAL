@@ -40,13 +40,13 @@ observeEvent( c( input$tablaR_rows_selected, input$tablaT_rows_selected,
    
    if(input$alnTo == "Reference")
    {
-    datos$aln2 = pairwiseAlignment( datos$Ref, Seq, 
+    datos$aln2 = pairwiseAlignment( datos$Ref, Seq, substitutionMatrix = nucleotideSubstitutionMatrix(match = 5, mismatch = -4),
                                     type = input$alnType, gapOpening=10, 
-                                    gapExtension=5 )
+                                    gapExtension=0.5 )
    }else{
-    datos$aln2 = pairwiseAlignment( datos$Target, Seq, 
+    datos$aln2 = pairwiseAlignment( datos$Target, Seq, substitutionMatrix = nucleotideSubstitutionMatrix(match = 5, mismatch = -4),
                                     type = input$alnType, gapOpening=10, 
-                                    gapExtension=5 )
+                                    gapExtension=0.5 )
    }
    
    comp = character(length( datos$aln2@pattern ))
