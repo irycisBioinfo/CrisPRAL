@@ -296,7 +296,7 @@ observeEvent(input$Accept, {
    
    datos$Tabla_Target = inner_join(datos$Tabla_raw, datos$TablaT_unsort_total_indels) %>% 
     mutate(score = round(score,1), Freq = signif(Freq,2)) %>% 
-    arrange(desc(Abundance))
+    arrange(desc(Abundance)) %>% mutate(Abundance = Abundance*2)
    
    output$Target_Location <- renderText(paste(Target_location()[2], Target_location()[1], sep = ' '))
    
