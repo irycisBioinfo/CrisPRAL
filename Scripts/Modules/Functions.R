@@ -10,21 +10,21 @@ Position_vector <- function(input, ref, primers = TRUE){
   tmp = paste(tmp,collapse = '-')
   # '-' are replaced by blank spaces to avoid representation of ALL position, 
   # just every 10
-  pos1 = str_replace_all(tmp, '-', paste(rep(x = ' ',8), collapse = ''))
+  pos1 = str_replace_all(tmp, '-', paste("   ","|", "    ", sep = '', collapse = ''))
 
   if (v_length > 100 ){ #After position 100 number of spaces must be readjusted 
     #to 7.
     
     tmp = seq(100,1000, 10)
     tmp = paste(tmp,collapse = '-')
-    pos2 = str_replace_all(tmp, '-', paste(rep(x = ' ',7), collapse = ''))
+    pos2 = str_replace_all(tmp, '-', paste("  ","|","    ",sep = '', collapse = ''))
     
     str_sub(pos1, -3) <- '' #Position 100 is repeated by strings pos1 and pos2
     pos = str_c(pos1, pos2)
     
   }else{pos = pos1} #Ref could be lower than 100.
   
-  pos = str_c(c('1        '), pos) #We were missing position 1
+  pos = str_c(c('1   |    '), pos, sep = '') #We were missing position 1
   
   # v_length = lengthFixing( v_length, pos) #Length needs to be adjusted in case 
   #a number is being chopped in half. ex: length(ref)=101
