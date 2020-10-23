@@ -155,8 +155,10 @@ Group_list <- function(data){
 
 Clusters_Alignments <- function(Clust_Seq, Align_Seq){
   
-  aln = pairwiseAlignment(Clust_Seq, Align_Seq, type = "global", gapOpening=10, 
-                          gapExtension=5)
+  aln = pairwiseAlignment(Clust_Seq, Align_Seq, type = "global", 
+                          substitutionMatrix = nucleotideSubstitutionMatrix(match = 5, mismatch = -4),
+                          gapOpening=10, 
+                          gapExtension=0.5)
     tmp = data.frame(
       ID = names(Clust_Seq),
       mismatch = nmismatch(aln),
