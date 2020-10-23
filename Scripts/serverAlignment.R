@@ -49,6 +49,7 @@ observeEvent( c( input$tablaR_rows_selected, input$tablaT_rows_selected,
                                     gapExtension=0.5)
    }
    
+   diff = character(length( datos$aln2@pattern ))
    comp = character(length( datos$aln2@pattern ))
    ref = unlist(strsplit(as.character( datos$aln2@pattern ), 
                          split = "" ))
@@ -59,9 +60,11 @@ observeEvent( c( input$tablaR_rows_selected, input$tablaT_rows_selected,
    {
     if (ref[i] != query[i])
     {
-     comp[i] = query[i]
+     diff[i] = query[i]
+     comp[i] = " "
     } else {
-     comp[i] = "."
+     diff[i] = "."
+     comp[i] = "|"
     }
    }
    
@@ -71,22 +74,24 @@ observeEvent( c( input$tablaR_rows_selected, input$tablaT_rows_selected,
    if (!is.null(tabla_rows_selected()))
    {
     datos$text = as.data.frame(c(
-     #Not working well enough, fails sometimes
+
      paste(pos, sep = '', collapse = ''), 
      paste(ref, sep = "", collapse = ""),
+     paste(comp, sep = "", collapse = ""),
      paste(query, sep = "", collapse = ""),
-     paste(comp, sep = "", collapse = "")
+     paste(diff, sep = "", collapse = "")
+
     ))
     
     if(input$alnTo == "Reference")
     {
-     rownames(datos$text) = c("Position", "Reference", 
+     rownames(datos$text) = c("Position", "Reference", "Comparisson",
                               datos$Tabla$ID[tabla_rows_selected()], 
-                              "Comparisson")
+                              "Difference")
     }else{
-     rownames(datos$text) = c("Position", "Target", 
+     rownames(datos$text) = c("Position", "Target", "Comparisson",
                               datos$Tabla$ID[tabla_rows_selected()], 
-                              "Comparisson")
+                              "Difference")
     }
     
     colnames(datos$text) = c("Alignment")
