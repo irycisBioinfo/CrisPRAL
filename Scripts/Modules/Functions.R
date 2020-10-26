@@ -1,30 +1,65 @@
-
+###################
+# DESCRIPTION:
+#
+# This script stores different multiporpouse functions required
+# by different scripts. A function is declared here if the extension of it
+# is larger than 5 code lines or if it serves multiple scripts.
+#
+# Functions:
+#
+# Position_vector() - used in serverAlignment.R
+# 
+# lengthFixing() - used in Position_vector()
+#
+# InDel_Extraction() - used in serverGraphs.R
+#
+# InDel_Sizes() - used in InDel_Extraction()
+#
+# Unzip_file() - used in multiple scripts
+#
+# Unravel_Positions() - used in serverGraphs.R
+#
+# find_target_location() - used in serverMosaic.R
+#
+# Group_list() - used in serverGraphs.R
+#
+# Clusters_Alignments() - used in serverAlignment.R
+#
+# file.dir() - used in serverMosaic.R and others
+#
+###################
 
 Position_vector <- function(input, ref, primers = TRUE){
-  #Generates suitable positioning vector (1 10 20...etc) based upon a reference 
-  #sequence provided.
+  
+  ##################
+  # Description:
+  #
+  # Generates suitable positioning vector (1 10 20...etc) based upon a reference 
+  # sequence provided.
+  #
+  ##################
   
   v_length = nchar(input)
   
   tmp = seq(10,100, 10)
   tmp = paste(tmp,collapse = '-')
-  # '-' are replaced by blank spaces to avoid representation of ALL position, 
+  # '-' are replaced by blank spaces to avoid representation of ALL positions, 
   # just every 10
-  pos1 = str_replace_all(tmp, '-', paste(rep(x = ' ',8), collapse = ''))
-
+  pos1 = str_replace_all(tmp, '-', paste("   ","|", "    ", sep = '', collapse = ''))
+  
   if (v_length > 100 ){ #After position 100 number of spaces must be readjusted 
     #to 7.
     
     tmp = seq(100,1000, 10)
     tmp = paste(tmp,collapse = '-')
-    pos2 = str_replace_all(tmp, '-', paste(rep(x = ' ',7), collapse = ''))
+    pos2 = str_replace_all(tmp, '-', paste("  ","|","    ",sep = '', collapse = ''))
     
     str_sub(pos1, -3) <- '' #Position 100 is repeated by strings pos1 and pos2
     pos = str_c(pos1, pos2)
     
   }else{pos = pos1} #Ref could be lower than 100.
   
-  pos = str_c(c('1        '), pos) #We were missing position 1
+  pos = str_c(c('1   |    '), pos, sep = '') #We were missing position 1
   
   # v_length = lengthFixing( v_length, pos) #Length needs to be adjusted in case 
   #a number is being chopped in half. ex: length(ref)=101
@@ -35,35 +70,40 @@ Position_vector <- function(input, ref, primers = TRUE){
   #inserts with respect to ref.
   
   loc <- which( ref %in% '-')
-
+  
   for ( i in loc ){
     pos <- unlist(strsplit(pos, split = ''))
     counter = i
     if (pos[counter] != ' '){
       if (pos[counter-1] == ' '){
-       
-       pos <- base::append( pos, ' ', after = counter -1) #Why counter -1? lets try to remove it
-       pos[ length( pos )] <- ''
-       
+        
+        pos <- base::append( pos, ' ', after = counter -1) #Why counter -1? lets try to remove it
+        pos[ length( pos )] <- ''
+        
       }else{
-       
+        
         while ( pos[counter] != ' '){ #-To prevent the splitting of whole numbers.
-         counter <- counter + 1
-         
+          counter <- counter + 1
+          
         }
-       }
+      }
     }else{
-     
-     pos <- base::append( pos, ' ', after = counter -1) #Why counter -1? lets try to remove it
-     pos[ length( pos )] <- ''
-     
+      
+      pos <- base::append( pos, ' ', after = counter -1) #Why counter -1? lets try to remove it
+      pos[ length( pos )] <- ''
+      
     }
-}
+  }
   return(pos)
 }
 
 lengthFixing <- function(v_length, pos){
- #Helper function for Position_vector()
+  #############
+  # Description:
+  #
+  # Helper function for Position_vector()
+  #
+  #############
  
   if (str_sub(pos, v_length, v_length) != ' '){
     v_length = v_length+1
@@ -110,7 +150,13 @@ InDel_Sizes <- function(Abundance, InDel_Sizes){
 }
 
 Unzip_file <- function(PATH, fileGZ_path){
-  #Decompresses .gz files and return new file path as string.
+  
+  ##############
+  # Description:
+  #
+  # Decompresses .gz files and return new file path as string.
+  #
+  ##############
   
   system(paste(PATH, '/bin/gunzip -k ', fileGZ_path, sep = '')) #decompresses 
   #file and prevents compressed file deletion
@@ -176,7 +222,12 @@ Clusters_Alignments <- function(Clust_Seq, Align_Seq){
 }
 
 file.dir <- function(file_datapath){
- #Splits and keeps the directory of a string containing a directory & a file
+  ##########
+  # Description:
+  #
+  # Splits and keeps the directory of a string containing a directory & a file
+  ##########
+  
  str_sub(file_datapath, start = 1, end = nchar(file_datapath)-(nchar(str_split(file_datapath, pattern = '/')[[1]][length(str_split(file_datapath, pattern = '/')[[1]])])+1))
  
 }

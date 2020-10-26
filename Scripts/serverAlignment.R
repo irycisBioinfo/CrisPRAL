@@ -49,6 +49,7 @@ observeEvent( c( input$tablaR_rows_selected, input$tablaT_rows_selected,
                                     gapExtension=0.5 )
    }
    
+   diff = character(length( datos$aln2@pattern ))
    comp = character(length( datos$aln2@pattern ))
    ref = unlist(strsplit(as.character( datos$aln2@pattern ), 
                          split = "" ))
@@ -57,12 +58,14 @@ observeEvent( c( input$tablaR_rows_selected, input$tablaT_rows_selected,
    
    for (i in 1:length( ref ))
    {
-    if (ref[i] != query[i])
-    {
-     comp[i] = query[i]
-    } else {
-     comp[i] = "."
-    }
+     if (ref[i] != query[i])
+     {
+       diff[i] = query[i]
+       comp[i] = " "
+     } else {
+       diff[i] = "."
+       comp[i] = "|"
+     }
    }
    
    pos <- Position_vector(as.character(datos$aln2@pattern), 
@@ -70,13 +73,15 @@ observeEvent( c( input$tablaR_rows_selected, input$tablaT_rows_selected,
    
    if (!is.null(tabla_rows_selected()))
    {
-    datos$text = as.data.frame(c(
-     #Not working well enough, fails sometimes
-     paste(pos, sep = '', collapse = ''), 
-     paste(ref, sep = "", collapse = ""),
-     paste(query, sep = "", collapse = ""),
-     paste(comp, sep = "", collapse = "")
-    ))
+     datos$text = as.data.frame(c(
+       
+       paste(pos, sep = '', collapse = ''), 
+       paste(ref, sep = "", collapse = ""),
+       paste(comp, sep = "", collapse = ""),
+       paste(query, sep = "", collapse = ""),
+       paste(diff, sep = "", collapse = "")
+       
+     ))
     
     if(input$alnTo == "Reference")
     {
