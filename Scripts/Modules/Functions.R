@@ -23,7 +23,7 @@
 #
 # Group_list() - used in serverGraphs.R
 #
-# Clusters_Alignments() - used in serverAlignment.R
+# Clusters_Alignments() - used in serverRunPipe.R
 #
 # file.dir() - used in serverMosaic.R and others
 #
@@ -199,9 +199,9 @@ Group_list <- function(data){
   return(Groups)
 }
 
-Clusters_Alignments <- function(Clust_Seq, Align_Seq){
+Clusters_Alignments <- function(Clust_Seq, Align_Seq, type = "global"){
   
-  aln = pairwiseAlignment(Clust_Seq, Align_Seq, type = "global", 
+  aln = pairwiseAlignment(Clust_Seq, Align_Seq, type = type, 
                           substitutionMatrix = nucleotideSubstitutionMatrix(match = 5, mismatch = -4),
                           gapOpening=10, 
                           gapExtension=5)
