@@ -9,7 +9,7 @@
 use Getopt::Long;
 use Cwd 'abs_path';
 $PATH = abs_path($0);
-$PATH =~ s/\/pipeline_v7.1.pl//;
+$PATH =~ s/\/pipeline_vUMI.pl//;
 
 @Options = (
 		
