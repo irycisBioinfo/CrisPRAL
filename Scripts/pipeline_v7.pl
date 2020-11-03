@@ -63,7 +63,7 @@ if ($single_end eq "FALSE"){
 	} else {
 		system("echo -Paired-end Adapter filtering");
 
-		system("$PATH/bin/cutadapt/cutadapt -j 0 -a $Adapter_R1 -A $Adapter_R2 -n 2 -e 0.2 -o $tmpdir/R1_filteredA.fastq -p $tmpdir/R2_filteredA.fastq $r1 $r2");
+		system("cutadapt -j 0 -a $Adapter_R1 -A $Adapter_R2 -n 2 -e 0.2 -o $tmpdir/R1_filteredA.fastq -p $tmpdir/R2_filteredA.fastq $r1 $r2");
 
 		system("$PATH/bin/prinseq/prinseq-lite.pl -fastq $tmpdir/R1_filteredA.fastq -trim_left $trimA1 -out_good $tmpdir/goodA_R1");
 		system("$PATH/bin/prinseq/prinseq-lite.pl -fastq $tmpdir/R2_filteredA.fastq -trim_left $trimA2 -out_good $tmpdir/goodA_R2");
@@ -81,7 +81,7 @@ if ($single_end eq "FALSE"){
 	} else {
 		system("echo -Paired-end primer filtering");
 
-		system("$PATH/bin/cutadapt/cutadapt -j 0 -m 10 -g $F_Primer1 -a $F_Primer2 -G $R_Primer1 -A $R_Primer2 -n 2 -o $tmpdir/R1_filteredP.fastq -p $tmpdir/R2_filteredP.fastq $tmpdir/goodA_R1.fastq $tmpdir/goodA_R2.fastq");
+		system("cutadapt -j 0 -m 10 -g $F_Primer1 -a $F_Primer2 -G $R_Primer1 -A $R_Primer2 -n 2 -o $tmpdir/R1_filteredP.fastq -p $tmpdir/R2_filteredP.fastq $tmpdir/goodA_R1.fastq $tmpdir/goodA_R2.fastq");
 
 		system("$PATH/bin/prinseq/prinseq-lite.pl -fastq $tmpdir/R1_filteredP.fastq -trim_left $trimP1 -trim_right $trimP2 -out_good $tmpdir/good_R1");
 		system("$PATH/bin/prinseq/prinseq-lite.pl -fastq $tmpdir/R2_filteredP.fastq -trim_left $trimP2 -trim_right $trimP1 -out_good $tmpdir/good_R2");
@@ -106,7 +106,7 @@ if ($Adapter_R1 eq 'Empty') {
 } else {
 	system("echo -Single-end Adapter filtering");
 
-	system("$PATH/bin/cutadapt/cutadapt -j 0 -a $Adapter_R1 -n 2 -o $tmpdir/R1_filteredA.fastq $r1");
+	system("cutadapt -j 0 -a $Adapter_R1 -n 2 -o $tmpdir/R1_filteredA.fastq $r1");
 
 	system("$PATH/bin/prinseq/prinseq-lite.pl -fastq R1_filteredA.fastq -trim_left $trimA1 -out_good $tmpdir/goodA_R1");
 	print("\nDone\n");
@@ -122,7 +122,7 @@ if ($F_Primer1 eq 'Empty') {
 
 	} else {
 	system("echo -Single-end primer filtering");
-	system("$PATH/bin/cutadapt/cutadapt -j 0 -m 10 -g $F_Primer1 -a $F_Primer2 -n 2 -o $tmpdir/R1_filteredP.fastq $tmpdir/goodA_R1.fastq");
+	system("cutadapt -j 0 -m 10 -g $F_Primer1 -a $F_Primer2 -n 2 -o $tmpdir/R1_filteredP.fastq $tmpdir/goodA_R1.fastq");
 	system("$PATH/bin/prinseq/prinseq-lite.pl -fastq $tmpdir/R1_filteredP.fastq -trim_left $trimP1 -trim_right $trimP2 -out_good $tmpdir/good_R1");
 	print("\nDone\n");
 
