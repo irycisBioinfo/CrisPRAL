@@ -23,7 +23,7 @@ observeEvent( c( input$tablaR_rows_selected, input$tablaT_rows_selected,
                   
   req( input$tablaR_rows_selected != datos$prev_selected_row || input$alnType != datos$prev_alnType || input$alnTo != datos$prev_alnTo)
   
-  withProgress( message = "Performing analisis", {
+  #withProgress( message = "Performing analisis", {
    
    req( datos$Tabla )
    req( tabla_rows_selected( ) )
@@ -85,13 +85,13 @@ observeEvent( c( input$tablaR_rows_selected, input$tablaT_rows_selected,
     
     if(input$alnTo == "Reference")
     {
-     rownames(datos$text) = c("Position", "Reference", 
-                              datos$Tabla$ID[tabla_rows_selected()], 
-                              "Comparisson")
+     rownames(datos$text) = c("Position", "Reference", "Comparisson",
+                               datos$Tabla$ID[tabla_rows_selected()], 
+                               "Difference")
     }else{
-     rownames(datos$text) = c("Position", "Target", 
+     rownames(datos$text) = c("Position", "Target", "Comparisson",
                               datos$Tabla$ID[tabla_rows_selected()], 
-                              "Comparisson")
+                              "Difference")
     }
     
     colnames(datos$text) = c("Alignment")
@@ -177,5 +177,5 @@ observeEvent( c( input$tablaR_rows_selected, input$tablaT_rows_selected,
    
    output$unalignedFASTA <- renderText(as.character(
     datos$namedSequences[tabla_rows_selected(),]$Sequence))
-  })
+  #})
   })
