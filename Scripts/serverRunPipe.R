@@ -75,7 +75,7 @@ observeEvent(input$Accept, {
   
   command = paste(
    CompletePATH,
-   "/pipeline_v7.pl --r1 ",
+   "/pipeline_vUMI.pl --r1 ",
    R1_file(),
    " --r2 ",
    R2_file(),
