@@ -96,9 +96,7 @@ if ($single_end eq "FALSE"){#Paired-End Section:
 
 	}
 
-system("$PATH/bin/prinseq/prinseq-lite.pl -fastq $tmpdir/good_R1.fastq -fastq2 $tmpdir/good_R2.fastq -min_len $minLen -min_qual_mean 0
-
- -out_good $tmpdir/good_filtered -out_bad $tmpdir/bad");
+system("$PATH/bin/prinseq/prinseq-lite.pl -fastq $tmpdir/good_R1.fastq -fastq2 $tmpdir/good_R2.fastq -min_len $minLen -min_qual_mean 30 -out_good $tmpdir/good_filtered -out_bad $tmpdir/bad");
 
 system("$PATH/bin/ea-utils/clipper/fastq-join -p $Np -m $Nm -o $tmpdir/joined $tmpdir/good_filtered_1.fastq $tmpdir/good_filtered_2.fastq ");
 
