@@ -144,7 +144,14 @@ fluidPage(# Application title
    checkboxInput("display_advanced", p(strong("Display advanced options"))),
    conditionalPanel(
     condition = "input.display_advanced == true",
-    wellPanel(checkboxInput("reverse_complement", p(strong("Check for reverse complement sequences of the reference")))),
+    wellPanel(checkboxInput(inputId = "reverse_complement", value = TRUE,
+                            p(strong("Check for reverse complement sequences of the reference"))),
+              conditionalPanel(condition = "input.reverse_complement == true", 
+                               numericInput(inputId = 'primer_error_rate', 
+                                            value = 0.15,
+                                            label = "Primer error tolerance",
+                                            min = 0,
+                                            max = 1))),
     conditionalPanel(
      condition = "input.single_end == false",    
      wellPanel(
