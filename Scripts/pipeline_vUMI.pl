@@ -31,6 +31,7 @@ $PATH =~ s/\/pipeline_vUMI.pl//;
 		{OPT=>"Nm=s", VAR=>\$Nm, DEFAULT => "10" ,DESC=>"N-minimum overlap (nucleotides)"},
 		{OPT=>"cov=s", VAR=>\$cov, DEFAULT =>"0.8" ,DESC=>"Coverage (clustering) (0-1)"},
 		{OPT=>"id=s", VAR=>\$id, DEFAULT =>"1" ,DESC=>"Identity (clustering) (0-1)"},
+		{OPT=>"primer-error-rate=s", VAR=>\$primererrorrate, DEFAULT =>"0.15" ,DESC=>"cutadapt primer error rate"},
 		{OPT=>"tmpdir=s", VAR=>\$tmpdir, DEFAULT =>"." ,DESC=>"Determines tmp dir where data will be stored with an unique id for every user using the app"}
 		
 	);
@@ -86,8 +87,8 @@ if ($single_end eq "FALSE"){#Paired-End Section:
 	} else {
 		system("echo -Paired-end primer filtering");
 
-		system("cutadapt --revcomp -j 0 -g $F_Primer1 -a $F_Primer2 -n 1 -o $tmpdir/R1_filteredP.fastq $tmpdir/goodA_R1.fastq");
-		system("cutadapt --revcomp -j 0 -g $R_Primer1 -a $R_Primer2 -n 1 -o $tmpdir/R2_filteredP.fastq $tmpdir/goodA_R2.fastq");
+		system("cutadapt --revcomp -e $primererrorrate -j 0 -g $F_Primer1 -a $F_Primer2 -n 2 -o $tmpdir/R1_filteredP.fastq $tmpdir/goodA_R1.fastq");
+		system("cutadapt --revcomp -e $primererrorrate -j 0 -g $R_Primer1 -a $R_Primer2 -n 2 -o $tmpdir/R2_filteredP.fastq $tmpdir/goodA_R2.fastq");
 
 		system("$PATH/bin/prinseq/prinseq-lite.pl -fastq $tmpdir/R1_filteredP.fastq -trim_left $trimP1 -trim_right $trimP2 -out_good $tmpdir/good_R1");
 		system("$PATH/bin/prinseq/prinseq-lite.pl -fastq $tmpdir/R2_filteredP.fastq -trim_left $trimP2 -trim_right $trimP1 -out_good $tmpdir/good_R2");
@@ -95,7 +96,7 @@ if ($single_end eq "FALSE"){#Paired-End Section:
 
 	}
 
-system("$PATH/bin/prinseq/prinseq-lite.pl -fastq $tmpdir/good_R1.fastq -fastq2 $tmpdir/good_R2.fastq -min_len $minLen -min_qual_mean 30 -out_good $tmpdir/good_filtered -out_bad $tmpdir/bad");
+system("$PATH/bin/prinseq/prinseq-lite.pl -fastq $tmpdir/good_R1.fastq -fastq2 $tmpdir/good_R2.fastq -min_len $minLen -min_qual_mean 20 -out_good $tmpdir/good_filtered -out_bad $tmpdir/bad");
 
 system("$PATH/bin/ea-utils/clipper/fastq-join -p $Np -m $Nm -o $tmpdir/joined $tmpdir/good_filtered_1.fastq $tmpdir/good_filtered_2.fastq ");
 
