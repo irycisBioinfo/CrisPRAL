@@ -27,8 +27,8 @@ $PATH =~ s/\/pipeline_vUMI.pl//;
 		{OPT=>"R_Primer1=s", VAR=>\$R_Primer1, DEFAULT => "",DESC=>"1st Reverse Primer trimming by sequence"},
 		{OPT=>"R_Primer2=s", VAR=>\$R_Primer2, DEFAULT => "",DESC=>"2nd Reverse Primer trimming by sequence"},
 		{OPT=>"min_len=s", VAR=>\$minLen, DEFAULT => "100" ,DESC=>"Minimun length for filtering"},
-		{OPT=>"Np=s", VAR=>\$Np, DEFAULT => "8" ,DESC=>"N-percent maximum difference"},
-		{OPT=>"Nm=s", VAR=>\$Nm, DEFAULT => "6" ,DESC=>"N-minimum overlap (nucleotides)"},
+		{OPT=>"Np=s", VAR=>\$Np, DEFAULT => "1" ,DESC=>"N-percent maximum difference"},
+		{OPT=>"Nm=s", VAR=>\$Nm, DEFAULT => "10" ,DESC=>"N-minimum overlap (nucleotides)"},
 		{OPT=>"cov=s", VAR=>\$cov, DEFAULT =>"0.8" ,DESC=>"Coverage (clustering) (0-1)"},
 		{OPT=>"id=s", VAR=>\$id, DEFAULT =>"1" ,DESC=>"Identity (clustering) (0-1)"},
 		{OPT=>"tmpdir=s", VAR=>\$tmpdir, DEFAULT =>"." ,DESC=>"Determines tmp dir where data will be stored with an unique id for every user using the app"}
@@ -60,7 +60,6 @@ $rCluster = s/.fastq/.cluster/;
 if ($single_end eq "FALSE"){#Paired-End Section:
 
 	if ($Adapter_R1 eq 'Empty') {
-
 		system("echo -Paired-end Adapter trimming");
 		system("$PATH/bin/prinseq/prinseq-lite.pl -fastq $r1 -trim_left $trimA1 -out_good $tmpdir/goodA_R1");
 		system("$PATH/bin/prinseq/prinseq-lite.pl -fastq $r2 -trim_left $trimA2 -out_good $tmpdir/goodA_R2");
@@ -87,8 +86,8 @@ if ($single_end eq "FALSE"){#Paired-End Section:
 	} else {
 		system("echo -Paired-end primer filtering");
 
-		system("cutadapt --revcomp -j 0 -g $F_Primer1 -a $F_Primer2 -n 5 -o $tmpdir/R1_filteredP.fastq $tmpdir/goodA_R1.fastq");
-		system("cutadapt --revcomp -j 0 -g $R_Primer1 -a $R_Primer2 -n 5 -o $tmpdir/R2_filteredP.fastq $tmpdir/goodA_R2.fastq");
+		system("cutadapt --revcomp -j 0 -g $F_Primer1 -a $F_Primer2 -n 1 -o $tmpdir/R1_filteredP.fastq $tmpdir/goodA_R1.fastq");
+		system("cutadapt --revcomp -j 0 -g $R_Primer1 -a $R_Primer2 -n 1 -o $tmpdir/R2_filteredP.fastq $tmpdir/goodA_R2.fastq");
 
 		system("$PATH/bin/prinseq/prinseq-lite.pl -fastq $tmpdir/R1_filteredP.fastq -trim_left $trimP1 -trim_right $trimP2 -out_good $tmpdir/good_R1");
 		system("$PATH/bin/prinseq/prinseq-lite.pl -fastq $tmpdir/R2_filteredP.fastq -trim_left $trimP2 -trim_right $trimP1 -out_good $tmpdir/good_R2");
