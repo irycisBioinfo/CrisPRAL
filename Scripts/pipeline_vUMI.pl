@@ -1,7 +1,7 @@
 #!/usr/bin/perl
 
 #Applying changes:
-## Made cutadapt search for adapters up to 5 times.
+## Made cutadapt search for adapters up to 5 times. - why? -> changed it back to 2.
 ## Made cutadapt look for reverse complement of reads to avoid rc contamination.
 ## Use single-end mode for paired end reads to allow for --revcomp option.
 ## Removed minimun length filtering of cutadapt to prevent de-synchronisation in single-end filtering of paired files.

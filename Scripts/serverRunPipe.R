@@ -4,6 +4,11 @@
 
 #----Running Pipeline----
 
+pipeline <- reactive({if(input$reverse_complement){
+  return("/pipeline_vUMI.pl --r1 ")
+  }else{return("/pipeline_v8.pl --r1")}
+  })
+
 observeEvent(input$Accept, {
  
  checks$example <- FALSE
@@ -75,7 +80,7 @@ observeEvent(input$Accept, {
   
   command = paste(
    CompletePATH,
-   "/pipeline_vUMI.pl --r1 ",
+   as.character(pipeline()),
    R1_file(),
    " --r2 ",
    R2_file(),
@@ -111,6 +116,8 @@ observeEvent(input$Accept, {
    input$cov,
    " --id ",
    input$identity,
+   " --primer-error-rate ",
+   input$primer_error_rate,
    " --tmpdir ",
    as.character(datos$tmppipelinedir),
    collapse = "",
@@ -266,7 +273,7 @@ observeEvent(input$Accept, {
    incProgress( 1/8 ,detail = 'Looking for Target')
    datos$Target = readDNAStringSet(Target())
    
-   #Alignment for Sequences with Reference
+   #Alignment for Sequences with Target
    ls_ClusterAln_Tar = Clusters_Alignments(datos$Sequences, datos$Target) #Function in Functions.R module.
    #Another Tabla variable is declared as an unsorted version together with
    #an associated Abundance for INDEL processing in graphing section.
@@ -297,7 +304,6 @@ observeEvent(input$Accept, {
    datos$Tabla_Target = inner_join(datos$Tabla_raw, datos$TablaT_unsort_total_indels) %>% 
     mutate(score = round(score,1), Freq = signif(Freq,2)) %>% 
     arrange(desc(Abundance))
-   browser()
    output$Target_Location <- renderText(paste(Target_location()[2], Target_location()[1], sep = ' '))
    
    rownames(datos$Tabla_Target) <- str_c('Cluster', rownames(datos$Tabla_Target))
