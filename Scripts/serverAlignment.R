@@ -40,20 +40,20 @@ observeEvent( c( input$tablaR_rows_selected, input$tablaT_rows_selected,
    
    if(input$alnTo == "Reference")
    {
-    datos$aln2 = pairwiseAlignment( datos$Ref, Seq, substitutionMatrix = nucleotideSubstitutionMatrix(match = 5, mismatch = -4),
+    datos$aln2 = pairwiseAlignment( Seq, datos$Ref, substitutionMatrix = nucleotideSubstitutionMatrix(match = 5, mismatch = -4),
                                     type = input$alnType, gapOpening=10, 
                                     gapExtension=0.5 )
    }else{
-    datos$aln2 = pairwiseAlignment( datos$Target, Seq, substitutionMatrix = nucleotideSubstitutionMatrix(match = 5, mismatch = -4),
+    datos$aln2 = pairwiseAlignment( Seq, datos$Target, substitutionMatrix = nucleotideSubstitutionMatrix(match = 5, mismatch = -4),
                                     type = input$alnType, gapOpening=10, 
                                     gapExtension=0.5 )
    }
    
    diff = character(length( datos$aln2@pattern ))
    comp = character(length( datos$aln2@pattern ))
-   ref = unlist(strsplit(as.character( datos$aln2@pattern ), 
+   ref = unlist(strsplit(as.character( datos$aln2@subject ), 
                          split = "" ))
-   query = unlist(strsplit(as.character( datos$aln2@subject ), 
+   query = unlist(strsplit(as.character( datos$aln2@pattern ), 
                            split = "" ))
    
    for (i in 1:length( ref ))
@@ -68,7 +68,7 @@ observeEvent( c( input$tablaR_rows_selected, input$tablaT_rows_selected,
      }
    }
    
-   pos <- Position_vector(as.character(datos$aln2@pattern), 
+   pos <- Position_vector(as.character(datos$aln2@subject), 
                           ref) #Generates positioning vector
    
    if (!is.null(tabla_rows_selected()))
