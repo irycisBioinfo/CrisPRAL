@@ -107,9 +107,10 @@ observeEvent(input$GG,{
   
   incProgress( 1/8 ,detail = 'Mutation Frequency') #User feedback
   
-  #Extracting Sequences, identificators, sizes
-  VCSeq = list(as.character(datos$aln@pattern))
+  #Extracting Sequences, identificators, sizes and score.
+  VCSeq = list(as.character(datos$aln))
   VCIDs = select(datos$Tabla_unsort, ID, score)
+  # This is the size of the read, not the size of the alignment
   SizeList = list(nchar(datos$aln@pattern))
   
   #Bind identificator with sequence and size as to not lose them when we 
@@ -123,6 +124,7 @@ observeEvent(input$GG,{
   #Name the tables
   colnames(Graph_Data) = c('ID', 'Size', 'Sequence', 'Abundance')
   
+  # Does this make sense?
   #Leave enough margin in order to correct for coverage lax
   Filtered_Graph_Data = filter(Graph_Data, Size < width(datos$Ref)*(1.5))
   Dump = filter(Graph_Data, Size > width(datos$Ref)*(1.5))
@@ -169,7 +171,7 @@ observeEvent(input$GG,{
                              ungroup() %>% group_by(Position) %>% 
                              mutate(Percentage = Total/sum(Total)) %>% 
                              ungroup(Position) %>% group_by(Chr, Position) %>%
-                             mutate_at(vars(Percentage), funs(sum(Percentage))) %>% 
+                             mutate_at(vars(Percentage), list(~sum(Percentage))) %>% 
                              group_by(Percentage, Position) %>% mutate(Total = sum(Total)) %>%  distinct()
 
   LetterPerPosition_Ref <- tibble(Position = c(1:length(datos$Ref[[1]])))
@@ -180,7 +182,8 @@ observeEvent(input$GG,{
   LetterPerPosition_SubChange <- left_join(LetterPerPosition_Norm2, LetterPerPosition_Ref)
   
   #With alternative consensus the most abundant mutation for each position is extracted.
-  Alternative_Consensus <- LetterPerPosition_SubChange %>% filter(as.character(Chr) != Base) %>% filter(as.character(Chr) != '-') %>% 
+  Alternative_Consensus <- LetterPerPosition_SubChange %>% filter(as.character(Chr) != Base) %>% 
+                           #filter(as.character(Chr) != '-') %>% 
                            group_by(Position) %>% filter(Percentage == max(Percentage))
   
   #Deletions_per_position is useful to plot a line graph in conjuntion with BasePerPosition_info 
@@ -215,6 +218,7 @@ observeEvent(input$GG,{
   
   #Fuse info of LetterPerPosition_SubChange and Alternative_Consensus
   BasePerPosition_info <- left_join(LetterPerPosition_SubChange, Alternative_Consensus %>% select(-Base, -Total, -Percentage), by = 'Position')
+  # I'm unsure about the purpose of this line, is it to combine positions with different entries?
   BasePerPosition_info <- BasePerPosition_info %>% 
                           mutate(Chr = case_when(Position == lead(Position) ~ paste(Chr, ',' ,lead(Chr), sep = ''), TRUE ~ as.character(Chr))) %>% 
                           distinct(Position, .keep_all = TRUE)
