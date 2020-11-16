@@ -1,12 +1,15 @@
 # Server-Mosaic
+
+########################### DESCRIPTION ##################################
 # Loads script for pipeline execution with the stablished parameters and
 # loads the main Tables of results. Also defines code to allow user edits on table.
+##########################################################################
 
 #----Running Pipeline----
 
 pipeline <- reactive({if(input$reverse_complement){
   return("/pipeline_vUMI.pl --r1 ")
-  }else{return("/pipeline_v8.pl --r1")}
+  }else{return("/pipeline_v7.pl --r1 ")}
   })
 
 observeEvent(input$Accept, {
@@ -248,9 +251,10 @@ observeEvent(input$Accept, {
   
   datos$Tabla_unsort_total_indels <- cbind(datos$Tabla_unsort %>% select(-Deleted_bps, -Inserted_bps), total_deletions_per_cluster, datos$Tabla_unsort %>% select(Deleted_bps), total_insertions_per_cluster, datos$Tabla_unsort %>% select(Inserted_bps))
   
+  # datos$Tabla is DONE with this last line:
   datos$Tabla = inner_join(datos$Tabla_raw, datos$Tabla_unsort_total_indels) %>% 
    mutate(score = round(score,1), Freq = signif(Freq,2)) %>% 
-   arrange(desc(Abundance))
+   arrange(desc(Abundance)) %>% select(-width,-start,-end)
   
   rownames(datos$Tabla) <- str_c('Cluster', rownames(datos$Tabla))
   
@@ -301,9 +305,10 @@ observeEvent(input$Accept, {
                                              datos$TablaT_unsort %>% 
                                               select(Deleted_bps, Inserted_bps))
    
+   #datos$Tabla_Target is DONE with this last line:
    datos$Tabla_Target = inner_join(datos$Tabla_raw, datos$TablaT_unsort_total_indels) %>% 
     mutate(score = round(score,1), Freq = signif(Freq,2)) %>% 
-    arrange(desc(Abundance))
+    arrange(desc(Abundance)) %>% select(-width,-start,-end)
    output$Target_Location <- renderText(paste(Target_location()[2], Target_location()[1], sep = ' '))
    
    rownames(datos$Tabla_Target) <- str_c('Cluster', rownames(datos$Tabla_Target))
