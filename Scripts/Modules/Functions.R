@@ -7,6 +7,8 @@
 #
 # Functions:
 #
+# Start_gaps_size() - used in serverAlignment.R
+#
 # Position_vector() - used in serverAlignment.R
 # 
 # lengthFixing() - used in Position_vector()
@@ -29,7 +31,37 @@
 #
 ###################
 
-Position_vector <- function(input, ref, primers = TRUE){
+Start_gaps_size <- function(string){
+  
+  ##################
+  # Description:
+  #
+  # Returns the size of the gaps introduced in the start of an alignment
+  # represented by dashes.
+  #
+  # Examples:
+  # Start_gaps_size('-----seqstart--seqend') = 5
+  # Start_gaps_size('-----seq') = 5
+  # Start_gaps_size('seqstart----seqend') = 0
+  #
+  ##################
+  
+  dash_distribution <- grep(string[[1]], pattern = '-')
+  gap_end <- c()
+  if(1 %in% dash_distribution){
+    for(i in c(1:(length(dash_distribution)-1))){
+      if(dash_distribution[i+1] != dash_distribution[i]+1){
+        gap_end <- i
+        break
+      }
+    }
+  }else{gap_end <- 0}
+  if(is.null(gap_end)){gap_end <- length(dash_distribution)}
+  return(gap_end)
+  
+}
+
+Position_vector <- function(input, ref){
   
   ##################
   # Description:
@@ -199,12 +231,12 @@ Group_list <- function(data){
   return(Groups)
 }
 
-Clusters_Alignments <- function(Clust_Seq, Align_Seq){
+Clusters_Alignments <- function(Clust_Seq, Align_Seq, gapOpening = 10, gapExtension = 0.5 ){
   
   aln = pairwiseAlignment(Clust_Seq, Align_Seq, type = "global", 
                           substitutionMatrix = nucleotideSubstitutionMatrix(match = 5, mismatch = -4),
-                          gapOpening=10, 
-                          gapExtension=5)
+                          gapOpening=gapOpening, 
+                          gapExtension=gapExtension)
     tmp = data.frame(
       ID = names(Clust_Seq),
       mismatch = nmismatch(aln),
