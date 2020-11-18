@@ -98,7 +98,7 @@ kable(add_column( params$table[ Cluster, ], Cluster, .before = 'ID' ),
 
 ```{r , echo=FALSE, results = 'asis' }
 
-subtitle <- "###Distribution of main groups:"
+subtitle <- "### Distribution of main groups:"
 if (!is.null( params$chartPie )){
 
 cat(sprintf( subtitle ))
@@ -115,7 +115,7 @@ include_graphics(params$chartPie)
 
 ```{r , echo=FALSE, results = 'asis' }
 
-subtitle <- "###Mutation Frequencies:"
+subtitle <- "### Mutation Frequencies:"
 if (!is.null(params$chartDS) || !is.null(params$chartDL)){
 
 cat(sprintf(subtitle))
@@ -134,7 +134,7 @@ if (!is.null(params$chartMF)){
 
 ```{r , echo=FALSE, results = 'asis' }
 
-subtitle <- "###Deletions:"
+subtitle <- "### Deletions:"
 if (!is.null(params$chartDS) || !is.null(params$chartDL)){
 
 cat(sprintf(subtitle))
@@ -157,7 +157,7 @@ if (!is.null(params$chartDL)){
 
 ```{r , echo=FALSE, results = 'asis' }
 
-subtitle <- "###Insertions:"
+subtitle <- "### Insertions:"
 if (!is.null(params$chartIS) || !is.null(params$chartIL)){
 
 cat(sprintf(subtitle))
