@@ -1,5 +1,8 @@
-#All For One main server - Combines all mosaic script analyser and Lazy panel filtering.
+#All For One main server
 
+############################### DESCRIPTION ##############################
+#Combines all mosaic script analyser and Lazy panel filtering.
+##########################################################################
 serverMain <- function(input, output, session) {
  #Uncomment for app to stop when session if closed:
  
