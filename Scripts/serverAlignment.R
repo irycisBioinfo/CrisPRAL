@@ -41,22 +41,29 @@ observeEvent( c( input$tablaR_rows_selected, input$tablaT_rows_selected,
    if(input$alnTo == "Reference")
    {
     datos$aln2 = pairwiseAlignment( Seq, datos$Ref, substitutionMatrix = nucleotideSubstitutionMatrix(match = 5, mismatch = -4),
-                                    type = input$alnType, gapOpening=10, 
-                                    gapExtension=0.5 )
+                                    type = input$alnType, gapOpening=input$gap_open, 
+                                    gapExtension=input$gap_extend )
    }else{
     datos$aln2 = pairwiseAlignment( Seq, datos$Target, substitutionMatrix = nucleotideSubstitutionMatrix(match = 5, mismatch = -4),
-                                    type = input$alnType, gapOpening=10, 
-                                    gapExtension=0.5 )
+                                    type = input$alnType, gapOpening=input$gap_open, 
+                                    gapExtension=input$gap_extend )
    }
    
    diff = character(length( datos$aln2@pattern ))
    comp = character(length( datos$aln2@pattern ))
-   ref = unlist(strsplit(as.character( datos$aln2@subject ), 
-                         split = "" ))
-   query = unlist(strsplit(as.character( datos$aln2@pattern ), 
-                           split = "" ))
    
-   for (i in 1:length( ref ))
+   
+   aligned_query <- as.character( datos$aln2@pattern )
+   missing_query <- paste(rep(c('-'),start(subject(datos$aln2))-1),collapse = '')
+   query <- strsplit(str_c(missing_query, aligned_query),'')[[1]]
+   
+   # ref has an issue when obtaining the sequence form the biostrings alignment
+   # object, and that is that it ignores the leading gaps if there are any.
+   aligned_ref <- as.character( datos$aln2@subject )
+   missing_ref <- str_sub(as.character(datos$Ref), start = 1, end =start(subject(datos$aln2))-1)
+   ref = strsplit(str_c(missing_ref, aligned_ref),'')[[1]]
+   
+   for(i in 1:length( ref ))
    {
      if (ref[i] != query[i])
      {
@@ -68,8 +75,7 @@ observeEvent( c( input$tablaR_rows_selected, input$tablaT_rows_selected,
      }
    }
    
-   pos <- Position_vector(as.character(datos$aln2@subject), 
-                          ref) #Generates positioning vector
+   pos <- Position_vector(paste(query, collapse = ''), paste(ref, collapse = '')) #Generates positioning vector
    
    if (!is.null(tabla_rows_selected()))
    {
