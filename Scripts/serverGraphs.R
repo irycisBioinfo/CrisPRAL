@@ -93,13 +93,12 @@ observeEvent(input$GG,{
   
   
   # charts$tmpFilePie <- tempfile(fileext = '.png')
-  # export(PC_pdf, charts$tmpFilePie) #Debian-webshot error
   
   charts$tmpFilePiehtml <- paste(datos$tmppipelinedir, str_sub(tempfile(fileext = '.html'), start = 16), sep = '')
   charts$tmpFilePiepng <- paste(datos$tmppipelinedir, str_sub(tempfile(fileext = '.png'), start = 16), sep = '')
   tmpFilePiepng <- charts$tmpFilePiepng
   htmlwidgets::saveWidget(PC_pdf, paste(CompletePATH,'/', charts$tmpFilePiehtml, sep = ''))
-  webshot::webshot(charts$tmpFilePiehtml, charts$tmpFilePiepng)
+  webshot2::webshot(charts$tmpFilePiehtml, charts$tmpFilePiepng)
   
   output$Pie_summary <- renderPlotly({Edit_Pie_chart()})
   
@@ -291,7 +290,7 @@ observeEvent(input$GG,{
   charts$tmpFileMFpng <- paste(datos$tmppipelinedir, str_sub(tempfile(fileext = '.png'), start = 16), sep = '')
   tmpFileMFpng <- charts$tmpFileMFpng
   htmlwidgets::saveWidget(MF, paste(CompletePATH,'/', charts$tmpFileMFhtml, sep = ''))
-  webshot::webshot(charts$tmpFileMFhtml, charts$tmpFileMFpng)
+  webshot2::webshot(charts$tmpFileMFhtml, charts$tmpFileMFpng)
   
   #-Deletions per loci
   
@@ -307,7 +306,7 @@ observeEvent(input$GG,{
   charts$tmpFileDLpng <- paste(datos$tmppipelinedir, str_sub(tempfile(fileext = '.png'), start = 16), sep = '')
   tmpFileDLpng <- charts$tmpFileDLpng
   htmlwidgets::saveWidget(DL, paste(CompletePATH,'/', charts$tmpFileDLhtml, sep = ''))
-  webshot::webshot(charts$tmpFileDLhtml, charts$tmpFileDLpng)
+  webshot2::webshot(charts$tmpFileDLhtml, charts$tmpFileDLpng)
   
   #-Deletion Sizes
   
@@ -337,7 +336,7 @@ observeEvent(input$GG,{
   charts$tmpFileDSpng <- paste(datos$tmppipelinedir, str_sub(tempfile(fileext = '.png'), start = 16), sep = '')
   tmpFileDSpng <- charts$tmpFileDSpng
   htmlwidgets::saveWidget(DS, paste(CompletePATH,'/', charts$tmpFileDShtml, sep = ''))
-  webshot::webshot(charts$tmpFileDShtml, charts$tmpFileDSpng)
+  webshot2::webshot(charts$tmpFileDShtml, charts$tmpFileDSpng)
   
   incProgress( 1/8, detail = 'Insertions')
   
@@ -370,7 +369,7 @@ observeEvent(input$GG,{
   charts$tmpFileISpng <- paste(datos$tmppipelinedir, str_sub(tempfile(fileext = '.png'), start = 16), sep = '')
   tmpFileISpng <- charts$tmpFileISpng
   htmlwidgets::saveWidget(IS, paste(CompletePATH,'/', charts$tmpFileIShtml, sep = ''))
-  webshot::webshot(charts$tmpFileIShtml, charts$tmpFileISpng)
+  webshot2::webshot(charts$tmpFileIShtml, charts$tmpFileISpng)
   
   #-Insertion per Loci
   incProgress(1/8)
@@ -387,9 +386,7 @@ observeEvent(input$GG,{
   charts$tmpFileILpng <- paste(datos$tmppipelinedir, str_sub(tempfile(fileext = '.png'), start = 16), sep = '')
   tmpFileILpng <- charts$tmpFileILpng
   htmlwidgets::saveWidget(IL, paste(CompletePATH,'/', charts$tmpFileILhtml, sep = ''))
-  webshot::webshot(charts$tmpFileILhtml, charts$tmpFileILpng)
-  
-  #- Dumped count
+  webshot2::webshot(charts$tmpFileILhtml, charts$tmpFileILpng)
   
   output$Dump = renderText(paste('Filter Clusters due to excesive sequence size (>1.5*Reference Sequence length): ',
                                  as.character(count(Dump)),sep = ''))
