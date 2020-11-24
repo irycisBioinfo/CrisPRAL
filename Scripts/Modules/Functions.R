@@ -334,16 +334,6 @@ Clusters_Alignments <- function(Clust_Seq, Align_Seq, gapOpening = 10, gapExtens
 
 file.dir <- function(file_datapath){
 
-  ##########
-  # Description:
-  #
-  # Splits and keeps the directory of a string containing a directory & a file
-  ##########
-  
-  str_sub(file_datapath, start = 1, end = nchar(file_datapath)-(nchar(str_split(file_datapath, pattern = '/')[[1]][length(str_split(file_datapath, pattern = '/')[[1]])])+1))
-  
-}
-
   ###############################
   # Description:
   #
