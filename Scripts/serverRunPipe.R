@@ -79,7 +79,7 @@ observeEvent(input$Accept, {
   
   datos$tmppipelinedir <- paste(session$token, '/data', str_sub(tempfile(), start = 21) ,sep = '')
   
-  system(paste('mkdir',datos$tmppipelinedir, sep = ' '))
+  dir.create(datos$tmppipelinedir)
   
   command = paste(
    CompletePATH,
@@ -127,7 +127,7 @@ observeEvent(input$Accept, {
    sep = ""
   )
   
-  system(command)#-Executes perl script
+  system(command) #-Executes perl script
   
   incProgress( 1/5 ,detail = 'Alignments')
   
@@ -229,7 +229,10 @@ observeEvent(input$Accept, {
   datos$Sequences <- readDNAStringSet(paste(datos$tmppipelinedir,"/cluster", sep = ''))
   
   #Alignment for Sequences with Reference
-  ls_ClusterAln_Ref = Clusters_Alignments(datos$Sequences, datos$Ref) #Function in Functions.R module.
+  ls_ClusterAln_Ref = Clusters_Alignments(datos$Sequences, datos$Ref, 
+                                          gapOpening = input$gap_open, 
+                                          gapExtension = input$gap_extend,
+                                          type = input$general_allType) #Function in Functions.R module.
   #Another Tabla variable is declared as an unsorted version together with
   #an associated Abundance for INDEL processing in graphing section.
   datos$Tabla_unsort <- ls_ClusterAln_Ref$tmp %>% rename(Deleted_bps = deletions) %>% rename(Inserted_bps = insertions)
