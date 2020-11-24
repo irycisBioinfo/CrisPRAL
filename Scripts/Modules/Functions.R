@@ -343,16 +343,16 @@ file.dir <- function(file_datapath){
  
 }
 
-find_target_location <- function(Tabla, TablaT){
+find_target_location <- function(Tabla, TablaT, Target){
   
   # ######################################
   # Description:
   #
-  # 
+  # Finds the target sequence using score, mismatches, indels and coverage.
   #
   # ######################################
  
- perfectMatches <- filter(TablaT, mismatch == 0, Deletions == 0, Insertions == 0)
+ perfectMatches <- filter(TablaT, mismatch == 0, Deletions == 0, Insertions == 0, length == nchar(Target))
  if(nrow(perfectMatches) == 0){
 
  Target_loc <- "Target exact match not found"
