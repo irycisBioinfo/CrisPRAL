@@ -23,7 +23,7 @@ observeEvent(input$toggle2, {
 # ))})
 
 #-Compartimentalization line-
-system(paste('mkdir', session$token, sep = ' '))
+dir.create(session$token)
 
 rows_selected <- reactive({ if( length(input$tablaD_rows_selected ) != 0 ){ 
  return(input$tablaD_rows_selected )
@@ -388,7 +388,8 @@ output$alignment_with_filtering <- renderUI({
           selectInput(
            "alnType",
            "Alignment method",
-           c("global", "local", "overlap", "global-local", "local-global")
+           c("global", "local", "overlap", "global-local", "local-global"), 
+           selected = input$general_allType,
           ),
           uiOutput('is.nullTarget1'),
           verbatimTextOutput('Print2'),
