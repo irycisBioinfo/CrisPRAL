@@ -48,23 +48,16 @@ observeEvent( c( input$tablaR_rows_selected, input$tablaT_rows_selected,
                                     type = input$alnType, gapOpening=input$gap_open, 
                                     gapExtension=input$gap_extend )
    }
+
+   alignment = Fix_gaps(datos$aln2, Seq, datos$Ref)
+   query <- alignment$query[[1]]
+   ref <- alignment$ref[[1]] 
    
-   diff = character(length( datos$aln2@pattern ))
-   comp = character(length( datos$aln2@pattern ))
    
+   diff = character(length( query ))
+   comp = character(length( query ))
    
-   aligned_query <- as.character( datos$aln2@pattern )
-   missing_query <- paste(rep(c('-'),start(subject(datos$aln2))-1),collapse = '')
-   query <- strsplit(str_c(missing_query, aligned_query),'')[[1]]
-   
-   # ref has an issue when obtaining the sequence form the biostrings alignment
-   # object, and that is that it ignores the leading gaps if there are any.
-   aligned_ref <- as.character( datos$aln2@subject )
-   missing_ref <- str_sub(as.character(datos$Ref), start = 1, end =start(subject(datos$aln2))-1)
-   ref = strsplit(str_c(missing_ref, aligned_ref),'')[[1]]
-   
-   for(i in 1:length( ref ))
-   {
+   for(i in c(1:length( ref ))){
      if (ref[i] != query[i])
      {
        diff[i] = query[i]
@@ -75,31 +68,36 @@ observeEvent( c( input$tablaR_rows_selected, input$tablaT_rows_selected,
      }
    }
    
-   pos <- Position_vector(paste(query, collapse = ''), paste(ref, collapse = '')) #Generates positioning vector
+   pos <- Position_vector(paste(query, collapse = ''), paste(ref, collapse = ''), datos$aln2) #Generates positioning vector from strings.
+   
+   # writePairwiseAlignments(datos$aln2, "tmp.pair")
+   # alignment <- grep(read_lines("tmp.pair", skip_empty_rows = TRUE), pattern = '^#', invert = TRUE, value = TRUE)
    
    if (!is.null(tabla_rows_selected()))
    {
      datos$text = as.data.frame(c(
        
-       paste(pos, sep = '', collapse = ''), 
+       paste(pos, sep = '', collapse = ''),
        paste(ref, sep = "", collapse = ""),
        paste(comp, sep = "", collapse = ""),
        paste(query, sep = "", collapse = ""),
        paste(diff, sep = "", collapse = "")
+        
+        # paste(alignment, sep = '')
        
      ))
     
     if(input$alnTo == "Reference")
     {
      rownames(datos$text) = c("Position", "Reference", "Comparisson",
-                               datos$Tabla$ID[tabla_rows_selected()], 
+                               datos$Tabla$ID[tabla_rows_selected()],
                                "Difference")
     }else{
      rownames(datos$text) = c("Position", "Target", "Comparisson",
-                              datos$Tabla$ID[tabla_rows_selected()], 
+                              datos$Tabla$ID[tabla_rows_selected()],
                               "Difference")
     }
-    
+
     colnames(datos$text) = c("Alignment")
     output$alignment = renderPrint(alignment())
     output$score = renderText(
