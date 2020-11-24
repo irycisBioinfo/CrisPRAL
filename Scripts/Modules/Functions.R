@@ -7,6 +7,8 @@
 #
 # Functions:
 #
+# Start_gaps_size() - used in serverAlignment.R
+#
 # Position_vector() - used in serverAlignment.R
 # 
 # lengthFixing() - used in Position_vector()
@@ -29,22 +31,125 @@
 #
 ###################
 
-Position_vector <- function(input, ref, primers = TRUE){
+Start_gaps_size <- function(string){
   
   ##################
+  # Description:
+  #
+  # Returns the size of the gaps introduced in the start of an alignment
+  # represented by dashes.
+  #
+  # Examples:
+  # Start_gaps_size('-----seqstart--seqend') = 5
+  # Start_gaps_size('-----seq') = 5
+  # Start_gaps_size('seqstart----seqend') = 0
+  #
+  ##################
+  
+  dash_distribution <- grep(string[[1]], pattern = '-')
+  gap_end <- c()
+  if(1 %in% dash_distribution){
+    for(i in c(1:(length(dash_distribution)-1))){
+      if(dash_distribution[i+1] != dash_distribution[i]+1){
+        gap_end <- i
+        break
+      }
+    }
+  }else{gap_end <- 0}
+  if(is.null(gap_end)){gap_end <- length(dash_distribution)}
+  return(gap_end)
+  
+}
+
+Fix_gaps <- function(aln, pattern, subject){
+  
+  ##################
+  # Description:
+  #
+  # Introduce leading and trailing gaps on alignments of class "PairwiseAlignmentsSingleSubject"
+  # From Biostrings.
+  #
+  ##################
+  
+  query <- as.character(aln@pattern)
+  ref <- as.character(aln@subject)
+  
+  # adding the leading gaps:
+  
+  if(start(aln@subject) != 1 | start(aln@pattern) != 1){
+    if(start(aln@subject) > start(aln@pattern)){
+      
+      aligned_query <- as.character( aln@pattern )
+      missing_query <- paste(rep(c('-'),start(subject(aln))-1),collapse = '')
+      query = str_c(missing_query, aligned_query, collapse = '')
+      
+      aligned_ref <- as.character( aln@subject )
+      missing_ref <- str_sub(as.character(subject), start = 1, end =start(subject(aln))-1)
+      ref = str_c(missing_ref, aligned_ref, collapse = '')
+      
+    }else if(start(aln@subject) < start(aln@pattern)){
+        
+      aligned_ref <- as.character( aln@subject )
+      missing_ref <- paste(rep(c('-'),start(pattern(aln))-1),collapse = '')
+      ref = str_c(missing_ref, aligned_ref, collapse = '')
+      
+      aligned_query <- as.character( aln@pattern )
+      missing_query <- str_sub(as.character(pattern), start = 1, end =start(pattern(aln))-1)
+      query = str_c(missing_query, aligned_query, collapse = '')
+      
+    }
+  }
+  
+  # adding the trailing gaps:
+  
+  missing_trails <- c(nchar(pattern)-end(aln@pattern), nchar(subject)-end(aln@subject))
+  
+  if(any(missing_trails != 0)){
+    if(missing_trails[1] < missing_trails[2]){
+
+      aligned_query <- query
+      missing_query <- paste(rep(c('-'),missing_trails[2]),collapse = '')
+      query <- str_c(aligned_query, missing_query, collapse = '')
+      
+      aligned_ref <- ref
+      missing_ref <- str_sub(as.character(subject), start = end(subject(aln))+1, end = nchar(subject))
+      ref = str_c(aligned_ref, missing_ref, collapse = '')
+      
+    }else if(missing_trails[1] > missing_trails[2]){
+      
+      aligned_ref <- ref
+      missing_ref <- paste(rep(c('-'),missing_trails[1]),collapse = '')
+      ref <- str_c(aligned_ref, missing_ref, collapse = '')
+      
+      aligned_query <- query
+      missing_query <- str_sub(as.character(pattern), start = end(pattern(aln))+1, end = nchar(pattern))
+      query = str_c(aligned_query, missing_query, collapse = '')
+      
+    }
+  }
+  final_query <- strsplit(query, '')
+  final_ref <- strsplit(ref, '')
+  
+  return(list('query' = final_query,'ref' = final_ref))
+
+}
+
+Position_vector <- function(input, ref, aln){
+  
+  # #################
   # Description:
   #
   # Generates suitable positioning vector (1 10 20...etc) based upon a reference 
   # sequence provided.
   #
-  ##################
-  
+  # #################
+
   v_length = nchar(input)
   
   tmp = seq(10,100, 10)
   tmp = paste(tmp,collapse = '-')
   # '-' are replaced by blank spaces to avoid representation of ALL positions, 
-  # just every 10
+  # just every 10 - '|' is printed every 5 positions.
   pos1 = str_replace_all(tmp, '-', paste("   ","|", "    ", sep = '', collapse = ''))
   
   if (v_length > 100 ){ #After position 100 number of spaces must be readjusted 
@@ -60,6 +165,12 @@ Position_vector <- function(input, ref, primers = TRUE){
   }else{pos = pos1} #Ref could be lower than 100.
   
   pos = str_c(c('1   |    '), pos, sep = '') #We were missing position 1
+  
+  # If there is a leading sequence of '-' (gaps) we must NOT have these into 
+  # account when printing position 1.
+  
+  lead_dashes <- paste(rep(c(' '),start(aln@pattern)-1), collapse = '')
+  pos <- str_c(lead_dashes, pos, collapse = '')
   
   # v_length = lengthFixing( v_length, pos) #Length needs to be adjusted in case 
   #a number is being chopped in half. ex: length(ref)=101
@@ -104,7 +215,7 @@ lengthFixing <- function(v_length, pos){
   # Helper function for Position_vector()
   #
   #############
-  
+
   if (str_sub(pos, v_length, v_length) != ' '){
     v_length = v_length+1
     return(lengthFixing(v_length, pos))
@@ -199,22 +310,22 @@ Group_list <- function(data){
   return(Groups)
 }
 
-Clusters_Alignments <- function(Clust_Seq, Align_Seq){
+Clusters_Alignments <- function(Clust_Seq, Align_Seq, gapOpening = 10, gapExtension = 0.5, type = "overlap" ){
   
-  aln = pairwiseAlignment(Clust_Seq, Align_Seq, type = "global", 
+  aln = pairwiseAlignment(Clust_Seq, Align_Seq, type = type, 
                           substitutionMatrix = nucleotideSubstitutionMatrix(match = 5, mismatch = -4),
-                          gapOpening=10, 
-                          gapExtension=5)
-  tmp = data.frame(
-    ID = names(Clust_Seq),
-    mismatch = nmismatch(aln),
-    length = nchar(aln),
-    score = score(aln),
-    width = width(pattern(aln)),
-    start = start(pattern(aln)),
-    end = end(pattern(aln)),
-    deletions = nindel(aln)@deletion[, 2],
-    insertions = nindel(aln)@insertion[, 2]
+                          gapOpening=gapOpening, 
+                          gapExtension=gapExtension)
+    tmp = data.frame(
+      ID = names(Clust_Seq),
+      mismatch = nmismatch(aln),
+      length = nchar(aln),
+      score = score(aln),
+      width = width(pattern(aln)),
+      start = start(subject(aln)),
+      end = end(subject(aln)),
+      deletions = nindel(aln)@deletion[, 2],
+      insertions = nindel(aln)@insertion[, 2]
   )
   tmp = tmp %>% separate(ID, c("ID","kk"), sep =" ") %>% select(-kk)
   
@@ -222,6 +333,7 @@ Clusters_Alignments <- function(Clust_Seq, Align_Seq){
 }
 
 file.dir <- function(file_datapath){
+
   ##########
   # Description:
   #
@@ -232,32 +344,49 @@ file.dir <- function(file_datapath){
   
 }
 
-find_target_location <- function(Tabla, TablaT){
+  ###############################
+  # Description:
+  #
+  # Splits and keeps the directory of a string containing a directory & a file
+  ###############################
   
-  perfectMatches <- filter(TablaT, mismatch == 0, Deletions == 0, Insertions == 0)
-  if(nrow(perfectMatches) == 0){
-    
-    Target_loc <- "Target exact match not found"
-    Target_text <- " :WARNING: "
-    
-  }else if(nrow(perfectMatches) > 1){
-    Target_loc <- NULL
-    perfectMatches <- perfectMatches %>% arrange(desc(Abundance))
-    
-    Target_loc <- grep(Tabla$ID, pattern = head(perfectMatches)[1,1])
-    
-    if(is_empty(Target_loc)){Target_loc <- 'NONE'}
-    Target_text <- 'Targets found in Clusters:'
-    
-  }else if(nrow(perfectMatches) == 1){
-    
-    MatchTargetHighScore_ID <- perfectMatches$ID[1]
-    Target_loc <- detect_index(Tabla$ID, ~. == MatchTargetHighScore_ID)
-    if(Target_loc == 0){Target_loc <- 'NONE'}
-    
-    Target_text <- 'Target is found in Cluster:'
-  }
-  
-  return(c(Target_loc, Target_text))
-  
+ str_sub(file_datapath, start = 1, end = nchar(file_datapath)-(nchar(str_split(file_datapath, pattern = '/')[[1]][length(str_split(file_datapath, pattern = '/')[[1]])])+1))
+ 
 }
+
+find_target_location <- function(Tabla, TablaT, Target){
+  
+  # ######################################
+  # Description:
+  #
+  # Finds the target sequence using score, mismatches, indels and coverage.
+  #
+  # ######################################
+ 
+ perfectMatches <- filter(TablaT, mismatch == 0, Deletions == 0, Insertions == 0, length == nchar(Target))
+ if(nrow(perfectMatches) == 0){
+
+ Target_loc <- "Target exact match not found"
+ Target_text <- " :WARNING: "
+ 
+}else if(nrow(perfectMatches) > 1){
+ Target_loc <- NULL
+ perfectMatches <- perfectMatches %>% arrange(desc(Abundance))
+ 
+ Target_loc <- grep(Tabla$ID, pattern = head(perfectMatches)[1,1])
+ 
+ if(is_empty(Target_loc)){Target_loc <- 'NONE'}
+ Target_text <- 'Targets found in Clusters:'
+ 
+}else if(nrow(perfectMatches) == 1){
+ 
+ MatchTargetHighScore_ID <- perfectMatches$ID[1]
+ Target_loc <- detect_index(Tabla$ID, ~. == MatchTargetHighScore_ID)
+ if(Target_loc == 0){Target_loc <- 'NONE'}
+ 
+ Target_text <- 'Target is found in Cluster:'
+}
+ 
+ return(c(Target_loc, Target_text))
+ 
+ }

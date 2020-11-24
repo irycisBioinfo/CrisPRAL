@@ -23,7 +23,7 @@ observeEvent( c( input$tablaR_rows_selected, input$tablaT_rows_selected,
                   
   req( input$tablaR_rows_selected != datos$prev_selected_row || input$alnType != datos$prev_alnType || input$alnTo != datos$prev_alnTo)
   
-  withProgress( message = "Performing analisis", {
+  #withProgress( message = "Performing analisis", {
    
    req( datos$Tabla )
    req( tabla_rows_selected( ) )
@@ -40,60 +40,66 @@ observeEvent( c( input$tablaR_rows_selected, input$tablaT_rows_selected,
    
    if(input$alnTo == "Reference")
    {
-    datos$aln2 = pairwiseAlignment( datos$Ref, Seq, substitutionMatrix = nucleotideSubstitutionMatrix(match = 5, mismatch = -4),
-                                    type = input$alnType, gapOpening=10, 
-                                    gapExtension=0.5 )
+
+    datos$aln2 = pairwiseAlignment( Seq, datos$Ref, substitutionMatrix = nucleotideSubstitutionMatrix(match = 5, mismatch = -4),
+                                    type = input$alnType, gapOpening=input$gap_open, 
+                                    gapExtension=input$gap_extend )
    }else{
-    datos$aln2 = pairwiseAlignment( datos$Target, Seq, substitutionMatrix = nucleotideSubstitutionMatrix(match = 5, mismatch = -4),
-                                    type = input$alnType, gapOpening=10, 
-                                    gapExtension=0.5)
+    datos$aln2 = pairwiseAlignment( Seq, datos$Target, substitutionMatrix = nucleotideSubstitutionMatrix(match = 5, mismatch = -4),
+                                    type = input$alnType, gapOpening=input$gap_open, 
+                                    gapExtension=input$gap_extend )
+   }
+
+   alignment = Fix_gaps(datos$aln2, Seq, datos$Ref)
+   query <- alignment$query[[1]]
+   ref <- alignment$ref[[1]] 
+   
+   
+   diff = character(length( query ))
+   comp = character(length( query ))
+   
+   for(i in c(1:length( ref ))){
+     if (ref[i] != query[i])
+     {
+       diff[i] = query[i]
+       comp[i] = " "
+     } else {
+       diff[i] = "."
+       comp[i] = "|"
+     }
    }
    
-   diff = character(length( datos$aln2@pattern ))
-   comp = character(length( datos$aln2@pattern ))
-   ref = unlist(strsplit(as.character( datos$aln2@pattern ), 
-                         split = "" ))
-   query = unlist(strsplit(as.character( datos$aln2@subject ), 
-                           split = "" ))
+   pos <- Position_vector(paste(query, collapse = ''), paste(ref, collapse = ''), datos$aln2) #Generates positioning vector from strings.
    
-   for (i in 1:length( ref ))
-   {
-    if (ref[i] != query[i])
-    {
-     diff[i] = query[i]
-     comp[i] = " "
-    } else {
-     diff[i] = "."
-     comp[i] = "|"
-    }
-   }
-   
-   pos <- Position_vector(as.character(datos$aln2@pattern), 
-                          ref) #Generates positioning vector
+   # writePairwiseAlignments(datos$aln2, "tmp.pair")
+   # alignment <- grep(read_lines("tmp.pair", skip_empty_rows = TRUE), pattern = '^#', invert = TRUE, value = TRUE)
    
    if (!is.null(tabla_rows_selected()))
    {
-    datos$text = as.data.frame(c(
 
-     paste(pos, sep = '', collapse = ''), 
-     paste(ref, sep = "", collapse = ""),
-     paste(comp, sep = "", collapse = ""),
-     paste(query, sep = "", collapse = ""),
-     paste(diff, sep = "", collapse = "")
-
-    ))
+     datos$text = as.data.frame(c(
+       
+       paste(pos, sep = '', collapse = ''),
+       paste(ref, sep = "", collapse = ""),
+       paste(comp, sep = "", collapse = ""),
+       paste(query, sep = "", collapse = ""),
+       paste(diff, sep = "", collapse = "")
+        
+        # paste(alignment, sep = '')
+       
+     ))
     
     if(input$alnTo == "Reference")
     {
      rownames(datos$text) = c("Position", "Reference", "Comparisson",
-                              datos$Tabla$ID[tabla_rows_selected()], 
-                              "Difference")
+                               datos$Tabla$ID[tabla_rows_selected()],
+                               "Difference")
     }else{
      rownames(datos$text) = c("Position", "Target", "Comparisson",
-                              datos$Tabla$ID[tabla_rows_selected()], 
+                              datos$Tabla$ID[tabla_rows_selected()],
                               "Difference")
     }
-    
+
     colnames(datos$text) = c("Alignment")
     output$alignment = renderPrint(alignment())
     output$score = renderText(
@@ -177,5 +183,5 @@ observeEvent( c( input$tablaR_rows_selected, input$tablaT_rows_selected,
    
    output$unalignedFASTA <- renderText(as.character(
     datos$namedSequences[tabla_rows_selected(),]$Sequence))
-  })
+  #})
   })
