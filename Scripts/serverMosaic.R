@@ -147,7 +147,7 @@ ObsT <- observe({
 Tabla <- reactive({datos$Tabla})
 TablaT <- reactive({datos$Tabla_Target})
 
-Target_location <- reactive({find_target_location(Tabla(), TablaT())}) #function in Functions.R
+Target_location <- reactive({find_target_location(Tabla(), TablaT(), datos$Target)}) #function in Functions.R
 
 #Generates reactive UI depending on the presence of a Target or not.
 output$is.nullTarget1 <- renderUI({
