@@ -312,7 +312,7 @@ observeEvent(input$Accept, {
    datos$Tabla_Target = inner_join(datos$Tabla_raw, datos$TablaT_unsort_total_indels) %>% 
     mutate(score = round(score,1), Freq = signif(Freq,2)) %>% 
     arrange(desc(Abundance)) %>% select(-width,-start,-end)
-   output$Target_Location <- renderText(paste(Target_location()[2], Target_location()[1], sep = ' '))
+   output$Target_Location <- renderText(paste(Target_location()[1], Target_location()[2], sep = ' '))
    
    rownames(datos$Tabla_Target) <- str_c('Cluster', rownames(datos$Tabla_Target))
    
