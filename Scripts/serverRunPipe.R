@@ -262,9 +262,9 @@ observeEvent(input$Accept, {
   rownames(datos$Tabla) <- str_c('Cluster', rownames(datos$Tabla))
   
   datos$Tabla_Original <- datos$Tabla #datos$Tabla will be printed as a reactive function, line located before "Running Pipeline" block. datos$Tabla_Original is made to recover if datos$Tabla is altered by the user.
-  output$tablaD <- renderDT(datos$Tabla, server = TRUE) #Table with multiple selection for PDF formatting
+  output$tablaD <- renderDT(Tabla(), server = TRUE) #Table with multiple selection for PDF formatting
   # output$Print <- renderPrint(datos$Tabla[sort.default(rows_selected()),])
-  output$Print <- renderDT(datos$Tabla[sort.default(rows_selected()),], selection = 'none')
+  output$Print <- renderDT(Tabla()[sort.default(rows_selected()),], selection = 'none')
   output$Print2 <- renderText(paste("Total amount of Reads: ", 
                                     Total_Abundance, sep = ''))
   
