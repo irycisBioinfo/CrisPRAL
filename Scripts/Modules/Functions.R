@@ -353,6 +353,7 @@ find_target_location <- function(Tabla, TablaT, Target){
   # ######################################
  
  perfectMatches <- filter(TablaT, mismatch == 0, Deletions == 0, Insertions == 0, length == nchar(Target))
+ 
  if(nrow(perfectMatches) == 0){
 
  Target_loc <- "Target exact match not found"
@@ -363,19 +364,22 @@ find_target_location <- function(Tabla, TablaT, Target){
  perfectMatches <- perfectMatches %>% arrange(desc(Abundance))
  
  Target_loc <- grep(Tabla$ID, pattern = head(perfectMatches)[1,1])
+ Target_loc <- rownames(Tabla)[Target_loc]
  
  if(is_empty(Target_loc)){Target_loc <- 'NONE'}
- Target_text <- 'Targets found in Clusters:'
+ Target_text <- 'Targets found in:'
  
 }else if(nrow(perfectMatches) == 1){
  
  MatchTargetHighScore_ID <- perfectMatches$ID[1]
  Target_loc <- detect_index(Tabla$ID, ~. == MatchTargetHighScore_ID)
- if(Target_loc == 0){Target_loc <- 'NONE'}
+ Target_loc <- rownames(Tabla)[Target_loc]
  
- Target_text <- 'Target is found in Cluster:'
+ if(is_empty(Target_loc)){Target_loc <- 'NONE'}
+ 
+ Target_text <- 'Target is found in:'
 }
  
- return(c(Target_loc, Target_text))
+ return(c(Target_text, Target_loc))
  
- }
+}

@@ -419,7 +419,7 @@ observeEvent(c(input$tablaR_cell_edit, input$tablaT_cell_edit),{
  
  info = edit[edit != 'NULL']
  
- # str(info) Check info for debugging porpouses
+ # str(info) Check info for debugging purposes
  # Using switch with input$Alignment to determine which table has been edited. 
  # Necessary since input$*_cell_edit is read_only and lingers
  
