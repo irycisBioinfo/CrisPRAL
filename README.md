@@ -24,6 +24,25 @@ This instructions will attempt to aid in the deployment of the app in your local
   * perl
   * python
   
+### Dependancies
+
+* Cutadapt
+
+In Linux sub-systems
+```shell
+	$ sudo apt install cutadapt
+```
+or
+```shell
+	$ sudo apt install python3-cutadapt
+```
+* Google Chrome & chromium-browser
+
+```shell
+	$ wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
+	$ sudo dpkg -i google-chrome-stable_current_amd64.deb
+```
+  
 ### Installing
 
 Clone this repository into your system:
