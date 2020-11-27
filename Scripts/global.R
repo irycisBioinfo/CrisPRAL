@@ -48,7 +48,7 @@ shinypckgs <- c("shinythemes", "shinyWidgets", "shinydashboard", 'shinyFiles', '
 
 for(package in shinypckgs){
  if (lapply(package, require, character.only = TRUE) == FALSE){
-  lapply(package, install.packages, character.only = TRUE)
+  lapply(package, install.packages, character.only = TRUE, ask = FALSE)
   lapply(package, require, character.only = TRUE)
  }}
 
@@ -65,11 +65,12 @@ for(package in deppkgs){
  
  if (lapply(package, require, character.only = TRUE) == FALSE){
   
-  lapply(package, install.packages, character.only = TRUE)
+  lapply(package, install.packages, character.only = TRUE, ask = FALSE)
   lapply(package, require, character.only = TRUE)
   
  }
 }
+
 count <- dplyr::count
 #devtools::install_github() bugfix
 options("download.file.method" = "libcurl")
@@ -85,7 +86,7 @@ for (package in Biocpkgs){
 
  if (lapply(package, require, character.only = TRUE) == FALSE){
 
-  lapply(package, BiocManager::install)
+  lapply(package, BiocManager::install, ask = FALSE)
   lapply(package, require, character.only = TRUE)
 
  }
@@ -112,12 +113,11 @@ if ( require( 'tinytex' ) == FALSE ){
  tinytex::install_tinytex()
  
 }
-
-if ( require( 'webshot' ) == FALSE ){
-  install.packages( 'webshot' )
-  library( webshot )
-  webshot::install_phantomjs()
+# Installation of google-chrome (.deb) is required as well as chromium-browser (apt-get)
+if ( require( 'webshot2' ) == FALSE ){
+  devtools::install_github( 'rstudio/webshot2' )
 }
+library( webshot2 )
 
 #---Modules_Load----
 

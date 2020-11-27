@@ -23,7 +23,7 @@ observeEvent(input$toggle2, {
 # ))})
 
 #-Compartimentalization line-
-system(paste('mkdir', session$token, sep = ' '))
+dir.create(session$token)
 
 rows_selected <- reactive({ if( length(input$tablaD_rows_selected ) != 0 ){ 
  return(input$tablaD_rows_selected )
@@ -97,6 +97,7 @@ Reference <- reactive({
                as.character(PrimerR1_3()), ' -o ', 
                T_Refence_dir,' ',
                RefAsFasta, sep = '' ))
+  
   return(T_Refence_dir)
  }
  else{
@@ -146,7 +147,7 @@ ObsT <- observe({
 Tabla <- reactive({datos$Tabla})
 TablaT <- reactive({datos$Tabla_Target})
 
-Target_location <- reactive({find_target_location(Tabla(), TablaT())}) #function in Functions.R
+Target_location <- reactive({find_target_location(Tabla(), TablaT(), datos$Target)}) #function in Functions.R
 
 #Generates reactive UI depending on the presence of a Target or not.
 output$is.nullTarget1 <- renderUI({
@@ -387,7 +388,8 @@ output$alignment_with_filtering <- renderUI({
           selectInput(
            "alnType",
            "Alignment method",
-           c("global", "local", "overlap", "global-local", "local-global")
+           c("global", "local", "overlap", "global-local", "local-global"), 
+           selected = input$general_allType,
           ),
           uiOutput('is.nullTarget1'),
           verbatimTextOutput('Print2'),
@@ -417,7 +419,7 @@ observeEvent(c(input$tablaR_cell_edit, input$tablaT_cell_edit),{
  
  info = edit[edit != 'NULL']
  
- # str(info) Check info for debugging porpouses
+ # str(info) Check info for debugging purposes
  # Using switch with input$Alignment to determine which table has been edited. 
  # Necessary since input$*_cell_edit is read_only and lingers
  

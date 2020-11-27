@@ -93,13 +93,12 @@ observeEvent(input$GG,{
   
   
   # charts$tmpFilePie <- tempfile(fileext = '.png')
-  # export(PC_pdf, charts$tmpFilePie) #Debian-webshot error
   
   charts$tmpFilePiehtml <- paste(datos$tmppipelinedir, str_sub(tempfile(fileext = '.html'), start = 16), sep = '')
   charts$tmpFilePiepng <- paste(datos$tmppipelinedir, str_sub(tempfile(fileext = '.png'), start = 16), sep = '')
   tmpFilePiepng <- charts$tmpFilePiepng
   htmlwidgets::saveWidget(PC_pdf, paste(CompletePATH,'/', charts$tmpFilePiehtml, sep = ''))
-  webshot::webshot(charts$tmpFilePiehtml, charts$tmpFilePiepng)
+  webshot2::webshot(charts$tmpFilePiehtml, charts$tmpFilePiepng)
   
   output$Pie_summary <- renderPlotly({Edit_Pie_chart()})
   
@@ -107,9 +106,10 @@ observeEvent(input$GG,{
   
   incProgress( 1/8 ,detail = 'Mutation Frequency') #User feedback
   
-  #Extracting Sequences, identificators, sizes
-  VCSeq = list(as.character(datos$aln@pattern))
+  #Extracting Sequences, identificators, sizes and score.
+  VCSeq = list(as.character(datos$aln))
   VCIDs = select(datos$Tabla_unsort, ID, score)
+  # This is the size of the read, not the size of the alignment
   SizeList = list(nchar(datos$aln@pattern))
   
   #Bind identificator with sequence and size as to not lose them when we 
@@ -123,6 +123,7 @@ observeEvent(input$GG,{
   #Name the tables
   colnames(Graph_Data) = c('ID', 'Size', 'Sequence', 'Abundance')
   
+  # Does this make sense?
   #Leave enough margin in order to correct for coverage lax
   Filtered_Graph_Data = filter(Graph_Data, Size < width(datos$Ref)*(1.5))
   Dump = filter(Graph_Data, Size > width(datos$Ref)*(1.5))
@@ -169,7 +170,7 @@ observeEvent(input$GG,{
                              ungroup() %>% group_by(Position) %>% 
                              mutate(Percentage = Total/sum(Total)) %>% 
                              ungroup(Position) %>% group_by(Chr, Position) %>%
-                             mutate_at(vars(Percentage), funs(sum(Percentage))) %>% 
+                             mutate_at(vars(Percentage), list(~sum(Percentage))) %>% 
                              group_by(Percentage, Position) %>% mutate(Total = sum(Total)) %>%  distinct()
 
   LetterPerPosition_Ref <- tibble(Position = c(1:length(datos$Ref[[1]])))
@@ -180,7 +181,8 @@ observeEvent(input$GG,{
   LetterPerPosition_SubChange <- left_join(LetterPerPosition_Norm2, LetterPerPosition_Ref)
   
   #With alternative consensus the most abundant mutation for each position is extracted.
-  Alternative_Consensus <- LetterPerPosition_SubChange %>% filter(as.character(Chr) != Base) %>% filter(as.character(Chr) != '-') %>% 
+  Alternative_Consensus <- LetterPerPosition_SubChange %>% filter(as.character(Chr) != Base) %>% 
+                           #filter(as.character(Chr) != '-') %>% 
                            group_by(Position) %>% filter(Percentage == max(Percentage))
   
   #Deletions_per_position is useful to plot a line graph in conjuntion with BasePerPosition_info 
@@ -214,6 +216,7 @@ observeEvent(input$GG,{
   
   #Fuse info of LetterPerPosition_SubChange and Alternative_Consensus
   BasePerPosition_info <- left_join(LetterPerPosition_SubChange, Alternative_Consensus %>% select(-Base, -Total, -Percentage), by = 'Position')
+  # I'm unsure about the purpose of this line, is it to combine positions with different entries?
   BasePerPosition_info <- BasePerPosition_info %>% 
                           mutate(Chr = case_when(Position == lead(Position) ~ paste(Chr, ',' ,lead(Chr), sep = ''), TRUE ~ as.character(Chr))) %>% 
                           distinct(Position, .keep_all = TRUE)
@@ -286,7 +289,7 @@ observeEvent(input$GG,{
   charts$tmpFileMFpng <- paste(datos$tmppipelinedir, str_sub(tempfile(fileext = '.png'), start = 16), sep = '')
   tmpFileMFpng <- charts$tmpFileMFpng
   htmlwidgets::saveWidget(MF, paste(CompletePATH,'/', charts$tmpFileMFhtml, sep = ''))
-  webshot::webshot(charts$tmpFileMFhtml, charts$tmpFileMFpng)
+  webshot2::webshot(charts$tmpFileMFhtml, charts$tmpFileMFpng)
   
   #-Deletions per loci
   
@@ -302,7 +305,7 @@ observeEvent(input$GG,{
   charts$tmpFileDLpng <- paste(datos$tmppipelinedir, str_sub(tempfile(fileext = '.png'), start = 16), sep = '')
   tmpFileDLpng <- charts$tmpFileDLpng
   htmlwidgets::saveWidget(DL, paste(CompletePATH,'/', charts$tmpFileDLhtml, sep = ''))
-  webshot::webshot(charts$tmpFileDLhtml, charts$tmpFileDLpng)
+  webshot2::webshot(charts$tmpFileDLhtml, charts$tmpFileDLpng)
   
   #-Deletion Sizes
   
@@ -332,7 +335,7 @@ observeEvent(input$GG,{
   charts$tmpFileDSpng <- paste(datos$tmppipelinedir, str_sub(tempfile(fileext = '.png'), start = 16), sep = '')
   tmpFileDSpng <- charts$tmpFileDSpng
   htmlwidgets::saveWidget(DS, paste(CompletePATH,'/', charts$tmpFileDShtml, sep = ''))
-  webshot::webshot(charts$tmpFileDShtml, charts$tmpFileDSpng)
+  webshot2::webshot(charts$tmpFileDShtml, charts$tmpFileDSpng)
   
   incProgress( 1/8, detail = 'Insertions')
   
@@ -365,7 +368,7 @@ observeEvent(input$GG,{
   charts$tmpFileISpng <- paste(datos$tmppipelinedir, str_sub(tempfile(fileext = '.png'), start = 16), sep = '')
   tmpFileISpng <- charts$tmpFileISpng
   htmlwidgets::saveWidget(IS, paste(CompletePATH,'/', charts$tmpFileIShtml, sep = ''))
-  webshot::webshot(charts$tmpFileIShtml, charts$tmpFileISpng)
+  webshot2::webshot(charts$tmpFileIShtml, charts$tmpFileISpng)
   
   #-Insertion per Loci
   incProgress(1/8)
@@ -382,9 +385,7 @@ observeEvent(input$GG,{
   charts$tmpFileILpng <- paste(datos$tmppipelinedir, str_sub(tempfile(fileext = '.png'), start = 16), sep = '')
   tmpFileILpng <- charts$tmpFileILpng
   htmlwidgets::saveWidget(IL, paste(CompletePATH,'/', charts$tmpFileILhtml, sep = ''))
-  webshot::webshot(charts$tmpFileILhtml, charts$tmpFileILpng)
-  
-  #- Dumped count
+  webshot2::webshot(charts$tmpFileILhtml, charts$tmpFileILpng)
   
   output$Dump = renderText(paste('Filter Clusters due to excesive sequence size (>1.5*Reference Sequence length): ',
                                  as.character(count(Dump)),sep = ''))

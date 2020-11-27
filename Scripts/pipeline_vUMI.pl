@@ -1,9 +1,15 @@
 #!/usr/bin/perl
 
+#Applying changes:
+## Made cutadapt search for adapters up to 5 times. - why? -> changed it back to 2.
+## Made cutadapt look for reverse complement of reads to avoid rc contamination.
+## Use single-end mode for paired end reads to allow for --revcomp option.
+## Removed minimun length filtering of cutadapt to prevent de-synchronisation in single-end filtering of paired files.
+
 use Getopt::Long;
 use Cwd 'abs_path';
 $PATH = abs_path($0);
-$PATH =~ s/\/pipeline_v7.pl//;
+$PATH =~ s/\/pipeline_vUMI.pl//;
 
 @Options = (
 		
@@ -20,9 +26,9 @@ $PATH =~ s/\/pipeline_v7.pl//;
 		{OPT=>"F_Primer2=s", VAR=>\$F_Primer2, DEFAULT => "",DESC=>"2nd Forward Primer trimming by sequence"},
 		{OPT=>"R_Primer1=s", VAR=>\$R_Primer1, DEFAULT => "",DESC=>"1st Reverse Primer trimming by sequence"},
 		{OPT=>"R_Primer2=s", VAR=>\$R_Primer2, DEFAULT => "",DESC=>"2nd Reverse Primer trimming by sequence"},
-		{OPT=>"min_len=s", VAR=>\$minLen, DEFAULT => "200" ,DESC=>"Minimun length for filtering"},
-		{OPT=>"Np=s", VAR=>\$Np, DEFAULT => "8" ,DESC=>"N-percent maximum difference"},
-		{OPT=>"Nm=s", VAR=>\$Nm, DEFAULT => "6" ,DESC=>"N-minimum overlap (nucleotides)"},
+		{OPT=>"min_len=s", VAR=>\$minLen, DEFAULT => "100" ,DESC=>"Minimun length for filtering"},
+		{OPT=>"Np=s", VAR=>\$Np, DEFAULT => "1" ,DESC=>"N-percent maximum difference"},
+		{OPT=>"Nm=s", VAR=>\$Nm, DEFAULT => "10" ,DESC=>"N-minimum overlap (nucleotides)"},
 		{OPT=>"cov=s", VAR=>\$cov, DEFAULT =>"0.8" ,DESC=>"Coverage (clustering) (0-1)"},
 		{OPT=>"id=s", VAR=>\$id, DEFAULT =>"1" ,DESC=>"Identity (clustering) (0-1)"},
 		{OPT=>"primer-error-rate=s", VAR=>\$primererrorrate, DEFAULT =>"0.15" ,DESC=>"cutadapt primer error rate"},
@@ -52,10 +58,9 @@ $rJoined = s/.fastq/.join/;
 $rCluster = $r1;
 $rCluster = s/.fastq/.cluster/;
 
-if ($single_end eq "FALSE"){
+if ($single_end eq "FALSE"){#Paired-End Section:
 
 	if ($Adapter_R1 eq 'Empty') {
-
 		system("echo -Paired-end Adapter trimming");
 		system("$PATH/bin/prinseq/prinseq-lite.pl -fastq $r1 -trim_left $trimA1 -out_good $tmpdir/goodA_R1");
 		system("$PATH/bin/prinseq/prinseq-lite.pl -fastq $r2 -trim_left $trimA2 -out_good $tmpdir/goodA_R2");
@@ -63,8 +68,8 @@ if ($single_end eq "FALSE"){
 
 	} else {
 		system("echo -Paired-end Adapter filtering");
-
-		system("cutadapt -j 0 -e $primererrorrate -a $Adapter_R1 -A $Adapter_R2 -n 2 -e 0.2 -o $tmpdir/R1_filteredA.fastq -p $tmpdir/R2_filteredA.fastq $r1 $r2");
+		system("cutadapt --revcomp -j 0 -a $Adapter_R1 -n 5 -o $tmpdir/R1_filteredA.fastq $r1");
+		system("cutadapt --revcomp -j 0 -a $Adapter_R2 -n 5 -o $tmpdir/R2_filteredA.fastq $r2");
 
 		system("$PATH/bin/prinseq/prinseq-lite.pl -fastq $tmpdir/R1_filteredA.fastq -trim_left $trimA1 -out_good $tmpdir/goodA_R1");
 		system("$PATH/bin/prinseq/prinseq-lite.pl -fastq $tmpdir/R2_filteredA.fastq -trim_left $trimA2 -out_good $tmpdir/goodA_R2");
@@ -82,7 +87,8 @@ if ($single_end eq "FALSE"){
 	} else {
 		system("echo -Paired-end primer filtering");
 
-		system("cutadapt -j 0 -e $primererrorrate -m 10 -g $F_Primer1 -a $F_Primer2 -G $R_Primer1 -A $R_Primer2 -n 2 -o $tmpdir/R1_filteredP.fastq -p $tmpdir/R2_filteredP.fastq $tmpdir/goodA_R1.fastq $tmpdir/goodA_R2.fastq");
+		system("cutadapt --revcomp -e $primererrorrate -j 0 -g $F_Primer1 -a $F_Primer2 -n 2 -o $tmpdir/R1_filteredP.fastq $tmpdir/goodA_R1.fastq");
+		system("cutadapt --revcomp -e $primererrorrate -j 0 -g $R_Primer1 -a $R_Primer2 -n 2 -o $tmpdir/R2_filteredP.fastq $tmpdir/goodA_R2.fastq");
 
 		system("$PATH/bin/prinseq/prinseq-lite.pl -fastq $tmpdir/R1_filteredP.fastq -trim_left $trimP1 -trim_right $trimP2 -out_good $tmpdir/good_R1");
 		system("$PATH/bin/prinseq/prinseq-lite.pl -fastq $tmpdir/R2_filteredP.fastq -trim_left $trimP2 -trim_right $trimP1 -out_good $tmpdir/good_R2");
@@ -90,7 +96,7 @@ if ($single_end eq "FALSE"){
 
 	}
 
-system("$PATH/bin/prinseq/prinseq-lite.pl -fastq $tmpdir/good_R1.fastq -fastq2 $tmpdir/good_R2.fastq -min_len $minLen -min_qual_mean 30 -out_good $tmpdir/good_filtered -out_bad $tmpdir/bad");
+system("$PATH/bin/prinseq/prinseq-lite.pl -fastq $tmpdir/good_R1.fastq -fastq2 $tmpdir/good_R2.fastq -min_len $minLen -min_qual_mean 20 -out_good $tmpdir/good_filtered -out_bad $tmpdir/bad");
 
 system("$PATH/bin/ea-utils/clipper/fastq-join -p $Np -m $Nm -o $tmpdir/joined $tmpdir/good_filtered_1.fastq $tmpdir/good_filtered_2.fastq ");
 
@@ -107,7 +113,7 @@ if ($Adapter_R1 eq 'Empty') {
 } else {
 	system("echo -Single-end Adapter filtering");
 
-	system("$PATH/bin/cutadapt/cutadapt -j 0 -e $primererrorrate -a $Adapter_R1 -n 2 -o $tmpdir/R1_filteredA.fastq $r1");
+	system("cutadapt --revcomp -j 0 -a $Adapter_R1 -n 5 -o $tmpdir/R1_filteredA.fastq $r1");
 
 	system("$PATH/bin/prinseq/prinseq-lite.pl -fastq R1_filteredA.fastq -trim_left $trimA1 -out_good $tmpdir/goodA_R1");
 	print("\nDone\n");
@@ -123,7 +129,7 @@ if ($F_Primer1 eq 'Empty') {
 
 	} else {
 	system("echo -Single-end primer filtering");
-	system("$PATH/bin/cutadapt/cutadapt -j 0 -e $primererrorrate -m 10 -g $F_Primer1 -a $F_Primer2 -n 2 -o $tmpdir/R1_filteredP.fastq $tmpdir/goodA_R1.fastq");
+	system("cutadapt --revcomp -j 0 -e $primererrorrate -m 10 -g $F_Primer1 -a $F_Primer2 -n 5 -o $tmpdir/R1_filteredP.fastq $tmpdir/goodA_R1.fastq");
 	system("$PATH/bin/prinseq/prinseq-lite.pl -fastq $tmpdir/R1_filteredP.fastq -trim_left $trimP1 -trim_right $trimP2 -out_good $tmpdir/good_R1");
 	print("\nDone\n");
 

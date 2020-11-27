@@ -1,8 +1,16 @@
 # Server-Mosaic
+
+########################### DESCRIPTION ##################################
 # Loads script for pipeline execution with the stablished parameters and
 # loads the main Tables of results. Also defines code to allow user edits on table.
+##########################################################################
 
 #----Running Pipeline----
+
+pipeline <- reactive({if(input$reverse_complement){
+  return("/pipeline_vUMI.pl --r1 ")
+  }else{return("/pipeline_v7.pl --r1 ")}
+  })
 
 observeEvent(input$Accept, {
  
@@ -71,11 +79,11 @@ observeEvent(input$Accept, {
   
   datos$tmppipelinedir <- paste(session$token, '/data', str_sub(tempfile(), start = 21) ,sep = '')
   
-  system(paste('mkdir',datos$tmppipelinedir, sep = ' '))
+  dir.create(datos$tmppipelinedir)
   
   command = paste(
    CompletePATH,
-   "/pipeline_v7.pl --r1 ",
+   as.character(pipeline()),
    R1_file(),
    " --r2 ",
    R2_file(),
@@ -111,13 +119,15 @@ observeEvent(input$Accept, {
    input$cov,
    " --id ",
    input$identity,
+   " --primer-error-rate ",
+   input$primer_error_rate,
    " --tmpdir ",
    as.character(datos$tmppipelinedir),
    collapse = "",
    sep = ""
   )
   
-  system(command)#-Executes perl script
+  system(command) #-Executes perl script
   
   incProgress( 1/5 ,detail = 'Alignments')
   
@@ -176,9 +186,9 @@ observeEvent(input$Accept, {
   
   datos$Tabla_raw = datos$cluster %>%
    group_by(ClusterN) %>%
-   mutate(Abundance = n()) %>%
+   mutate(Abundance = n()*2) %>%
    ungroup() %>%
-   mutate(Freq = 100 *Abundance / n()) %>%
+   mutate(Freq = 100 *Abundance / (n()*2)) %>%
    filter(Identity == "*") %>%
    select(ID, Abundance, Freq) %>%
    arrange(desc(Abundance))
@@ -204,7 +214,7 @@ observeEvent(input$Accept, {
   }else{
    if (!is.null(datos$Tabla)){
     Total_Abundance = sum(datos$Tabla_raw['Abundance'])
-    output$Print2 <- renderText(paste("Total amount of Reads: ", Total_Abundance,                                           '
+    output$Print2 <- renderText(paste("Total amount of Reads: ", Total_Abundance, '
                                       :ERROR: File extension unknown; ', Reference(),'.
                                       Keeping previous results.', sep = ''))
     return()
@@ -219,7 +229,10 @@ observeEvent(input$Accept, {
   datos$Sequences <- readDNAStringSet(paste(datos$tmppipelinedir,"/cluster", sep = ''))
   
   #Alignment for Sequences with Reference
-  ls_ClusterAln_Ref = Clusters_Alignments(datos$Sequences, datos$Ref) #Function in Functions.R module.
+  ls_ClusterAln_Ref = Clusters_Alignments(datos$Sequences, datos$Ref, 
+                                          gapOpening = input$gap_open, 
+                                          gapExtension = input$gap_extend,
+                                          type = input$general_allType) #Function in Functions.R module.
   #Another Tabla variable is declared as an unsorted version together with
   #an associated Abundance for INDEL processing in graphing section.
   datos$Tabla_unsort <- ls_ClusterAln_Ref$tmp %>% rename(Deleted_bps = deletions) %>% rename(Inserted_bps = insertions)
@@ -241,16 +254,17 @@ observeEvent(input$Accept, {
   
   datos$Tabla_unsort_total_indels <- cbind(datos$Tabla_unsort %>% select(-Deleted_bps, -Inserted_bps), total_deletions_per_cluster, datos$Tabla_unsort %>% select(Deleted_bps), total_insertions_per_cluster, datos$Tabla_unsort %>% select(Inserted_bps))
   
+  # datos$Tabla is DONE with this last line:
   datos$Tabla = inner_join(datos$Tabla_raw, datos$Tabla_unsort_total_indels) %>% 
    mutate(score = round(score,1), Freq = signif(Freq,2)) %>% 
-   arrange(desc(Abundance))
+   arrange(desc(Abundance)) %>% select(-width,-start,-end)
   
   rownames(datos$Tabla) <- str_c('Cluster', rownames(datos$Tabla))
   
   datos$Tabla_Original <- datos$Tabla #datos$Tabla will be printed as a reactive function, line located before "Running Pipeline" block. datos$Tabla_Original is made to recover if datos$Tabla is altered by the user.
-  output$tablaD <- renderDT(datos$Tabla, server = TRUE) #Table with multiple selection for PDF formatting
+  output$tablaD <- renderDT(Tabla(), server = TRUE) #Table with multiple selection for PDF formatting
   # output$Print <- renderPrint(datos$Tabla[sort.default(rows_selected()),])
-  output$Print <- renderDT(datos$Tabla[sort.default(rows_selected()),], selection = 'none')
+  output$Print <- renderDT(Tabla()[sort.default(rows_selected()),], selection = 'none')
   output$Print2 <- renderText(paste("Total amount of Reads: ", 
                                     Total_Abundance, sep = ''))
   
@@ -266,7 +280,7 @@ observeEvent(input$Accept, {
    incProgress( 1/8 ,detail = 'Looking for Target')
    datos$Target = readDNAStringSet(Target())
    
-   #Alignment for Sequences with Reference
+   #Alignment for Sequences with Target
    ls_ClusterAln_Tar = Clusters_Alignments(datos$Sequences, datos$Target) #Function in Functions.R module.
    #Another Tabla variable is declared as an unsorted version together with
    #an associated Abundance for INDEL processing in graphing section.
@@ -294,11 +308,11 @@ observeEvent(input$Accept, {
                                              datos$TablaT_unsort %>% 
                                               select(Deleted_bps, Inserted_bps))
    
+   #datos$Tabla_Target is DONE with this last line:
    datos$Tabla_Target = inner_join(datos$Tabla_raw, datos$TablaT_unsort_total_indels) %>% 
     mutate(score = round(score,1), Freq = signif(Freq,2)) %>% 
-    arrange(desc(Abundance)) %>% mutate(Abundance = Abundance*2)
-   
-   output$Target_Location <- renderText(paste(Target_location()[2], Target_location()[1], sep = ' '))
+    arrange(desc(Abundance)) %>% select(-width,-start,-end)
+   output$Target_Location <- renderText(paste(Target_location()[1], Target_location()[2], sep = ' '))
    
    rownames(datos$Tabla_Target) <- str_c('Cluster', rownames(datos$Tabla_Target))
    
@@ -314,6 +328,7 @@ observeEvent(input$Accept, {
    
    output$Target_Location <- renderText(Target())
   }
+  #browser()
  })
 })
 
