@@ -3,7 +3,6 @@
 
 downloadButtonModule <- function(id, label = ''){
   
-  
   ns <- NS(id)
   
   downloadButton(ns('download'), label)
