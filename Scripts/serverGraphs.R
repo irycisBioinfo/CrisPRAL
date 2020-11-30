@@ -241,7 +241,6 @@ observeEvent(input$GG,{
   # colorscheme = c('red', 'black', 'blue', 'green', 'gray')
   # colorscheme = setNames(colorscheme, c('T', 'G', 'C', 'A', '-'))
   # 
-
   MF <- plot_ly(BasePerPosition_info %>% ungroup(), x = ~Position, y = ~Percentage, name = 'Variants',
                 type = 'scatter', mode = 'lines', text = ~paste(Chr,'>',Base, ' at Position: ',Position,sep = ''), 
                 hovertemplate = paste('<i>Most abundant change</i>: %{text}'), line = list(shape = 'spline', color = "royalblue")) %>% 
@@ -355,7 +354,7 @@ observeEvent(input$GG,{
   }else{tick_distance_In <- 10}
   
   
-  IS = plot_ly(datos$In_Data, y = ~TotalI, x = ~Insertions, type = 'bar') %>%
+  IS = plot_ly(datos$In_Data, y = ~TotalI, x = ~Insertions, type = 'bar', color = 'green') %>%
    layout(yaxis = list(title = '# of individual reads', range = range),
           xaxis = list(title = 'Size of insertion extension',
                        dtick = tick_distance_In,
@@ -373,8 +372,7 @@ observeEvent(input$GG,{
   #-Insertion per Loci
   incProgress(1/8)
   
-  IL = plot_ly(Insert_per_loci, y = ~Total_Count, x = ~Position, 
-               type = 'bar') %>%
+  IL = plot_ly(Insert_per_loci, y = ~Total_Count, x = ~Position, type = 'bar', color = 'green') %>%
    layout(yaxis = list(title = '# of individual reads', range = range),
           xaxis = list(range = c(1, 250)))
   output$In_loc <- renderPlotly({print(IL)})
