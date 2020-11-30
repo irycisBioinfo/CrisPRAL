@@ -22,20 +22,37 @@ observeEvent(input$toggle2, {
 #             tags$span(style="background-color:rgba(0,0,255,0.40)", "d"), sep = ""))
 # ))})
 
-#-Compartimentalization line-
+#-Compartmentalization line-
 dir.create(session$token)
 
-rows_selected <- reactive({ if( length(input$tablaD_rows_selected ) != 0 ){ 
- return(input$tablaD_rows_selected )
-}else if ( input$all_clusters ){ 
- return(c(1:length(datos$Sequences)))
-}else{ return(c(1:10)) }})
+# Selected entries for download will be determined by the tab selected.
+download_table_selected <- reactive({
+  if(input$Alignment2 == 'Reference'){
+    return(input$tablaD_rows_selected)
+  }else{
+    return(input$tablaTD_rows_selected)
+}})
+
+rows_selected <- reactive({
+  if( length( download_table_selected() ) != 0 ){ 
+    return( download_table_selected() )
+  }else if ( input$all_clusters ){ 
+    return(c(1:length(datos$Sequences)))
+  }else{ return(c(1:10)) }
+})
+
+Table_to_download <- reactive({
+  if(input$Alignment2 == 'Reference'){
+    return(Tabla())
+  }else{
+    return(TablaT())
+}})
 
 warningCLSTR <- reactive({if(length(datos$clustersStringSet) > 100){
- return('Warning: Number of sequences for Multiple Sequence Alignment exceed max computing limit, 100 will be computed but only the first 50 entries will be shown')
-}else if(length(datos$clustersStringSet) > 50){
- return('Warning: Number of sequences for Multiple Sequence Alignment exceed max printing limit, only the first 50 entries will be shown')
-}else{return(FALSE)}
+    return('Warning: Number of sequences for Multiple Sequence Alignment exceed max computing limit, 100 will be computed but only the first 50 entries will be shown')
+  }else if(length(datos$clustersStringSet) > 50){
+    return('Warning: Number of sequences for Multiple Sequence Alignment exceed max printing limit, only the first 50 entries will be shown')
+  }else{return(FALSE)}
 })
 
 #---Reactive values-Data storage----  
@@ -516,6 +533,9 @@ input_filename_generic <- reactive({paste(
              last = nchar(input$R1$name)-(sum(nchar(str_split(input$R1$name, '\\.')[[1]][-1]))+length(str_split(input$R1$name, '\\.')[[1]][-1])))
    ,'_R1',''), '__',''), sep='')})
 
+input_filename_csv <- reactive({paste( input_filename_generic(), 
+                                       '_',input$Alignment2, sep='' )})
+
 input_filename_results <- reactive({paste( input_filename_generic(), 
                                            '_Results', sep='' )})
 input_filename_group <- reactive({paste( input_filename_generic(), 
@@ -569,7 +589,7 @@ output$downloadMSA_clstr <- downloadHandler(
   file.rename(tmpFile, file)}
 )
 
-callModule(downloadCSV, 'downloadFile2',Tabla, input_filename_generic)
+callModule(downloadCSV, 'downloadFile2',Table_to_download, input_filename_csv)
 
 #CallModule only declares itself once, check all variables that should be 
 #updating automatically (reactive variables)

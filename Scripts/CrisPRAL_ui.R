@@ -301,28 +301,42 @@ reverse_complement == true",
                         )),
                # Download Report----
                tabPanel('Download', value = 'Download',
-                        br(),
-                        wellPanel(
-                         # h3("Table"),
-                         h4("Select entries to be downloaded. Ten entries will be selected by default."),
-                         checkboxInput('all_clusters', 'Select all clusters'),
-                         hr(),
-                         DTOutput("tablaD"),
-                         
-                         hr(),
-                         h4("Selected rows will appear in the table below:"),
-                         br(),
-                         DTOutput("Print"),
-                         fluidRow(
+                        navbarPage(title = NULL,id = 'Alignment2', selected = 'Reference',
+                          tabPanel('Reference', value = 'Reference',
+                            br(),
+                            wellPanel(
+                             # h3("Table"),
+                             h4("Select entries to be downloaded. Ten entries will be selected by default."),
+                             checkboxInput('all_clusters', 'Select all clusters'),
+                             hr(),
+                             DTOutput("tablaD"),
+                             hr(),
+                             h4("Selected rows will appear in the table below:"),
+                             br(),
+                             DTOutput("PrintD"))
+                            ),
+                          tabPanel('Target', value = 'Target',
+                          br(),
+                          wellPanel(
+                            # h3("Table"),
+                            h4("Select entries to be downloaded. Ten entries will be selected by default."),
+                            checkboxInput('all_clusters', 'Select all clusters'),
+                            hr(),
+                            DTOutput("tablaTD"),
+                            hr(),
+                            h4("Selected rows will appear in the table below:"),
+                            br(),
+                            DTOutput("PrintTD"))
+                          )),
+                        fluidRow(
                           conditionalPanel("output.tablaD",
                                            downloadButton("downloadReport", 
                                                           "Download Report"),
                                            downloadButtonModule("downloadFile2", 
                                                                 'Download CSV'),
                                            downloadButtonModule("downloadFASTAS", 
-                                                                "Download FASTAS"))))
-                        
-               )
+                                                                "Download FASTAS")))
+                        )
    )
   )))
 # )
