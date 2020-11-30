@@ -129,6 +129,7 @@ if ($F_Primer1 eq 'Empty') {
 
 	} else {
 	system("echo -Single-end primer filtering");
+
 	system("cutadapt --revcomp -j 0 -e $primererrorrate -m 10 -g $F_Primer1 -a $F_Primer2 -n 5 -o $tmpdir/R1_filteredP.fastq $tmpdir/goodA_R1.fastq");
 	system("$PATH/bin/prinseq/prinseq-lite.pl -fastq $tmpdir/R1_filteredP.fastq -trim_left $trimP1 -trim_right $trimP2 -out_good $tmpdir/good_R1");
 	print("\nDone\n");

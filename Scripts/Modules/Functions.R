@@ -143,6 +143,7 @@ Position_vector <- function(input, ref, aln){
   # sequence provided.
   #
   # #################
+
   
   v_length = nchar(input)
   
@@ -150,6 +151,7 @@ Position_vector <- function(input, ref, aln){
   tmp = paste(tmp,collapse = '-')
   # '-' are replaced by blank spaces to avoid representation of ALL positions, 
   # just every 10 - '|' is printed every 5 positions.
+
   pos1 = str_replace_all(tmp, '-', paste("   ","|", "    ", sep = '', collapse = ''))
   
   if (v_length > 100 ){ #After position 100 number of spaces must be readjusted 
@@ -171,7 +173,7 @@ Position_vector <- function(input, ref, aln){
   
   lead_dashes <- paste(rep(c(' '),start(aln@pattern)-1), collapse = '')
   pos <- str_c(lead_dashes, pos, collapse = '')
-  
+
   # v_length = lengthFixing( v_length, pos) #Length needs to be adjusted in case 
   #a number is being chopped in half. ex: length(ref)=101
   
@@ -215,7 +217,7 @@ lengthFixing <- function(v_length, pos){
   # Helper function for Position_vector()
   #
   #############
- 
+  
   if (str_sub(pos, v_length, v_length) != ' '){
     v_length = v_length+1
     return(lengthFixing(v_length, pos))
@@ -224,7 +226,7 @@ lengthFixing <- function(v_length, pos){
 }
 
 InDel_Extraction <- function(ALN, Abundance){
-
+  
   Del_Sizes = as_tibble(Biostrings::deletion(ALN)) %>% select(group, width)
   In_Sizes = as_tibble(Biostrings::insertion(ALN)) %>% select(group, width)
   
@@ -243,17 +245,17 @@ InDel_Sizes <- function(Abundance, InDel_Sizes){
   relevant_Abundance = tibble()
   
   for( value in InDel_Sizes$group ){
-   
-   relevant_Abundance <- append(relevant_Abundance, Abundance[value, 2])
-   
+    
+    relevant_Abundance <- append(relevant_Abundance, Abundance[value, 2])
+    
   }
   
   relevant_Abundance <- flatten_dbl(relevant_Abundance)
   relevant_Abundance <- as_tibble(relevant_Abundance) #Necesary for function
-                                                      #bind_cols() used next
+  #bind_cols() used next
   
   InDel_Data <- bind_cols(InDel_Sizes, relevant_Abundance) %>% 
-   select(width, value) %>% group_by(width) %>% summarise(sum(value))
+    select(width, value) %>% group_by(width) %>% summarise(sum(value))
   colnames(InDel_Data) <- c('Size', 'TotalID')
   
   return(InDel_Data)
@@ -273,7 +275,7 @@ Unzip_file <- function(PATH, fileGZ_path){
   #file and prevents compressed file deletion
   file_path = str_sub(fileGZ_path, 1, -4) #removes last letter
   
- return(file_path) 
+  return(file_path) 
 }
 
 Unravel_Positions <- function(Insert_per_loci, Insert_data){
@@ -294,18 +296,18 @@ Unravel_Positions <- function(Insert_per_loci, Insert_data){
   return(Insert_per_loci)
   
 }
-  
+
 Group_list <- function(data){
   
   if (typeof(data) == "list"){
-      Groups <- c(1:nrow(data))
-      for (i in 1:length(Groups)){ Groups[i] <- paste('Group ',i, sep = '') }
-      
-      Groups[nrow(data)] <- 'Other'
-      
-    }else{
-      Groups <- c(1:length(data))
-      for (i in 1:length(Groups)){ Groups[i] <- paste('Group ',i, sep = '') }
+    Groups <- c(1:nrow(data))
+    for (i in 1:length(Groups)){ Groups[i] <- paste('Group ',i, sep = '') }
+    
+    Groups[nrow(data)] <- 'Other'
+    
+  }else{
+    Groups <- c(1:length(data))
+    for (i in 1:length(Groups)){ Groups[i] <- paste('Group ',i, sep = '') }
   }
   return(Groups)
 }
@@ -327,9 +329,9 @@ Clusters_Alignments <- function(Clust_Seq, Align_Seq, gapOpening = 10, gapExtens
       deletions = nindel(aln)@deletion[, 2],
       insertions = nindel(aln)@insertion[, 2]
   )
-    tmp = tmp %>% separate(ID, c("ID","kk"), sep =" ") %>% select(-kk)
-    
-    return(list(tmp = tmp, aln = aln))
+  tmp = tmp %>% separate(ID, c("ID","kk"), sep =" ") %>% select(-kk)
+  
+  return(list(tmp = tmp, aln = aln))
 }
 
 file.dir <- function(file_datapath){

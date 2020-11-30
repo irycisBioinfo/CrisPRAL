@@ -97,11 +97,9 @@ gitpkgs <- c('ropensci/plotly')
 
 for (package in gitpkgs){
 
-
  if (lapply(str_split(package, pattern = '/')[[1]][2], require, character.only = TRUE) == FALSE){
 
   lapply(paste('https://github.com/', package, ".git", sep = '' ), devtools::install_git)
-  # lapply(gitpkgs, devtools::install_github('mikelove/fastqcTheoreticalGC'))
   lapply(str_split(package, pattern = '/')[[1]][2], require, character.only = TRUE)
 
  }
