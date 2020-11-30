@@ -1,0 +1,1 @@
+/home/bioinfo/biosoft/R_scripts/Mosaic_standalone_pipe.R

@@ -262,9 +262,8 @@ observeEvent(input$Accept, {
   rownames(datos$Tabla) <- str_c('Cluster', rownames(datos$Tabla))
   
   datos$Tabla_Original <- datos$Tabla #datos$Tabla will be printed as a reactive function, line located before "Running Pipeline" block. datos$Tabla_Original is made to recover if datos$Tabla is altered by the user.
-  output$tablaD <- renderDT(datos$Tabla, server = TRUE) #Table with multiple selection for PDF formatting
-  # output$Print <- renderPrint(datos$Tabla[sort.default(rows_selected()),])
-  output$Print <- renderDT(datos$Tabla[sort.default(rows_selected()),], selection = 'none')
+  output$tablaD <- renderDT(Tabla(), server = TRUE) #Table with multiple selection for PDF formatting
+  output$PrintD <- renderDT(Tabla()[sort.default(rows_selected()),], selection = 'none')
   output$Print2 <- renderText(paste("Total amount of Reads: ", 
                                     Total_Abundance, sep = ''))
   
@@ -303,22 +302,23 @@ observeEvent(input$Accept, {
    number_of_insT <- map(as.list(insertion(datos$alnT)), ~length(.))
    total_insertions_per_clusterT <- as_tibble(purrr::flatten_dbl(number_of_insT)) %>% rename(Insertions = value)
    
-   datos$TablaT_unsort_total_indels <- cbind(cbind(datos$TablaT_unsort %>% 
-                                                    select(-Deleted_bps, -Inserted_bps), total_deletions_per_clusterT, total_insertions_per_clusterT), 
-                                             datos$TablaT_unsort %>% 
-                                              select(Deleted_bps, Inserted_bps))
+   datos$TablaT_unsort_total_indels <- cbind(cbind(
+     datos$TablaT_unsort %>% select(-Deleted_bps, -Inserted_bps), total_deletions_per_clusterT), 
+     datos$TablaT_unsort %>% select(Deleted_bps), total_insertions_per_clusterT, datos$TablaT_unsort %>% select(Inserted_bps))
    
-   #datos$Tabla_Target is DONE with this last line:
+   # datos$Tabla_Target is DONE with this last line:
    datos$Tabla_Target = inner_join(datos$Tabla_raw, datos$TablaT_unsort_total_indels) %>% 
     mutate(score = round(score,1), Freq = signif(Freq,2)) %>% 
     arrange(desc(Abundance)) %>% select(-width,-start,-end)
-   output$Target_Location <- renderText(paste(Target_location()[2], Target_location()[1], sep = ' '))
+   output$Target_Location <- renderText(paste(Target_location()[1], Target_location()[2], sep = ' '))
    
    rownames(datos$Tabla_Target) <- str_c('Cluster', rownames(datos$Tabla_Target))
    
    datos$Tabla_Target_Original <- datos$Tabla_Target
-   # output$tablaT <- renderDT(datos$Tabla_Target, editable = TRUE, selection = "single", 
-   #                           options = list(search = list(smart = FALSE)), server = TRUE)
+   
+   # Declaring Target Table for Download tab.
+   output$tablaTD <- renderDT(TablaT(), server = TRUE) #Table with multiple selection for PDF formatting
+   output$PrintTD <- renderDT(TablaT()[sort.default(rows_selected()),], selection = 'none')
    
   }else if(is.null(Target_FileInput())){
    output$Target_Location <- renderText(paste('No Target was introduced', 

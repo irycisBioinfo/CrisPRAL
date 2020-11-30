@@ -201,7 +201,6 @@ observeEvent(input$GG,{
     select(start, end, Count)
   Insert_per_loci <- as.data.frame(c(1:max(width(datos$Sequences))))
   colnames(Insert_per_loci) <- c('Position')
-  browser()
   Insert_per_loci <- Unravel_Positions(Insert_per_loci, Insert_data)
   colnames(Insert_per_loci) <- c('Position', 'Total_Count')
   
@@ -242,7 +241,6 @@ observeEvent(input$GG,{
   # colorscheme = c('red', 'black', 'blue', 'green', 'gray')
   # colorscheme = setNames(colorscheme, c('T', 'G', 'C', 'A', '-'))
   # 
-
   MF <- plot_ly(BasePerPosition_info %>% ungroup(), x = ~Position, y = ~Percentage, name = 'Variants',
                 type = 'scatter', mode = 'lines', text = ~paste(Chr,'>',Base, ' at Position: ',Position,sep = ''), 
                 hovertemplate = paste('<i>Most abundant change</i>: %{text}'), line = list(shape = 'spline', color = "royalblue")) %>% 
@@ -356,7 +354,7 @@ observeEvent(input$GG,{
   }else{tick_distance_In <- 10}
   
   
-  IS = plot_ly(datos$In_Data, y = ~TotalI, x = ~Insertions, type = 'bar') %>%
+  IS = plot_ly(datos$In_Data, y = ~TotalI, x = ~Insertions, type = 'bar', color = 'green') %>%
    layout(yaxis = list(title = '# of individual reads', range = range),
           xaxis = list(title = 'Size of insertion extension',
                        dtick = tick_distance_In,
@@ -374,8 +372,7 @@ observeEvent(input$GG,{
   #-Insertion per Loci
   incProgress(1/8)
   
-  IL = plot_ly(Insert_per_loci, y = ~Total_Count, x = ~Position, 
-               type = 'bar') %>%
+  IL = plot_ly(Insert_per_loci, y = ~Total_Count, x = ~Position, type = 'bar', color = 'green') %>%
    layout(yaxis = list(title = '# of individual reads', range = range),
           xaxis = list(range = c(1, 250)))
   output$In_loc <- renderPlotly({print(IL)})

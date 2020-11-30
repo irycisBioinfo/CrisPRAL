@@ -39,18 +39,13 @@ observeEvent( c( input$tablaR_rows_selected, input$tablaT_rows_selected,
    Seq <- datos$namedStringSet[id_position]
    
    if(input$alnTo == "Reference")
-   {
-
-    datos$aln2 = pairwiseAlignment( Seq, datos$Ref, substitutionMatrix = nucleotideSubstitutionMatrix(match = 5, mismatch = -4),
+   { Subject <- datos$Ref }else{ Subject <- datos$Target }
+   
+    datos$aln2 = pairwiseAlignment( Seq, Subject, substitutionMatrix = nucleotideSubstitutionMatrix(match = 5, mismatch = -4),
                                     type = input$alnType, gapOpening=input$gap_open, 
                                     gapExtension=input$gap_extend )
-   }else{
-    datos$aln2 = pairwiseAlignment( Seq, datos$Target, substitutionMatrix = nucleotideSubstitutionMatrix(match = 5, mismatch = -4),
-                                    type = input$alnType, gapOpening=input$gap_open, 
-                                    gapExtension=input$gap_extend )
-   }
 
-   alignment = Fix_gaps(datos$aln2, Seq, datos$Ref)
+   alignment = Fix_gaps(datos$aln2, Seq, Subject)
    query <- alignment$query[[1]]
    ref <- alignment$ref[[1]] 
    
@@ -76,7 +71,6 @@ observeEvent( c( input$tablaR_rows_selected, input$tablaT_rows_selected,
    
    if (!is.null(tabla_rows_selected()))
    {
-
      datos$text = as.data.frame(c(
        
        paste(pos, sep = '', collapse = ''),

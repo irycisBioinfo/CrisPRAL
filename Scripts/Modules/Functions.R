@@ -150,6 +150,7 @@ Position_vector <- function(input, ref, aln){
   tmp = paste(tmp,collapse = '-')
   # '-' are replaced by blank spaces to avoid representation of ALL positions, 
   # just every 10 - '|' is printed every 5 positions.
+
   pos1 = str_replace_all(tmp, '-', paste("   ","|", "    ", sep = '', collapse = ''))
   
   if (v_length > 100 ){ #After position 100 number of spaces must be readjusted 
@@ -333,7 +334,6 @@ Clusters_Alignments <- function(Clust_Seq, Align_Seq, gapOpening = 10, gapExtens
 }
 
 file.dir <- function(file_datapath){
-
   ###############################
   # Description:
   #
@@ -354,6 +354,7 @@ find_target_location <- function(Tabla, TablaT, Target){
   # ######################################
  
  perfectMatches <- filter(TablaT, mismatch == 0, Deletions == 0, Insertions == 0, length == nchar(Target))
+ 
  if(nrow(perfectMatches) == 0){
 
  Target_loc <- "Target exact match not found"
@@ -364,19 +365,22 @@ find_target_location <- function(Tabla, TablaT, Target){
  perfectMatches <- perfectMatches %>% arrange(desc(Abundance))
  
  Target_loc <- grep(Tabla$ID, pattern = head(perfectMatches)[1,1])
+ Target_loc <- rownames(Tabla)[Target_loc]
  
  if(is_empty(Target_loc)){Target_loc <- 'NONE'}
- Target_text <- 'Targets found in Clusters:'
+ Target_text <- 'Targets found in:'
  
 }else if(nrow(perfectMatches) == 1){
  
  MatchTargetHighScore_ID <- perfectMatches$ID[1]
  Target_loc <- detect_index(Tabla$ID, ~. == MatchTargetHighScore_ID)
- if(Target_loc == 0){Target_loc <- 'NONE'}
+ Target_loc <- rownames(Tabla)[Target_loc]
  
- Target_text <- 'Target is found in Cluster:'
+ if(is_empty(Target_loc)){Target_loc <- 'NONE'}
+ 
+ Target_text <- 'Target is found in:'
 }
  
- return(c(Target_loc, Target_text))
+ return(c(Target_text, Target_loc))
  
- }
+}
