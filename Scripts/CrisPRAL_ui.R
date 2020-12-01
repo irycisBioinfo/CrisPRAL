@@ -1,7 +1,11 @@
 #CrisPRAL ui
-#---UI----
 
-#shinyUI(
+# This script includes the user-interface definition of the app.
+
+###############################################.
+## Header ---- 
+###############################################.
+
 fluidPage(# Application title
  useShinyjs(),
  tags$head(
@@ -18,19 +22,30 @@ fluidPage(# Application title
  
  # tags$style(type = 'text/css', '#Target_Location {background-color: rgba(255,0,0,0.40);}'), #Example of css editing line
  
+ ###############################################.
+ ## Landing page ----
+ ###############################################.
+ 
+ ###############################################.
+ ## Mosaic Finder ----
+ ###############################################.
+ 
  titlePanel( title=(div("Mosaic Finder", img(src="dna_free.png")))),
  
- # Sidebar ----
+   ###############################################.
+   ## Side Bar ----
+   ###############################################.
+ 
  #with a slider input for number of bins
  sidebarLayout(
   sidebarPanel(
    checkboxInput("crispr-cas", p(strong('Crispr-Cas9 Analysis')), value = TRUE),
    wellPanel(
-    checkboxInput("single_end", p(strong("Single end data"))),
+    checkboxInput("single_end", p(strong("Single end data"))), # Choose between single end or paired end inputs
     
     h4("Input Files"),
     fileInput("R1", "Reads 1", accept = c('.fastq', '.fastq.gz')),
-    conditionalPanel(
+    conditionalPanel( # 2nd entry only available for paired-end mode
      condition = "input.single_end == false",
      fileInput("R2", "Reads 2", accept = c('.fastq', '.fastq.gz'))),
     fileInput("Reference", "Reference", accept = c('.fasta', '.fastq', '.txt'))
@@ -46,9 +61,13 @@ fluidPage(# Application title
      min = 31,
      max = 400,
      step = 10),
+  
+      ##############################################.
+      # Adapter trimming-----
+      ##############################################.
+    
     wellPanel(
-     #Adapter trimming-----
-     navbarPage(title = p(strong('Adapter trimming:')), selected = 'recommended',
+      navbarPage(title = p(strong('Adapter trimming:')), selected = 'recommended',
                 tabPanel(p(strong('None')), value = 'None'),
                 tabPanel(p(strong('by length')), value = 'length',
                          numericInput('trimA1', 
@@ -90,9 +109,14 @@ fluidPage(# Application title
                           condition = "input.single_end == false",
                           verbatimTextOutput(outputId = 'checkR2A')))
                 
-     )),
+     ) # navbarPage Adapter Trimming close bracket
+   ), # WellPanel Adapter Trimming close bracket
+    
+        ##############################################.
+        #Primer Trimming-----
+        ##############################################.
+    
     wellPanel(
-     #Primer Trimming-----
      navbarPage(title = p(strong('Primer trimming:')), selected = 'recommended',
                 tabPanel(p(strong('None')), value = 'None'),
                 tabPanel(p(strong("by length")), value = 'length',
@@ -135,12 +159,16 @@ fluidPage(# Application title
                          conditionalPanel(
                           condition = "input.single_end == false",
                           verbatimTextOutput(outputId = 'checkRP1'),
-                          verbatimTextOutput(outputId = 'checkRP2'))
-                         
-                         
-                )
-     ))),
-   #---Well stablished parameters----
+                          verbatimTextOutput(outputId = 'checkRP2')))
+                
+    ) # NavBar Page Primer trimming close bracket
+   ) # WellPanel Primer trimming close bracket
+  ), # WellPanel filtering Reads close bracket
+   
+   ##############################################.
+   # Advanced Options ----
+   ##############################################.
+   
    checkboxInput("display_advanced", p(strong("Display advanced options"))),
    conditionalPanel(
     condition = "input.display_advanced == true",
@@ -193,18 +221,25 @@ reverse_complement == true",
       "Identity (default: 1)",
       min = 0,
       max = 1,
-      value = 1
-     )
-    )),
+      value = 1))
+    ), # conditional panel "Advanced options close bracket
    
    actionButton("Accept", "Run"),
    actionButton("Run_Example", "Run Example"),
    
    br()
-  ),
-  #---UI Main Panel----
+  ), # Sidebar Panel close bracket
+  
+  ##############################################.
+  # Main Panel----
+  ##############################################.
+
   mainPanel(
-   #Clustering Visualization----
+    
+    ##############################################.
+    # Clustering Visualization ----
+    ##############################################.
+    
    tabsetPanel(id = 'Visualization', selected = 'Clusterization_&_Alignment',
                tabPanel("Clusterization & Alignment", value = "Clusterization_&_Alignment",
                         navbarPage(title = NULL,id = 'Alignment', selected = 'Reference',
@@ -238,8 +273,13 @@ reverse_complement == true",
                         #  uiOutput('downloadMSA'),
                         #  br())
                         # uiOutput('warningClustrUI'))
-               ),
-               #Graphics----
+                        
+               ), # tabPanel Clustering and Alignment close bracket
+               
+     ##############################################.
+     # Gaphs display ----
+     ##############################################.
+     
                tabPanel("Graphics", value = 'Graphics',  # Show a plot of the generated distribution
                         br(),
                         
@@ -297,9 +337,13 @@ reverse_complement == true",
                         
                         column(width = 4,
                                textOutput(p(em(outputId = 'Dump'))),
-                               textOutput(outputId = 'Dump')
-                        )),
-               # Download Report----
+                               textOutput(outputId = 'Dump'))
+                      ), # tabPanel graphs close bracket
+     
+     ##############################################.
+     # Downloads ----
+     ##############################################.
+     
                tabPanel('Download', value = 'Download',
                         navbarPage(title = NULL,id = 'Alignment2', selected = 'Reference',
                           tabPanel('Reference', value = 'Reference',
@@ -335,8 +379,11 @@ reverse_complement == true",
                                            downloadButtonModule("downloadFile2", 
                                                                 'Download CSV'),
                                            downloadButtonModule("downloadFASTAS", 
-                                                                "Download FASTAS")))
-                        )
-   )
-  )))
-# )
+                                                                "Download FASTAS"))
+                                  ) # fluidRow close bracket
+          ) # Download tabpanel close
+        ) #tabset Panel close bracket
+      ) # MainPanel close bracket
+    ) # sidebarLayout close bracket
+  ) # Fluid Page close bracket
+
