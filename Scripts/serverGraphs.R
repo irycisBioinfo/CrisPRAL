@@ -292,7 +292,7 @@ observeEvent(input$GG,{
   
   #-Deletions per loci
   
-  DL <- plot_ly(Deletion_per_position, x = ~Position, y = ~Total, color = 'red',
+  DL <- plot_ly(Deletion_per_position, x = ~Position, y = ~Total, marker = list(color = 'tomato'),
                 type = 'bar', name = 'Deletions') %>%
    layout(yaxis = list(title = '# of individual reads', range = range))
   
@@ -321,7 +321,7 @@ observeEvent(input$GG,{
   }else{tick_distance_Del <- 5}
   
   
-  DS = plot_ly(datos$Del_Data, y = ~TotalD, x = ~Deletions, type = 'bar', color = 'red') %>%
+  DS = plot_ly(datos$Del_Data, y = ~TotalD, x = ~Deletions, type = 'bar', marker = list(color = 'tomato')) %>%
    layout(yaxis = list(title = '# of individual reads'),
           xaxis = list(title = 'Size of deletion extension',
                        dtick = tick_distance_Del,
@@ -354,7 +354,7 @@ observeEvent(input$GG,{
   }else{tick_distance_In <- 10}
   
   
-  IS = plot_ly(datos$In_Data, y = ~TotalI, x = ~Insertions, type = 'bar', color = 'green') %>%
+  IS = plot_ly(datos$In_Data, y = ~TotalI, x = ~Insertions, type = 'bar', marker = list(color = 'limegreen')) %>%
    layout(yaxis = list(title = '# of individual reads', range = range),
           xaxis = list(title = 'Size of insertion extension',
                        dtick = tick_distance_In,
@@ -372,7 +372,7 @@ observeEvent(input$GG,{
   #-Insertion per Loci
   incProgress(1/8)
   
-  IL = plot_ly(Insert_per_loci, y = ~Total_Count, x = ~Position, type = 'bar', color = 'green') %>%
+  IL = plot_ly(Insert_per_loci, y = ~Total_Count, x = ~Position, type = 'bar', marker = list(color = 'limegreen')) %>%
    layout(yaxis = list(title = '# of individual reads', range = range),
           xaxis = list(range = c(1, 250)))
   output$In_loc <- renderPlotly({print(IL)})
