@@ -1,75 +1,32 @@
 #Global File for All_For_One_v1.2
 
-#---Libraries----
+#---Base Libraries----
 
 library( base )
 base_append <- base::append
 library( shiny )
 library( readr )
+library("BiocManager")
 
+#---Preparation for Lazy Filter----
+
+require( xlsx )
+require( tidyverse )
 
 #---------------------------------------
+
 # CompletePATH = dirname(sys.frame(1)$ofile)
 CompletePATH = paste(getwd(), '/Scripts', sep = '') #-Server
 setwd( CompletePATH )
 
-#------Setting up work environment-----
-# appPATH = getwd()
-# 
-# if (substring( appPATH, nchar( appPATH )-8, nchar( appPATH )) != 'CrisPRAL' ){
-#  system( 'find /home/ -name "CrisPRAL" > PATH.txt' )
-#  
-#  file_lines = read_lines( 'PATH.txt' )
-#  if (length( file_lines ) >= 2){
-#   system( paste ('zenity --warning --width 300 --height 100 
-#                   --text="More than one directories named -CrisPRAL- have been 
-#                   found, make sure there is only one"' ))
-#   stopApp()
-#   stop()
-#  }
-#  
-#  appPATH = read_file( 'PATH.txt' )
-#  system( 'rm PATH.txt' )
-#  
-#  CompletePATH = paste(substring( appPATH, 1, nchar( appPATH )-1 ),"/Scripts", sep = '') # nchar - 1 to remove
-#  #"/n" due to .txt parsing
-#  
-#  setwd( CompletePATH )
-#  
-# }else{ CompletePATH = appPATH }
-
-
-#-----------Fast loading data-----------
-# load(paste(CompletePATH, '/Scripts/Init.Rdata', sep = ''))
-#---------------------------------------
-
 #shinyEngineering packages:
-shinypckgs <- c("shinythemes", "shinyWidgets", "shinydashboard", 'shinyFiles', 'shinyBS', 'shinyjs')
-
-for(package in shinypckgs){
- if (lapply(package, require, character.only = TRUE) == FALSE){
-  lapply(package, install.packages, character.only = TRUE, ask = FALSE)
-  lapply(package, require, character.only = TRUE)
- }}
-
-#BiocManager for bioconductor package handling
-if (!requireNamespace("BiocManager", quietly=TRUE)){
- install.packages("BiocManager")
- require("BiocManager")
-}
+shinypckgs <- c("shinythemes", "shinyWidgets", "shinydashboard", 'shinyFiles', 'shinyBS', 'shinyjs','rintrojs', 'shinycssloaders')
+lapply(shinypckgs, require, character.only = TRUE)
 
 #dependant packages required
 deppkgs <- c('devtools', 'tidyverse', 'kableExtra', 'rmarkdown', 'processx', 'DT', 'htmlwidgets', 'seqRFLP', 'farver')
+lapply(deppkgs, require, character.only = TRUE)
 
-for(package in deppkgs){
- 
- if (lapply(package, require, character.only = TRUE) == FALSE){
-  
-  lapply(package, install.packages, character.only = TRUE, ask = FALSE)
-  lapply(package, require, character.only = TRUE)
-  
- }
-}
 
 count <- dplyr::count
 #devtools::install_github() bugfix
@@ -79,18 +36,8 @@ options("download.file.method" = "libcurl")
 Biocpkgs <- c("BiocGenerics", "BiocStyle", "BSgenome", 'Biostrings','msa', 'msaR', "checkmate", "ggdendro",
           "reshape2", "Rsamtools", "scales", "ShortRead",  "viridis", "viridisLite", "zoo", "mikelove/fastqcTheoreticalGC", 
           "ngsReports", "wleepang/shiny-directory-input", 'UofABioinformaticsHub/shinyNgsreports')
+lapply(Biocpkgs, require, character.only = TRUE)
 
-# BiocManager::install(Biocpkgs)
-
-for (package in Biocpkgs){
-
- if (lapply(package, require, character.only = TRUE) == FALSE){
-
-  lapply(package, BiocManager::install, ask = FALSE)
-  lapply(package, require, character.only = TRUE)
-
- }
-}
 
 #Github packages
 gitpkgs <- c('ropensci/plotly')
@@ -105,29 +52,17 @@ for (package in gitpkgs){
  }
 }
 
-if ( require( 'tinytex' ) == FALSE ){
- 
- install.packages( 'tinytex' )
- tinytex::install_tinytex()
- 
-}
+require( tinytex )
+# tinytex::install_tinytex()
+
 # Installation of google-chrome (.deb) is required as well as chromium-browser (apt-get)
-if ( require( 'webshot2' ) == FALSE ){
-  devtools::install_github( 'rstudio/webshot2' )
-}
-library( webshot2 )
+require( webshot2 )
 
 #---Modules_Load----
 
 source( str_c( CompletePATH, '/Modules/Functions.R' ))
 source( paste( CompletePATH, '/Modules/input-reset_module.R', sep = '' ))
 source( paste( CompletePATH, '/Modules/downloadFileModule.R', sep = '' ))
-
-#---Preparation for Lazy Filter----
-
-if ( isFALSE( require( xlsx ))){install.packages( 'xlsx' )
-  require( xlsx )}
-require( tidyverse )
 
 #----Custom functions----
 
