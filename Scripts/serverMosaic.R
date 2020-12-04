@@ -1,4 +1,3 @@
-# serverMosaic <- function(input, output, session) {
 #---Mosaic Analyser SERVER----
 #-Reset block-
 
@@ -10,6 +9,12 @@ reset('Target')
 observeEvent(input$toggle2, {
  toggleDropdownButton(inputId = "mydropdown")
 }, ignoreInit = TRUE)
+
+observeEvent(input$go_to_mosaic, {
+  
+  updateTabsetPanel(session, 'app', selected = 'Mosaic_Finder')
+  
+})
 
 #------TESTING-----
 
