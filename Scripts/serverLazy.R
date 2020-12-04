@@ -1,6 +1,12 @@
 #---Lazy Panel Filter SERVER----
 
 
+observeEvent(input$go_to_lazy, {
+  
+  updateTabsetPanel(session, 'app', selected = 'Lazy_Panel')
+  
+})
+
 # serverMosaic <- function(input, output, session) {
   URLdata <- reactiveValues()
   DataTable <- reactiveValues()
