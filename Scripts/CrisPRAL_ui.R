@@ -49,9 +49,9 @@ fluidPage(# Application title
      condition = "input.single_end == false",
      fileInput("R2", "Reads 2", accept = c('.fastq', '.fastq.gz'))),
     fileInput("Reference", "Reference", accept = c('.fasta', '.fastq', '.txt'))
-   ),
+   ),# wellPanel end bracket
    wellPanel(inputReset_UI('reset_Target' , label = 'Target')
-   ),
+   ),# wellPanel end bracket
    wellPanel(
     h4("Filter Reads Options"),
     numericInput(
@@ -93,7 +93,7 @@ fluidPage(# Application title
                                                textInput("R2_Adapter","R2 sequence")),
                                               br(),
                                               fluidRow(#column(4, actionButton('resetP', 'Reset Input')), #No need for this anymore
-                                               column(4, actionButton('uploadAdapters', 'Upload Adapters'))),
+                                               column(4, actionButton('uploadAdapters', 'Upload Adapters', icon = icon('upload')))),
                                               br(),
                                               br()),
                                      tabPanel('File input', value = 'File_input_A',
@@ -143,7 +143,7 @@ fluidPage(# Application title
                                                textInput('R_Primer2',"5' reverse end sequence")),
                                               br(),
                                               fluidRow(#column(4, actionButton('resetP', 'Reset Input')), #No need for this anymore
-                                               column(4, actionButton('uploadPrimers', 'Upload Primers'))),
+                                               column(4, actionButton('uploadPrimers', 'Upload Primers', icon = icon('upload')))),
                                               br(),
                                               br()
                                      ),
@@ -173,21 +173,22 @@ fluidPage(# Application title
    conditionalPanel(
     condition = "input.display_advanced == true",
     wellPanel(checkboxInput(inputId = "reverse_complement", value = TRUE,
-                            p(strong("Check for reverse complement sequences of the reference"))),
-              conditionalPanel(condition = "input.
-reverse_complement == true", 
-                               numericInput(inputId = 'primer_error_rate', 
-                                            value = 0.15,
-                                            label = "Primer error tolerance",
-                                            min = 0,
-                                            max = 1))),
+              p(strong("Check for reverse complement sequences of the reference"))),
+            conditionalPanel(condition = "input.reverse_complement == true", 
+               numericInput(inputId = 'primer_error_rate', 
+                            value = 0.15,
+                            label = "Primer error tolerance",
+                            min = 0,
+                            max = 1))
+            ), # wellPanel end bracket
      wellPanel(selectInput("general_allType",
                            "Alignment method",
                            c("global", "overlap"),
                            selected = "overlap",
                            ),
                numericInput(inputId = 'gap_open', value = 10, label = 'Alignment gap open penalty', min = 0),
-               numericInput(inputId = 'gap_extend', value = 0.5, label = 'Alignment gap extension penalty', min = 0)),
+               numericInput(inputId = 'gap_extend', value = 0.5, label = 'Alignment gap extension penalty', min = 0)
+             ), # wellPanel end bracket
      conditionalPanel(
       condition = "input.single_end == false",    
       wellPanel(
@@ -207,25 +208,25 @@ reverse_complement == true",
          value = 10
         )
      )),
-    wellPanel(
-     h4("Clustering Parameter"),
-     sliderInput(
-      "cov",
-      "Coverage (default: 1)",
-      min = 0 ,
-      max = 1,
-      value = 1
-     ),
-     sliderInput(
-      "identity",
-      "Identity (default: 1)",
-      min = 0,
-      max = 1,
-      value = 1))
-    ), # conditional panel "Advanced options close bracket
+        wellPanel(
+         h4("Clustering Parameter"),
+         sliderInput(
+          "cov",
+          "Coverage (default: 1)",
+          min = 0 ,
+          max = 1,
+          value = 1
+         ),
+         sliderInput(
+          "identity",
+          "Identity (default: 1)",
+          min = 0,
+          max = 1,
+          value = 1))
+        ), # conditional panel "Advanced options close bracket
    
-   actionButton("Accept", "Run"),
-   actionButton("Run_Example", "Run Example"),
+   actionButton("Accept", "Run", icon = icon('caret-right')),
+   actionButton("Run_Example", "Run Example", icon = icon('caret-right')),
    
    br()
   ), # Sidebar Panel close bracket
@@ -241,7 +242,7 @@ reverse_complement == true",
     ##############################################.
     
    tabsetPanel(id = 'Visualization', selected = 'Clusterization_&_Alignment',
-               tabPanel("Clusterization & Alignment", value = "Clusterization_&_Alignment",
+               tabPanel("Clusterization & Alignment", value = "Clusterization_&_Alignment", icon = icon('align-justify'),
                         navbarPage(title = NULL,id = 'Alignment', selected = 'Reference',
                                    tabPanel('Reference', value = 'Reference',
                                             h3("Results"),
@@ -277,14 +278,14 @@ reverse_complement == true",
                ), # tabPanel Clustering and Alignment close bracket
                
      ##############################################.
-     # Gaphs display ----
+     # Graphs display ----
      ##############################################.
      
-               tabPanel("Graphics", value = 'Graphics',  # Show a plot of the generated distribution
+               tabPanel("Graphics", value = 'Graphics', icon = icon("chart-pie"),  # Show a plot of the generated distribution
                         br(),
                         
                         wellPanel(
-                         actionButton(inputId =  "GG", "Generate Plots")),
+                         actionButton(inputId =  "GG", "Generate Plots", icon = icon('caret-right'))),
                         fluidRow(
                          column( width = 4,
                                  wellPanel(
@@ -344,7 +345,7 @@ reverse_complement == true",
      # Downloads ----
      ##############################################.
      
-               tabPanel('Download', value = 'Download',
+               tabPanel('Download', value = 'Download', icon = icon('download'),
                         navbarPage(title = NULL,id = 'Alignment2', selected = 'Reference',
                           tabPanel('Reference', value = 'Reference',
                             br(),
