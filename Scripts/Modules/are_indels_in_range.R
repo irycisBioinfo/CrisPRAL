@@ -1,24 +1,19 @@
-
 library(tidyverse)
 library(vctrs)
 library(xlsx)
 
-#######################.
-## Set Working directory ----
-#######################.
-
-# Development legacy code
-# setwd('/media/bioinfo/Seagate_Expansion_Drive/ALMUDENA_JUL_2020/results_Almudena/')
-# f <- grep(dir(), pattern = 'xlsx', value = TRUE)
-
 are_indels_in_range <- function(data, position_range){
+  
+  #### DESCRIPTION: #####
+  #
+  # This script finds whether the data table provided has indels falling 
+  # within a given range.
+  #
+  #######################
 
 #######################.
 ## Set parameters to work with (position range) ----
 #######################.
-
-# Development testing range:
-# position_range <- c(70:170)
 
 #######################.
 ## Operations ----
