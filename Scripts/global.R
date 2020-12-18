@@ -24,10 +24,10 @@ shinypckgs <- c("shinythemes", "shinyWidgets", "shinydashboard", 'shinyFiles', '
 lapply(shinypckgs, require, character.only = TRUE)
 
 #dependant packages required
-deppkgs <- c('devtools', 'tidyverse', 'kableExtra', 'rmarkdown', 'processx', 'DT', 'htmlwidgets', 'seqRFLP', 'farver')
+deppkgs <- c('devtools', 'tidyverse', 'kableExtra', 'rmarkdown', 'processx', 'DT', 'htmlwidgets', 'seqRFLP', 'farver','R.utils')
 lapply(deppkgs, require, character.only = TRUE)
-
-
+# Fixing some masked funcitons:
+reset <- shinyjs::reset
 count <- dplyr::count
 #devtools::install_github() bugfix
 options("download.file.method" = "libcurl")
@@ -61,8 +61,9 @@ require( webshot2 )
 #---Modules_Load----
 
 source( str_c( CompletePATH, '/Modules/Functions.R' ))
-source( paste( CompletePATH, '/Modules/input-reset_module.R', sep = '' ))
-source( paste( CompletePATH, '/Modules/downloadFileModule.R', sep = '' ))
+source( str_c( CompletePATH, '/Modules/input-reset_module.R'))
+source( str_c( CompletePATH, '/Modules/downloadFileModule.R'))
+source( str_c( CompletePATH, '/Modules/are_indels_in_range.R'))
 
 #----Custom functions----
 
