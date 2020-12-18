@@ -168,10 +168,10 @@ observeEvent(input$GG,{
   #New and improved LetterPerPosition
   LetterPerPosition_Norm2 = LetterPerPosition_Total %>% 
                              ungroup() %>% group_by(Position) %>% 
-                             mutate(Percentage = Total/sum(Total)) %>% 
+                             mutate(Probability = Total/sum(Total)) %>% 
                              ungroup(Position) %>% group_by(Chr, Position) %>%
-                             mutate_at(vars(Percentage), list(~sum(Percentage))) %>% 
-                             group_by(Percentage, Position) %>% mutate(Total = sum(Total)) %>%  distinct()
+                             mutate_at(vars(Probability), list(~sum(Probability))) %>% 
+                             group_by(Probability, Position) %>% mutate(Total = sum(Total)) %>%  distinct()
 
   LetterPerPosition_Ref <- tibble(Position = c(1:length(datos$Ref[[1]])))
   LetterPerPosition_Ref$Base <- as.character(as.vector(datos$Ref[[1]]))
@@ -183,13 +183,13 @@ observeEvent(input$GG,{
   #With alternative consensus the most abundant mutation for each position is extracted.
   Alternative_Consensus <- LetterPerPosition_SubChange %>% filter(as.character(Chr) != Base) %>% 
                            #filter(as.character(Chr) != '-') %>% 
-                           group_by(Position) %>% filter(Percentage == max(Percentage))
+                           group_by(Position) %>% filter(Probability == max(Probability))
   
   #Deletions_per_position is useful to plot a line graph in conjuntion with BasePerPosition_info 
   Deletion_per_position <- left_join(LetterPerPosition_Ref, LetterPerPosition_SubChange %>% filter(as.character(Chr) == '-') %>% 
                                        select(-Base),by = 'Position') %>% mutate(Chr = '-') %>% 
                                        mutate(Total = case_when(is.na(Total) ~0, TRUE ~as.double(Total))) %>% 
-                                       mutate(Percentage = case_when(is.na(Percentage) ~ 0, TRUE ~ Percentage))
+                                       mutate(Probability = case_when(is.na(Probability) ~ 0, TRUE ~ Probability))
   
   #-Insert_per_loci to include insertions in summary plot
   #-Insert locations processing
@@ -204,18 +204,18 @@ observeEvent(input$GG,{
   Insert_per_loci <- Unravel_Positions(Insert_per_loci, Insert_data)
   colnames(Insert_per_loci) <- c('Position', 'Total_Count')
   
-  Insert_per_loci <- Insert_per_loci %>% mutate(Percentage = Total_Count/sum(datos$Tabla$Abundance))
+  Insert_per_loci <- Insert_per_loci %>% mutate(Probability = Total_Count/sum(datos$Tabla$Abundance))
   #New name to distinguish between purposes (summary plot vs bar chart)
   Insert_per_position <- left_join(LetterPerPosition_Ref, Insert_per_loci, by = 'Position') %>%
                           select(-Total_Count)
   
   
   LetterPerPosition_SubChange <- LetterPerPosition_SubChange %>% filter(as.character(Chr) != '-') %>% 
-                                 filter(as.character(Chr) != Base) %>% group_by(Position) %>% mutate(Percentage = sum(Percentage)) %>% 
-                                 select(Position, Base, Percentage) %>% distinct()
+                                 filter(as.character(Chr) != Base) %>% group_by(Position) %>% mutate(Probability = sum(Probability)) %>% 
+                                 select(Position, Base, Probability) %>% distinct()
   
   #Fuse info of LetterPerPosition_SubChange and Alternative_Consensus
-  BasePerPosition_info <- left_join(LetterPerPosition_SubChange, Alternative_Consensus %>% select(-Base, -Total, -Percentage), by = 'Position')
+  BasePerPosition_info <- left_join(LetterPerPosition_SubChange, Alternative_Consensus %>% select(-Base, -Total, -Probability), by = 'Position')
   # I'm unsure about the purpose of this line, is it to combine positions with different entries?
   BasePerPosition_info <- BasePerPosition_info %>% 
                           mutate(Chr = case_when(Position == lead(Position) ~ paste(Chr, ',' ,lead(Chr), sep = ''), TRUE ~ as.character(Chr))) %>% 
@@ -241,7 +241,8 @@ observeEvent(input$GG,{
   # colorscheme = c('red', 'black', 'blue', 'green', 'gray')
   # colorscheme = setNames(colorscheme, c('T', 'G', 'C', 'A', '-'))
   # 
-  MF <- plot_ly(BasePerPosition_info %>% ungroup(), x = ~Position, y = ~Percentage, name = 'Variants',
+  browser()
+  MF <- plot_ly(BasePerPosition_info %>% ungroup(), x = ~Position, y = ~Probability, name = 'Variants',
                 type = 'scatter', mode = 'lines', text = ~paste(Chr,'>',Base, ' at Position: ',Position,sep = ''), 
                 hovertemplate = paste('<i>Most abundant change</i>: %{text}'), line = list(shape = 'spline', color = "royalblue")) %>% 
         add_trace(xaxis='x2', showlegend = FALSE, opacity = 0) %>%
@@ -276,9 +277,9 @@ observeEvent(input$GG,{
                              title = 'Reference',
                              tickfont=list( color='green' )))
   
-  MF <- MF %>% add_lines(data = Deletion_per_position, x = ~Position, y = ~Percentage, name = 'Deletions' ,line = list(shape = 'spline', color = 'tomato'),
+  MF <- MF %>% add_lines(data = Deletion_per_position, x = ~Position, y = ~Probability, name = 'Deletions' ,line = list(shape = 'spline', color = 'tomato'),
                          text = ~paste('del','>',Base, ' at Position: ',Position,sep = ''), hovertemplate = paste('<i>Deletion abundance: </i>%{text}'))
-  MF <- MF %>% add_lines(data = Insert_per_position, x = ~Position, y = ~Percentage, name = 'Insertions',line = list(shape = 'spline', color = 'limegreen'),
+  MF <- MF %>% add_lines(data = Insert_per_position, x = ~Position, y = ~Probability, name = 'Insertions',line = list(shape = 'spline', color = 'limegreen'),
                          text = ~paste('ins','>',Base, ' at Position: ',Position,sep = ''), hovertemplate = paste('<i>Insertion abundance: </i>%{text}'))
   
   output$Mut_Freq <- renderPlotly({print(MF)})
