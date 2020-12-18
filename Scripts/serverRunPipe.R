@@ -13,7 +13,6 @@ pipeline <- reactive({if(input$reverse_complement){
   })
 
 observeEvent(input$Accept, {
- 
  checks$example <- FALSE
  
  required_values <- list("Reference sequence" = input$Reference$name, 'Fastq File' = input$R1$name)
@@ -134,7 +133,7 @@ observeEvent(input$Accept, {
   if(!file.exists(paste(datos$tmppipelinedir,"/cluster.tsv", sep = ''))){
    #-Missing files
    
-   output$Print2 <- renderText(':ERROR: Pipeline was broken; check files, extensions, reload and if problem persists contact administrator at sergio.fern1994@gmail.com')
+   output$Print2 <- renderText(paste0(':ERROR: Pipeline was broken; check files, extensions, reload and if problem persists contact administrator at sergio.fern1994@gmail.com'))
    return()
    
   }
@@ -280,7 +279,10 @@ observeEvent(input$Accept, {
    datos$Target = readDNAStringSet(Target())
    
    #Alignment for Sequences with Target
-   ls_ClusterAln_Tar = Clusters_Alignments(datos$Sequences, datos$Target) #Function in Functions.R module.
+   ls_ClusterAln_Tar = Clusters_Alignments(datos$Sequences, datos$Target,
+                                           gapOpening = input$gap_open, 
+                                           gapExtension = input$gap_extend,
+                                           type = input$general_allType) #Function in Functions.R module.
    #Another Tabla variable is declared as an unsorted version together with
    #an associated Abundance for INDEL processing in graphing section.
    datos$TablaT_unsort <- ls_ClusterAln_Tar$tmp %>% rename(Deleted_bps = deletions) %>% rename(Inserted_bps = insertions)
@@ -309,7 +311,7 @@ observeEvent(input$Accept, {
    # datos$Tabla_Target is DONE with this last line:
    datos$Tabla_Target = inner_join(datos$Tabla_raw, datos$TablaT_unsort_total_indels) %>% 
     mutate(score = round(score,1), Freq = signif(Freq,2)) %>% 
-    arrange(desc(Abundance)) %>% select(-width,-start,-end)
+    arrange(desc(Abundance)) %>% select(-width,-start,-end) # Remove columns deemed too confusing for a user.
    output$Target_Location <- renderText(paste(Target_location()[1], Target_location()[2], sep = ' '))
    
    rownames(datos$Tabla_Target) <- str_c('Cluster', rownames(datos$Tabla_Target))
@@ -328,9 +330,8 @@ observeEvent(input$Accept, {
    
    output$Target_Location <- renderText(Target())
   }
-  #browser()
  })
-})
+}) # observeEvent close bracket
 
 output$temp_text <- renderUI({
  verbatimTextOutput('explicative_text')
