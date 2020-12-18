@@ -15,6 +15,10 @@ serverMain <- function(input, output, session) {
  #---Mosaic Analyser SERVER----
  
  source( './serverMosaic.R', local = TRUE )
+        
+#---BATCH Mosaic Analyser SERVER----
+
+source( './serverMosaic_batch.R', local = TRUE )
  
  #----Run-Pipeline SERVER----
  
