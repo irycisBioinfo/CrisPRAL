@@ -70,6 +70,9 @@ checks$Table_back_to_default <- FALSE
 file_upload <- reactiveValues(upload_Adapter_state = NULL)
 file_upload <- reactiveValues(upload_Primer_state = NULL)
 
+# ############################################################################.
+# FILES ####
+##############################################################################.
 #-Reactive input to allow for compressed files processing.
 R1_file <- reactive({
  
@@ -78,7 +81,7 @@ R1_file <- reactive({
 if(!is.null(input$R1)){ 
  if (str_sub(input$R1$datapath, -3) == '.gz'){
   #Function "Unzip_file" defined in Functions.R
-  Unzip_file(CompletePATH, input$R1$datapath)}
+  Unzip_file(str_remove(input$R1$datapath, pattern = '.gz'), input$R1$datapath)}
  else{
   input$R1$datapath}}
 })
@@ -87,12 +90,16 @@ R2_file <- reactive({
  
  if(!is.null(input$R2)){
   if(str_sub(input$R2$datapath, -3) == '.gz'){
-   Unzip_file(CompletePATH, input$R2$datapath)}
+   Unzip_file(str_remove(input$R2$datapath, pattern = '.gz'), input$R2$datapath)}
   else{
    input$R2$datapath}
  }else{
   return('Empty')
  }})
+
+# ############################################################################.
+# REFERENCE & TARGET ####
+##############################################################################.
 
 #-Allows reference Primer trimming.
 Reference <- reactive({
@@ -180,7 +187,9 @@ output$is.nullTarget1 <- renderUI({
   }else{c("Reference")})
 })
 
-#----Filtering Parameters declarations----
+# ############################################################################.
+# ADAPTERS ####
+##############################################################################.
 
 #This following set of observeEvents allows the user to change his mind on 
 #uploaded Adapter files.
@@ -233,7 +242,10 @@ AdapterR2 <- reactive({
 output$checkR1A <- renderText(paste("R1 Adapter: ",AdapterR1(), sep = ''))
 output$checkR2A <- renderText(paste("R2 Adapter: ",AdapterR2(), sep = ''))
 
-#Same than the Adapter strings but with the Primers.
+# ############################################################################.
+# PRIMERS ####
+##############################################################################.
+
 observeEvent(c(input$PrimerFile, input$uploadPrimers), {
  file_upload$upload_Primer_state <- 'uploaded'
 }) 
@@ -316,7 +328,10 @@ output$checkRP1 <- renderText(paste("Read 2, 5' end: ",PrimerR2_5(),
                                     sep = ''))
 output$checkRP2 <- renderText(paste("Read 2, 3' end: ",PrimerR2_3(), 
                                     sep = ''))
-#---------Modal dialog WARNING----
+
+# ############################################################################.
+# MODAL DIALOG ASSERTION ####
+##############################################################################.
 
 Check_pair_input_files <- reactive({ #Allow warning to be disabled
  
@@ -380,7 +395,9 @@ Check_pair_input_files <- reactive({ #Allow warning to be disabled
  
 })
 
-#----Reactive table printing----
+# ############################################################################.
+# TABLE PRINTING ####
+##############################################################################.
 
 output$tablaR <- renderDT(Tabla(), selection = "single", editable = TRUE, 
                           options = list(search = list(smart = FALSE)), server = TRUE)
@@ -388,7 +405,7 @@ output$tablaR <- renderDT(Tabla(), selection = "single", editable = TRUE,
 output$tablaT <- renderDT(TablaT(), editable = TRUE, selection = "single", 
                           options = list(search = list(smart = FALSE)), server = TRUE)
 
-#----Alignment and Table filtering dinamic UI----
+#----Alignment and Table filtering dinamic UI----.
 
 Back_to_default <- reactive({
  if(!checks$Table_back_to_default){return(actionButton('Default', 'Default'))}
@@ -434,6 +451,10 @@ output$alignment_with_filtering <- renderUI({
                     column(2, Back_to_default())
                    )
          )))})
+
+# ############################################################################.
+# MANUAL TABLE EDITING CONFIGURATION ####
+##############################################################################.
 
 observeEvent(c(input$tablaR_cell_edit, input$tablaT_cell_edit),{
  
@@ -496,7 +517,9 @@ observeEvent(c(input$tablaR_cell_edit, input$tablaT_cell_edit),{
  reset('tablaT_cell_edit')
 })
 
-#-Reactive functions for CallModule and downloads----
+# ############################################################################.
+# DOWNLOADS ####
+##############################################################################.
 
 aln2PAIR <- reactive({datos$aln2})
 aln2FASTA <- reactive({alignedSubject(datos$aln2)})
@@ -594,10 +617,15 @@ output$downloadMSA_clstr <- downloadHandler(
   file.rename(tmpFile, file)}
 )
 
+# ############################################################################.
+# CALLMODULES ####
+##############################################################################.
+
 callModule(downloadCSV, 'downloadFile2',Table_to_download, input_filename_csv)
 
-#CallModule only declares itself once, check all variables that should be 
-#updating automatically (reactive variables)
+# CallModule only declares itself once, check all variables that should be 
+# updating automatically (reactive variables)
+
 callModule(downloadPAIR, 'downloadPAIR1', aln2PAIR, input_filename_pair)
 
 callModule(downloadFASTA, 'downloadFASTA1', 
