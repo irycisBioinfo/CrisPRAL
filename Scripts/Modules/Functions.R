@@ -1,4 +1,4 @@
-###################
+###################.
 # DESCRIPTION:
 #
 # This script stores different multiporpouse functions required
@@ -6,8 +6,6 @@
 # is larger than 5 code lines or if it serves multiple scripts.
 #
 # Functions:
-#
-# Start_gaps_size() - used in serverAlignment.R
 #
 # Position_vector() - used in serverAlignment.R
 # 
@@ -25,11 +23,12 @@
 #
 # Group_list() - used in serverGraphs.R
 #
-# Clusters_Alignments() - used in serverAlignment.R
+# Clusters_Alignments() - used in serverRunPipe.R
 #
 # file.dir() - used in serverMosaic.R and others
 #
-###################
+# conditional_input_decision_tree() - used in serverMosaic_batch.R
+###################.
 
 Start_gaps_size <- function(string){
   
@@ -88,7 +87,7 @@ Fix_gaps <- function(aln, pattern, subject){
       ref = str_c(missing_ref, aligned_ref, collapse = '')
       
     }else if(start(aln@subject) < start(aln@pattern)){
-        
+      
       aligned_ref <- as.character( aln@subject )
       missing_ref <- paste(rep(c('-'),start(pattern(aln))-1),collapse = '')
       ref = str_c(missing_ref, aligned_ref, collapse = '')
@@ -106,7 +105,7 @@ Fix_gaps <- function(aln, pattern, subject){
   
   if(any(missing_trails != 0)){
     if(missing_trails[1] < missing_trails[2]){
-
+      
       aligned_query <- query
       missing_query <- paste(rep(c('-'),missing_trails[2]),collapse = '')
       query <- str_c(aligned_query, missing_query, collapse = '')
@@ -131,7 +130,7 @@ Fix_gaps <- function(aln, pattern, subject){
   final_ref <- strsplit(ref, '')
   
   return(list('query' = final_query,'ref' = final_ref))
-
+  
 }
 
 Position_vector <- function(input, ref, aln){
@@ -143,7 +142,7 @@ Position_vector <- function(input, ref, aln){
   # sequence provided.
   #
   # #################
-
+  
   
   v_length = nchar(input)
   
@@ -151,7 +150,7 @@ Position_vector <- function(input, ref, aln){
   tmp = paste(tmp,collapse = '-')
   # '-' are replaced by blank spaces to avoid representation of ALL positions, 
   # just every 10 - '|' is printed every 5 positions.
-
+  
   pos1 = str_replace_all(tmp, '-', paste("   ","|", "    ", sep = '', collapse = ''))
   
   if (v_length > 100 ){ #After position 100 number of spaces must be readjusted 
@@ -173,7 +172,7 @@ Position_vector <- function(input, ref, aln){
   
   lead_dashes <- paste(rep(c(' '),start(aln@pattern)-1), collapse = '')
   pos <- str_c(lead_dashes, pos, collapse = '')
-
+  
   # v_length = lengthFixing( v_length, pos) #Length needs to be adjusted in case 
   #a number is being chopped in half. ex: length(ref)=101
   
@@ -211,12 +210,12 @@ Position_vector <- function(input, ref, aln){
 }
 
 lengthFixing <- function(v_length, pos){
-  #############
+  #############.
   # Description:
   #
   # Helper function for Position_vector()
   #
-  #############
+  #############.
   
   if (str_sub(pos, v_length, v_length) != ' '){
     v_length = v_length+1
@@ -264,18 +263,29 @@ InDel_Sizes <- function(Abundance, InDel_Sizes){
 
 Unzip_file <- function(PATH, fileGZ_path){
   
-  ##############
+  ##############.
   # Description:
   #
-  # Decompresses .gz files and return new file path as string.
+  # Decompresses .gz files into PATH and return new complete file path as a string.
   #
-  ##############
+  ##############.
   
-  system(paste(PATH, '/bin/gunzip -k ', fileGZ_path, sep = '')) #decompresses 
+  # system(paste(PATH, '/bin/gunzip -k ', fileGZ_path, sep = '')) #decompresses ## legacy code
+  file_decomposed <- str_split(fileGZ_path, '/')[[1]]
+  file_name <- file_decomposed[length(file_decomposed)]
+  
+  if(str_sub(PATH, nchar(PATH)) != '/'){ # Make sure PATH ends with a bracket
+    PATH <- str_c(PATH,'/')
+  }
+  
+  new_file <- str_c(PATH,str_remove(file_name,pattern = '.gz'))
+  
+  gunzip(filename = fileGZ_path, destname = new_file, remove = FALSE) 
+  
   #file and prevents compressed file deletion
-  file_path = str_sub(fileGZ_path, 1, -4) #removes last letter
+  # file_path = str_sub(fileGZ_path, 1, -4) #removes last letter ## legacy code
   
-  return(file_path) 
+  return(new_file) 
 }
 
 Unravel_Positions <- function(Insert_per_loci, Insert_data){
@@ -318,16 +328,16 @@ Clusters_Alignments <- function(Clust_Seq, Align_Seq, gapOpening = 10, gapExtens
                           substitutionMatrix = nucleotideSubstitutionMatrix(match = 5, mismatch = -4),
                           gapOpening=gapOpening, 
                           gapExtension=gapExtension)
-    tmp = data.frame(
-      ID = names(Clust_Seq),
-      mismatch = nmismatch(aln),
-      length = nchar(aln),
-      score = score(aln),
-      width = width(pattern(aln)),
-      start = start(subject(aln)),
-      end = end(subject(aln)),
-      deletions = nindel(aln)@deletion[, 2],
-      insertions = nindel(aln)@insertion[, 2]
+  tmp = data.frame(
+    ID = names(Clust_Seq),
+    mismatch = nmismatch(aln),
+    length = nchar(aln),
+    score = score(aln),
+    width = width(pattern(aln)),
+    start = start(subject(aln)),
+    end = end(subject(aln)),
+    deletions = nindel(aln)@deletion[, 2],
+    insertions = nindel(aln)@insertion[, 2]
   )
   tmp = tmp %>% separate(ID, c("ID","kk"), sep =" ") %>% select(-kk)
   
@@ -335,14 +345,22 @@ Clusters_Alignments <- function(Clust_Seq, Align_Seq, gapOpening = 10, gapExtens
 }
 
 file.dir <- function(file_datapath){
-  ###############################
+  
+  # #########.
   # Description:
   #
   # Splits and keeps the directory of a string containing a directory & a file
-  ###############################
+  #
+  # ########.
+  #
+  # REQUIRES: ####.
+  # 
+  # strngr or tidyverse
+  #
+  # #########.
   
- str_sub(file_datapath, start = 1, end = nchar(file_datapath)-(nchar(str_split(file_datapath, pattern = '/')[[1]][length(str_split(file_datapath, pattern = '/')[[1]])])+1))
- 
+  str_sub(file_datapath, start = 1, end = nchar(file_datapath)-(nchar(str_split(file_datapath, pattern = '/')[[1]][length(str_split(file_datapath, pattern = '/')[[1]])])+1))
+  
 }
 
 find_target_location <- function(Tabla, TablaT, Target){
@@ -353,35 +371,92 @@ find_target_location <- function(Tabla, TablaT, Target){
   # Finds the target sequence using score, mismatches, indels and coverage.
   #
   # ######################################
- 
- perfectMatches <- filter(TablaT, mismatch == 0, Deletions == 0, Insertions == 0, length == nchar(Target))
- 
- if(nrow(perfectMatches) == 0){
-
- Target_loc <- "Target exact match not found"
- Target_text <- " :WARNING: "
- 
-}else if(nrow(perfectMatches) > 1){
- Target_loc <- NULL
- perfectMatches <- perfectMatches %>% arrange(desc(Abundance))
- 
- Target_loc <- grep(Tabla$ID, pattern = head(perfectMatches)[1,1])
- Target_loc <- rownames(Tabla)[Target_loc]
- 
- if(is_empty(Target_loc)){Target_loc <- 'NONE'}
- Target_text <- 'Targets found in:'
- 
-}else if(nrow(perfectMatches) == 1){
- 
- MatchTargetHighScore_ID <- perfectMatches$ID[1]
- Target_loc <- detect_index(Tabla$ID, ~. == MatchTargetHighScore_ID)
- Target_loc <- rownames(Tabla)[Target_loc]
- 
- if(is_empty(Target_loc)){Target_loc <- 'NONE'}
- 
- Target_text <- 'Target is found in:'
+  
+  perfectMatches <- filter(TablaT, mismatch == 0, Deletions == 0, Insertions == 0, length == nchar(Target))
+  
+  if(nrow(perfectMatches) == 0){
+    
+    Target_loc <- "Target exact match not found"
+    Target_text <- " :WARNING: "
+    
+  }else if(nrow(perfectMatches) > 1){
+    Target_loc <- NULL
+    perfectMatches <- perfectMatches %>% arrange(desc(Abundance))
+    
+    Target_loc <- grep(Tabla$ID, pattern = head(perfectMatches)[1,1])
+    Target_loc <- rownames(Tabla)[Target_loc]
+    
+    if(is_empty(Target_loc)){Target_loc <- 'NONE'}
+    Target_text <- 'Targets found in:'
+    
+  }else if(nrow(perfectMatches) == 1){
+    
+    MatchTargetHighScore_ID <- perfectMatches$ID[1]
+    Target_loc <- detect_index(Tabla$ID, ~. == MatchTargetHighScore_ID)
+    Target_loc <- rownames(Tabla)[Target_loc]
+    
+    if(is_empty(Target_loc)){Target_loc <- 'NONE'}
+    
+    Target_text <- 'Target is found in:'
+  }
+  
+  return(c(Target_text, Target_loc))
+  
 }
- 
- return(c(Target_text, Target_loc))
- 
+
+conditional_input_decision_tree <- function(path_to_files){
+  
+  #### DESCRIPTION: #######################################################.
+  #
+  # This function decompresses files input through detection of gz extension in combination
+  # with .fastq extension. It is designed to work in the environment of mosaic finder.
+  # 
+  # To use originaly for serverMosaic_batch.R
+  #
+  #### USAGE: #####
+  #
+  # ./conditional_input_decision_tree( path_to_files )
+  # 
+  #### REQUIRES: ####
+  #
+  # stringr or tidyverse
+  #
+  #########################################################################.
+  
+  path_to_files.split <- str_split(path_to_files, pattern = '\\.')[[1]] # Take one sample of the fed entries.
+  path_to_files.split.extension <- path_to_files.split[2:length(path_to_files.split)] # Isolate extensions
+  path_to_files.split.path <- file.dir(path_to_files.split[1])
+  
+  unziping_path <- str_c(path_to_files.split.path,'/unziped')
+  
+  # If more than one file is given we now we are not being fed a zipped directory
+  if(length(path_to_files) > 1){
+    if( length(path_to_files.split.extension) == 1 && path_to_files.split.extension[1] == 'fastq'){
+      
+      return(path_to_files) # There is no decompression required, return fed arguments as is.
+      
+    }else if(length(path_to_files.split.extension) > 1 && path_to_files.split.extension[length(path_to_files.split.extension)] == 'gz' && path_to_files.split.extension[length(path_to_files.split.extension)-1] == 'fastq'){
+      
+      for(file in path_to_files){
+        Unzip_file(path_to_files.split.path, file) # This decompresses files into their original location and return the new path as a string. 
+        # We are not interested in the returned string though as we will obtain the path later.
+      }
+      
+      new_files_path <- dir(path_to_files.split.path, full.names = TRUE, pattern = '.fastq$') # We are only interested in paths of uncompressed fastq paths.
+      return(new_files_path)
+    }
+  }else if(length(path_to_files.split.extension) == 1 && path_to_files.split.extension == 'zip'){
+    
+    if(length(path_to_files) > 1){return('::ERROR:: only one .zip file allowed')}
+    unzip(path_to_files, exdir = unziping_path)
+    new_files_path <- dir(unziping_path, full.names = TRUE, pattern = 'fastq')
+    return(conditional_input_decision_tree( new_files_path ))
+    
+  }else if('tar' %in% path_to_files.split.extension){
+    
+    untar(path_to_files, exdir = unziping_path)
+    new_files_path <- dir(unziping_path, full.names = TRUE, pattern = 'fastq')
+    return(conditional_input_decision_tree( new_files_path ))
+  }
+  return(str_c('Unrecognised input data: ', path_to_files))
 }
