@@ -10,7 +10,7 @@ serverMain <- function(input, output, session) {
  #   stopApp()
  # })
  
- options( shiny.maxRequestSize = 100 * 1024 ^ 2 )
+ options( shiny.maxRequestSize = 500 * 1024 ^ 2 )
  
  #---Mosaic Analyser SERVER----
  
