@@ -131,7 +131,7 @@ for(file_pair1 in files){
   ###########################.
   
     command = paste0(
-      '/home/bioinfo/Documentos/CrisPRAL_git/Scripts',
+      '.',
       "/pipeline_vUMI.pl --r1 ",
       file_pair1,
       " --r2 ",
