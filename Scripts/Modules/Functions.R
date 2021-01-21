@@ -270,7 +270,6 @@ Unzip_file <- function(PATH, fileGZ_path){
   #
   ##############.
   
-  # system(paste(PATH, '/bin/gunzip -k ', fileGZ_path, sep = '')) #decompresses ## legacy code
   file_decomposed <- str_split(fileGZ_path, '/')[[1]]
   file_name <- file_decomposed[length(file_decomposed)]
   
@@ -408,11 +407,9 @@ conditional_input_decision_tree <- function(path_to_files){
   
   #### DESCRIPTION: #######################################################.
   #
-  # This function decompresses files input through detection of gz extension in combination
+  # This funciton decompresses files input through detection of gz extension in combination
   # with .fastq extension. It is designed to work in the environment of mosaic finder.
   # 
-  # To use originaly for serverMosaic_batch.R
-  #
   #### USAGE: #####
   #
   # ./conditional_input_decision_tree( path_to_files )
@@ -423,40 +420,93 @@ conditional_input_decision_tree <- function(path_to_files){
   #
   #########################################################################.
   
-  path_to_files.split <- str_split(path_to_files, pattern = '\\.')[[1]] # Take one sample of the fed entries.
-  path_to_files.split.extension <- path_to_files.split[2:length(path_to_files.split)] # Isolate extensions
+  file_names.split <- str_split(path_to_files$name, pattern = '\\.')[[1]] # Take one sample of the fed entries.
+  path_to_files.split.extension <- file_names.split[2:length(file_names.split)] # Isolate extensions
+  
+  path_to_files.split <- str_split(path_to_files$datapath, pattern = '\\.')[[1]]
   path_to_files.split.path <- file.dir(path_to_files.split[1])
   
-  unziping_path <- str_c(path_to_files.split.path,'/unziped')
+  
+  ##############################################################################
+  ######################## CASE .FASTQ #########################################
+  ##############################################################################
   
   # If more than one file is given we now we are not being fed a zipped directory
-  if(length(path_to_files) > 1){
+  if(nrow(path_to_files) > 1){
     if( length(path_to_files.split.extension) == 1 && path_to_files.split.extension[1] == 'fastq'){
       
-      return(path_to_files) # There is no decompression required, return fed arguments as is.
+      file.rename(path_to_files$datapath, str_c(path_to_files.split.path, path_to_files$name))
+      new_file_paths <- dir(path_to_files.split.path, pattern = 'fastq' ,full.names = TRUE)
       
-    }else if(length(path_to_files.split.extension) > 1 && path_to_files.split.extension[length(path_to_files.split.extension)] == 'gz' && path_to_files.split.extension[length(path_to_files.split.extension)-1] == 'fastq'){
+      return(new_file_paths) # There is no decompression required, return fed arguments as is.
       
-      for(file in path_to_files){
-        Unzip_file(path_to_files.split.path, file) # This decompresses files into their original location and return the new path as a string. 
+      ##########################################################################
+      ######################## CASE .FASTQ.GZ ##################################
+      ##########################################################################
+      
+    }else if(length(path_to_files.split.extension) > 1 && 
+             path_to_files.split.extension[length(path_to_files.split.extension)] == 'gz' && 
+             path_to_files.split.extension[length(path_to_files.split.extension)-1] == 'fastq'){
+      for(i in c(1:nrow(path_to_files))){
+        # This decompresses files into a desired location
+        gunzip(filename = path_to_files$datapath[i], destname = str_c(path_to_files.split.path,'/',str_remove(path_to_files$name[i], pattern = '.gz')), remove = FALSE)
         # We are not interested in the returned string though as we will obtain the path later.
+        # file.rename(str_remove(path_to_files$datapath[i], pattern = '.gz'), path_to_files$name[i])
       }
       
-      new_files_path <- dir(path_to_files.split.path, full.names = TRUE, pattern = '.fastq$') # We are only interested in paths of uncompressed fastq paths.
-      return(new_files_path)
+      new_file_paths <- dir(path_to_files.split.path, pattern = 'fastq' ,full.names = TRUE)
+      return(new_file_paths)
     }
+    
+    ############################################################################
+    ######################## CASE .ZIP #########################################
+    ############################################################################
+    
   }else if(length(path_to_files.split.extension) == 1 && path_to_files.split.extension == 'zip'){
     
-    if(length(path_to_files) > 1){return('::ERROR:: only one .zip file allowed')}
-    unzip(path_to_files, exdir = unziping_path)
-    new_files_path <- dir(unziping_path, full.names = TRUE, pattern = 'fastq')
-    return(conditional_input_decision_tree( new_files_path ))
+    if(nrow(path_to_files) > 1){return('::ERROR:: only one .zip file permitted')}
+    unzip(path_to_files$datapath, exdir = path_to_files.split.path, overwrite = TRUE)
+    new_file_path <- dir(path_to_files.split.path, pattern = 'fastq$',full.names = TRUE)
+    
+    if(is_empty(new_file_path)){
+      new_file_path <- dir(path_to_files.split.path, pattern = 'fastq',full.names = TRUE)
+      if(is_empty(new_file_path)){return('::ERROR:: zip file does not contain a fastq files.')}
+    }
+       
+       if('gz' %in% str_split(new_file_path, pattern = "\\.")[[1]]){      
+          for( file in new_file_path ){
+            gunzip(filename = file, destname = str_c(str_remove(file, pattern = '.gz')), 
+                   remove = FALSE, overwrite = TRUE) # This decompresses files into a desired location
+            # We are not interested in the returned string though as we will obtain the path later.
+            new_file_path <- dir(path_to_files.split.path, pattern = 'fastq$', full.names = TRUE)
+            # file.rename(str_remove(path_to_files$datapath[i], pattern = '.gz'), path_to_files$name[i])
+          }
+    }
+    
+    return( new_file_path )
+    
+    ############################################################################
+    ######################## CASE .TAR.GZ ######################################
+    ############################################################################
+    ##################### Should we remove this? ###############################
+    ############################################################################
     
   }else if('tar' %in% path_to_files.split.extension){
     
-    untar(path_to_files, exdir = unziping_path)
-    new_files_path <- dir(unziping_path, full.names = TRUE, pattern = 'fastq')
-    return(conditional_input_decision_tree( new_files_path ))
+    untar(path_to_files$datapath, exdir = path_to_files.split.path)
+    new_file_path <- dir(path_to_files.split.path, pattern = 'fastq', full.names = TRUE)
+    
+    if(!is.na(str_split(new_file_path, pattern = "\\.")[[1]][3])){
+      
+      for( file in new_file_path ){
+        gunzip(filename = file, destname = str_c(path_to_files.split.path,'/', str_remove(file, pattern = '.gz')), remove = FALSE) # This decompresses files into a desired location
+        # We are not interested in the returned string though as we will obtain the path later.
+        new_file_path <- dir(path_to_files.split.path, pattern = 'fastq$' ,full.names = TRUE)
+        # file.rename(str_remove(path_to_files$datapath[i], pattern = '.gz'), path_to_files$name[i])
+      }
+    } # Si la extension es la correcta devuelve el string con los paths, si no que descomprima como la opción de entrada múltiple
+    
+    return( new_file_path )
   }
   return(str_c('Unrecognised input data: ', path_to_files))
 }
