@@ -27,7 +27,7 @@ fluidPage(# Application title
   titlePanel( title=(div("Mosaic Finder BATCH", img(src="dna_free.png")))), # titlePanel end bracket
     mainPanel(width = 9, style="margin-left:4%; margin-right:4%",
       wellPanel(
-        checkboxInput("single_end_batch", p(strong("Single end data"))), # Choose between single end or paired end inputs
+        # checkboxInput("single_end_batch", p(strong("Single end data"))), # Choose between single end or paired end inputs
         
         h4("Mandatory input Files"),
         wellPanel(
@@ -173,14 +173,19 @@ fluidPage(# Application title
           ) #fluidRow end bracket
         ), #wellPanel end bracket
         
-        wellPanel(
-          checkboxInput(inputId = "display_advanced", p(strong("Display advanced options"))),
-          conditionalPanel(
-            condition = "input.display_advanced == true",
-            wellPanel(
-            verbatimTextOutput(outputId = 'advanced_for_the_time_being'))
-            ) # Conditionalpanel end bracket
-        ), #wellPanel end bracket
+        #####################################################.
+        ############ Advanced options refuse to work ########.
+        #####################################################.
+        
+        # wellPanel(
+        #   checkboxInput(inputId = "display_advanced", p(strong("Display advanced options"))),
+        #   conditionalPanel(
+        #     condition = "input.display_advanced == true",
+        #     wellPanel(
+        #     verbatimTextOutput(outputId = 'advanced_for_the_time_being'))
+        #     ) # Conditionalpanel end bracket
+        # ), #wellPanel end bracket
+        
         wellPanel(
         actionButton("Accept_batch", "Run", icon = icon('caret-right')))
                 ) # wellPanel end bracket
