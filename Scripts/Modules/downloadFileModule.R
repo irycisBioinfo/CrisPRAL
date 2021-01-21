@@ -48,7 +48,7 @@ downloadZIP <- function(input, output, session, data, name){
   
   output$download <- downloadHandler(
     filename = function() {
-      paste(name(),'.zip', sep = '.')
+      paste(name,'zip', sep = '.')
     },
     content = function(file) {
       
