@@ -34,11 +34,14 @@ library(tidyverse)
 library(Biostrings)
 library(vctrs)
 library(xlsx)
-source('~/Documentos/CrisPRAL_git/Scripts/Modules/aid_functions.R')
-source('~/Documentos/CrisPRAL_git/Scripts/Modules/Functions.R')
-source('~/Documentos/CrisPRAL_git/Scripts/Modules/filter_table.R')
-source('~/Documentos/CrisPRAL_git/Scripts/Modules/are_indels_in_range.R')
-source('~/Documentos/CrisPRAL_git/Scripts/Modules/mismatches_break_down.R')
+
+CompletePATH = paste(getwd(), sep = '') #-Server
+
+source(str_c(CompletePATH,'/Modules/aid_functions.R', sep = ''))
+source(str_c(CompletePATH,'/Modules/Functions.R', sep = ''))
+source(str_c(CompletePATH,'/Modules/filter_table.R', sep = ''))
+source(str_c(CompletePATH,'/Modules/are_indels_in_range.R', sep = ''))
+source(str_c(CompletePATH,'/Modules/mismatches_break_down.R', sep = ''))
 
 rename <- dplyr::rename
 filter <- dplyr::filter
