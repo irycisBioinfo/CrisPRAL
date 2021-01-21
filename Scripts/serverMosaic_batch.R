@@ -282,15 +282,14 @@ observeEvent(input$Accept_batch,{
   withProgress(message = "Performing analisis: ", detail = 'Executing pipeline', {
   
   datos$tmppipelinedir <- str_c(session$token, '/data', str_sub(tempfile(), start = 21))
-  # dir.create(session$token)
   dir.create(datos$tmppipelinedir)
   
   # req(input$Reference_batch, input$dir)
+  unziped_files <- conditional_input_decision_tree(input$dir)
   
-  unziped_files <- conditional_input_decision_tree(input$dir$datapath)
-  R1_files <- grep(unziped_files, pattern = 'R1', value = TRUE)
+  # if(unzipped_files == "Unrecognised input"){showModal error; setwd(CompletePath)}
   
-  
+  R1_files <- grep(unziped_files, pattern = '_R1_', value = TRUE)
   command <- str_c('./Mosaic_standalone_pipe.R',
                 str_c(R1_files, collapse = ' ', sep = ' '),
                 '-reference', 
@@ -298,7 +297,7 @@ observeEvent(input$Accept_batch,{
                 command.adapter(),
                 command.primers(),
                 '-output',
-                as.character(datos$tmppipelinedir),
+                str_c('./',as.character(datos$tmppipelinedir)),
                 mismatches(),
                 '-score_threshold',
                 scoring_threshold(),
@@ -306,12 +305,10 @@ observeEvent(input$Accept_batch,{
 
   incProgress( 1/2 ,detail = 'may take a while...')
   system(command)
-  setwd(as.character(datos$tmppipelinedir))
-  final_files <- dir('.', pattern = '*.xlsx', full.names = TRUE)
-  path_to_zip_file <- str_c(CompletePATH,'/',as.character(datos$tmppipelinedir),'/',input_filename_batch(),'.zip')
+  final_files <- dir(datos$tmppipelinedir, pattern = '*.xlsx', full.names = TRUE)
+  path_to_zip_file <- str_c(CompletePATH,'/',as.character(datos$tmppipelinedir),'/','results.zip')
   incProgress( 1/4 ,detail = 'zipping files...')
   zip(path_to_zip_file,files = final_files)
-  setwd(CompletePATH)
   
   showModal(modalDialog(
     fluidPage(
@@ -322,13 +319,13 @@ observeEvent(input$Accept_batch,{
                           img(src='ready_for_download.png', height='150', width='150', align="middle")))),
       h2(paste("Click to download file." ,sep = ''), align = 'center'),
       fluidRow(column(4,offset = 4.5,
-                      callModule(downloadZIP, 'downloadZIP_batch', data = path_to_zip_file, input_filename_batch))),
+                      callModule(downloadZIP, 'downloadZIP_batch', data = path_to_zip_file, 'results'))),
       easyClose = TRUE,
       footer = NULL
     )))
  
   })# withProgress closing bracket
-})# observerEvent end bracket
+ })# observerEvent end bracket
 
-input_filename_batch <- reactive({
-  str_replace(input$dir$name, pattern = '.zip', replacement = '_results')})
+# input_filename_batch <- reactive({
+#   'results'})
