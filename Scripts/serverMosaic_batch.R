@@ -305,10 +305,12 @@ observeEvent(input$Accept_batch,{
 
   incProgress( 1/2 ,detail = 'may take a while...')
   system(command)
-  final_files <- dir(datos$tmppipelinedir, pattern = '*.xlsx', full.names = TRUE)
+  setwd(datos$tmppipelinedir)
+  final_files <- dir('.', pattern = '*.xlsx', full.names = TRUE)
   path_to_zip_file <- str_c(CompletePATH,'/',as.character(datos$tmppipelinedir),'/','results.zip')
   incProgress( 1/4 ,detail = 'zipping files...')
   zip(path_to_zip_file,files = final_files)
+  setwd(CompletePATH)
   
   showModal(modalDialog(
     fluidPage(
