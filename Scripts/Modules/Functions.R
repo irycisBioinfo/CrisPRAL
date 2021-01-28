@@ -321,20 +321,20 @@ Group_list <- function(data){
   return(Groups)
 }
 
-Clusters_Alignments <- function(Clust_Seq, Align_Seq, gapOpening = 10, gapExtension = 0.5, type = "overlap" ){
+Clusters_Alignments <- function(Pattern_Seq, Subject_Seq, gapOpening = 10, gapExtension = 0.5, type = "overlap" ){
   
-  aln = pairwiseAlignment(Clust_Seq, Align_Seq, type = type, 
+  aln = pairwiseAlignment(Pattern_Seq, Subject_Seq, type = type, 
                           substitutionMatrix = nucleotideSubstitutionMatrix(match = 5, mismatch = -4),
                           gapOpening=gapOpening, 
                           gapExtension=gapExtension)
+  
+  alignment = Fix_gaps(aln, Pattern_Seq, Subject_Seq)
+  
   tmp = data.frame(
-    ID = names(Clust_Seq),
+    ID = names(Pattern_Seq),
     mismatch = nmismatch(aln),
-    length = nchar(aln),
+    #alignment_length = nchar(aln), commented out because we wanted length of sequence not the length of the alignment
     score = score(aln),
-    width = width(pattern(aln)),
-    start = start(subject(aln)),
-    end = end(subject(aln)),
     deletions = nindel(aln)@deletion[, 2],
     insertions = nindel(aln)@insertion[, 2]
   )
