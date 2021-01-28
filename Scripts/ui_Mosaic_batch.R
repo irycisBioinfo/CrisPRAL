@@ -168,7 +168,8 @@ fluidPage(# Application title
                                min = 0,
                                max = 99999)
                       ),
-               checkboxInput(inputId = "print_mismatches", label = 'Append mismatches breakdown to final table (beta)', value = FALSE)
+               checkboxInput(inputId = "print_mismatches", label = 'Append mismatches breakdown to final table', value = FALSE),
+               checkboxInput(inputId = "print_sequences", label = 'Append representative sequences to final table (beta)', value = FALSE)
             ) # column end bracket
           ) #fluidRow end bracket
         ), #wellPanel end bracket
