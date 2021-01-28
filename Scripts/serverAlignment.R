@@ -21,10 +21,7 @@ alignment <- reactive({datos$text})
 observeEvent( c( input$tablaR_rows_selected, input$tablaT_rows_selected, 
                  input$alnType, input$alnTo), {
                   
-  req( input$tablaR_rows_selected != datos$prev_selected_row || input$alnType != datos$prev_alnType || input$alnTo != datos$prev_alnTo)
-  
-  #withProgress( message = "Performing analisis", {
-   
+   req( input$tablaR_rows_selected != datos$prev_selected_row || input$alnType != datos$prev_alnType || input$alnTo != datos$prev_alnTo)
    req( datos$Tabla )
    req( tabla_rows_selected( ) )
    
@@ -157,25 +154,11 @@ observeEvent( c( input$tablaR_rows_selected, input$tablaT_rows_selected,
      verbatimTextOutput('unalignedID'),
      verbatimTextOutput('unalignedFASTA'))
    })
-   # output$downloadMSA <- renderUI({
-   #  br()
-   #  downloadButton("downloadMSA_clstr", 
-   #                 "Download Cluster Multiple Sequence Alignment")
-   #  
-   # })
-   
-   # if(length(datos$clustersStringSet) > 100){
-   # output$warningClustrUI <- renderUI(conditionalPanel(condition = "warningCLSTR() != FALSE",
-   #  span(textOutput('warningCLSTR'), style="color:red"),
-   #                                    br()))
-   # }
-   
-   # output$warningCLSTR <- renderText(warningCLSTR())
    
    output$unalignedID <- renderText(as.character(
     datos$namedSequences[tabla_rows_selected(),]$ID))
    
    output$unalignedFASTA <- renderText(as.character(
     datos$namedSequences[tabla_rows_selected(),]$Sequence))
-  #})
-  })
+   browser()
+  }) # End bracket observeEvent entry selection
