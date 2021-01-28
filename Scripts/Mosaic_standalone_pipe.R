@@ -24,7 +24,8 @@
 # -score_threshold <[INT] | 'detect'>         Final output will have a table with all data with a score below the threshold equal to INT (default: INT = 0)
 #                                             If -score_threshold = 'detect', a score is selected based on the scoring distribution.
 # -mismatches                                 Flag if present mismatches will be broken down and printed in another column together with the rest of results
-# -indel_interest_range <[INT-INT] | NULL>    Range of interest for indels identification. (default: NULL) 
+# -indel_interest_range <[INT-INT] | NULL>    Range of interest for indels identification. (default: NULL)
+# -append_sequences                           Appends representative sequences of the clusters to the table as a final column
 # 
 #########################################################################.
 ################################ SETUP ##################################.
@@ -91,6 +92,10 @@ if(!is_empty(score_threshold_pos)){
 # check mismatches flag
 mismatches <- grep(f, pattern = '-mismatches')
 if(!is_empty(mismatches)){mismatches <- TRUE}else{mismatches <- FALSE}
+
+# check append_sequences flag
+sequences <- grep(f, pattern = '-append_sequences')
+if(!is_empty(sequences)){sequences <- TRUE}else{sequences <- FALSE}
 
 # Find indel interest range
 interest_range_pos <- grep(f, pattern = '-indel_interest_range')
@@ -204,10 +209,10 @@ for(file_pair1 in files){
   allfasta <- allfasta %>% mutate_at(vars(ID), list(~if_else(str_starts(., '>'),
                                                               true = str_extract(., '(?<=>)[:graph:]+'), 
                                                               false = .)))
-  
-  clusterF <- cluster %>% select("ClusterN", "ID", "Identity")
-  colnames(clusterF) <- c('CLUSTER', 'ID', 'Identity')
-  clufast <- full_join(allfasta, clusterF) %>% group_by(CLUSTER) %>% nest() %>% arrange(CLUSTER)
+  # 
+  # clusterF <- cluster %>% select("ClusterN", "ID", "Identity")
+  # colnames(clusterF) <- c('CLUSTER', 'ID', 'Identity')
+  # clufast <- full_join(allfasta, clusterF) %>% group_by(CLUSTER) %>% nest() %>% arrange(CLUSTER)
   
   #Tabla_raw is a rearrangement of cluster to prepare the data for
   #fusing with Cluster-Sequences aswell as integrating with Alignment data
@@ -218,20 +223,8 @@ for(file_pair1 in files){
     ungroup() %>%
     mutate(Freq = 100 *Abundance / (n()*2)) %>%
     filter(Identity == "*") %>%
-    select(ID, Abundance, Freq) %>%
+    select(ID, Abundance, Freq, Length) %>%
     arrange(desc(Abundance))
-  
-  #----Associating clusterN with sequences----
-  
-  Tabla_raw_clstrs <- Tabla_raw %>% rowid_to_column('ClusterN') %>% 
-    select(-Abundance, -Freq)
-  
-  clustering <- full_join(Tabla_raw_clstrs, clufast %>% 
-                                  unnest(), by = 'ID') %>% arrange(CLUSTER)
-  clustering <- clustering %>% fill(ClusterN, .direction = 'down') %>% 
-    select(-Identity, -CLUSTER ) %>% 
-    group_by(ClusterN) %>% nest %>% 
-    arrange(ClusterN)
   
   #Preparing for Alignment operations---- 
   #-asserting Reference does not provide an error:
@@ -243,7 +236,6 @@ for(file_pair1 in files){
   #Another Tabla variable is declared as an unsorted version together with
   #an associated Abundance for INDEL processing in graphing section.
   Tabla_unsort <- ls_ClusterAln_Ref$tmp %>% rename(Deleted_bps = deletions) %>% rename(Inserted_bps = insertions)
-  
   
   aln = ls_ClusterAln_Ref$aln
   
@@ -260,7 +252,7 @@ for(file_pair1 in files){
   
   Tabla = inner_join(Tabla_raw, Tabla_unsort_total_indels) %>% 
     mutate(score = round(score,1), Freq = signif(Freq,2)) %>% 
-    arrange(desc(Abundance)) %>% select(-width, -start, -end)
+    arrange(desc(Abundance))# %>% select(-width, -start, -end)
   
   rownames(Tabla) <- str_c('Cluster', rownames(Tabla))
   
@@ -273,9 +265,9 @@ for(file_pair1 in files){
   
   insertions <- as.data.frame(indel(aln)@insertion) %>% select(-group_name)
   deletions <- as.data.frame(indel(aln)@deletion) %>% select(-group_name)
-  
-  insertions_pos <- insertions %>% mutate(middle_pos = paste(start,":",end, sep = '')) %>% select(-start,-end,-width)
-  deletions_pos <- deletions %>% mutate(middle_pos = paste(start,":",end, sep = '')) %>% select(-start,-end,-width)
+
+  insertions_pos <- insertions %>% mutate(middle_pos = paste(start,":",end, sep = ''))# %>% select(-start,-end,-width)
+  deletions_pos <- deletions %>% mutate(middle_pos = paste(start,":",end, sep = ''))# %>% select(-start,-end,-width)
   
   insertions_clst <- insertions_pos %>% mutate(cluster = str_c('Cluster',pos_in_table[insertions_pos$group])) %>% 
     select(-group) %>% group_by(cluster) %>% summarise(insert_range = paste(middle_pos, collapse = ";"))
@@ -300,6 +292,13 @@ for(file_pair1 in files){
   #################################################.
   if(mismatches){
     Tabla_final <- mismatches_break_down(ls_ClusterAln_Ref, Tabla_final)
+  }
+  #################################################.
+  ## Append sequences as the last column
+  #################################################.
+  if(sequences){
+    # This operations have the objective of being able to compare sequences of different samples between each other.
+    Tabla_final <- inner_join(Tabla_final, allfasta)
   }
   
   ######################################################################.
