@@ -217,6 +217,16 @@ mismatches <- reactive({
   })
 
 # ##########################################################################.
+# APPEND SEQUENCES FLAG ####
+# ##########################################################################.
+
+sequences <- reactive({
+  if(input$print_sequences){
+    return('-append_sequences')
+  }else{return(NULL)}
+})
+
+# ##########################################################################.
 # Scoring Threshold & Interest Range ####
 # ##########################################################################.
 
@@ -301,6 +311,7 @@ observeEvent(input$Accept_batch,{
                 mismatches(),
                 '-score_threshold',
                 scoring_threshold(),
+                sequences(),
                 command.interest_range(), sep = ' ')
 
   incProgress( 1/2 ,detail = 'may take a while...')
