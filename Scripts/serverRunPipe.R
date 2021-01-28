@@ -163,22 +163,24 @@ observeEvent(input$Accept, {
    colnames(datos$fasta) <- c("ID", "Sequence")
    colnames(datos$cluster) <- c("ClusterN", "Length", "ID", "Identity")
   } 
-  
-  datos$allfasta <- read_delim(paste(datos$tmppipelinedir,"/final.fasta" ,sep = ''), 
+
+  allfasta <- read_delim(paste(datos$tmppipelinedir,"/final.fasta" ,sep = ''), 
                                delim = ' ', col_names =FALSE) %>% select(X1)
   
-  datos$justfasta <- datos$allfasta %>% filter(!str_starts(X1, '>'))
-  datos$justIds <- datos$allfasta %>% filter(str_starts(X1, '>'))
-  datos$allfasta <- bind_cols(datos$justIds, datos$justfasta)
-  colnames(datos$allfasta) <- c('ID','SEQ')
-  datos$allfasta <- datos$allfasta %>% mutate_at(vars(ID), 
+  justfasta <- allfasta %>% filter(!str_starts(X1, '>'))
+  justIds <- allfasta %>% filter(str_starts(X1, '>'))
+  allfasta <- bind_cols(justIds, justfasta)
+  colnames(allfasta) <- c('ID','SEQ')
+  allfasta <- allfasta %>% mutate_at(vars(ID), 
                                                  list(~if_else(str_starts(., '>'),
                                                                true = str_extract(., '(?<=>)[:graph:]+'), 
                                                                false = .)))
   
-  datos$clusterF <- datos$cluster %>% select("ClusterN", "ID", "Identity")
-  colnames(datos$clusterF) <- c('CLUSTER', 'ID', 'Identity')
-  datos$clufast <- full_join(datos$allfasta, datos$clusterF) %>% group_by(CLUSTER) %>% nest() %>% arrange(CLUSTER)
+  #####################################################################################
+  # These operations was necesary por MSAlignment, it will be commented out and if in a few weeks no error appears y will be deleted:
+  # datos$clusterF <- datos$cluster %>% select("ClusterN", "ID", "Identity")
+  # colnames(datos$clusterF) <- c('CLUSTER', 'ID', 'Identity')
+  # datos$clufast <- full_join(allfasta, datos$clusterF) %>% group_by(CLUSTER) %>% nest() %>% arrange(CLUSTER)
   
   #datos$Tabla_raw is a rearrangement of datos$cluster to prepare the data for
   #fusing with Cluster-Sequences aswell as integrating with Alignment data
@@ -189,7 +191,7 @@ observeEvent(input$Accept, {
    ungroup() %>%
    mutate(Freq = 100 *Abundance / (n()*2)) %>%
    filter(Identity == "*") %>%
-   select(ID, Abundance, Freq) %>%
+   select(ID, Abundance, Freq, Length) %>%
    arrange(desc(Abundance))
   
   Total_Abundance = sum(datos$Tabla_raw['Abundance'])
