@@ -105,9 +105,9 @@ observeEvent( c( input$tablaR_rows_selected, input$tablaT_rows_selected,
     )
    }
    
-   datos$clustering4StringSet <- datos$clustering %>% unnest() %>% filter(ClusterN == tabla_rows_selected()) %>% select(-ClusterN)
-   datos$clustersStringSet <- DNAStringSet(datos$clustering4StringSet$SEQ)
-   names(datos$clustersStringSet) <- datos$clustering4StringSet$ID
+   # datos$clustering4StringSet <- datos$clustering %>% unnest() %>% filter(ClusterN == tabla_rows_selected()) %>% select(-ClusterN)
+   # datos$clustersStringSet <- DNAStringSet(datos$clustering4StringSet$SEQ)
+   # names(datos$clustersStringSet) <- datos$clustering4StringSet$ID
    
    output$Display_Unaligned <- renderUI({
     checkboxInput("display_unaligned", 
@@ -160,5 +160,4 @@ observeEvent( c( input$tablaR_rows_selected, input$tablaT_rows_selected,
    
    output$unalignedFASTA <- renderText(as.character(
     datos$namedSequences[tabla_rows_selected(),]$Sequence))
-   browser()
   }) # End bracket observeEvent entry selection
