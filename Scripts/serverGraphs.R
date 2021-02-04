@@ -240,8 +240,7 @@ observeEvent(input$GG,{
   # colorscheme = c('rgba(255, 77, 77, 0.7)', 'rgba(38, 38, 38, 0.7)', 'rgba(77, 77, 255, 0.7)', 'rgba(128, 255, 128, 0.7)', 'rgba(179, 102, 255, 0.7)')
   # colorscheme = c('red', 'black', 'blue', 'green', 'gray')
   # colorscheme = setNames(colorscheme, c('T', 'G', 'C', 'A', '-'))
-  # 
-  browser()
+  
   MF <- plot_ly(BasePerPosition_info %>% ungroup(), x = ~Position, y = ~Probability, name = 'Variants',
                 type = 'scatter', mode = 'lines', text = ~paste(Chr,'>',Base, ' at Position: ',Position,sep = ''), 
                 hovertemplate = paste('<i>Most abundant change</i>: %{text}'), line = list(shape = 'spline', color = "royalblue")) %>% 
