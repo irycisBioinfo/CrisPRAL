@@ -3,8 +3,8 @@
 
 library(shiny)
 source('Scripts/global.R')
-source('uiMain.R', local = TRUE)
-source('serverMain.R', local = TRUE)
+source('Scripts/uiMain.R', local = TRUE)
+source('Scripts/serverMain.R', local = TRUE)
 
 shinyApp(
   ui = uiMain,

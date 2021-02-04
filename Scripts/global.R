@@ -16,7 +16,8 @@ require( tidyverse )
 #---------------------------------------
 
 # CompletePATH = dirname(sys.frame(1)$ofile)
-CompletePATH = paste(getwd(), '/Scripts', sep = '') #-Server
+CompletePATH = paste(getwd(), sep = '')
+ScriptsPATH = paste(getwd(), '/Scripts', sep = '')
 setwd( CompletePATH )
 
 #shinyEngineering packages:
@@ -60,10 +61,10 @@ require( webshot2 )
 
 #---Modules_Load----
 
-source( str_c( CompletePATH, '/Modules/Functions.R' ))
-source( str_c( CompletePATH, '/Modules/input-reset_module.R'))
-source( str_c( CompletePATH, '/Modules/downloadFileModule.R'))
-source( str_c( CompletePATH, '/Modules/are_indels_in_range.R'))
+source( str_c( ScriptsPATH, '/Modules/Functions.R' ))
+source( str_c( ScriptsPATH, '/Modules/input-reset_module.R'))
+source( str_c( ScriptsPATH, '/Modules/downloadFileModule.R'))
+source( str_c( ScriptsPATH, '/Modules/are_indels_in_range.R'))
 
 #----Custom functions----
 

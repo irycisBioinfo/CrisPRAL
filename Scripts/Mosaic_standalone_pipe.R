@@ -136,7 +136,7 @@ for(file_pair1 in files){
   ###########################.
   
     command = paste0(
-      CompletePATH,
+      ScriptsPATH,
       "/pipeline_vUMI.pl --r1 ",
       file_pair1,
       " --r2 ",
