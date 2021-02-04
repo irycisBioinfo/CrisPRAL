@@ -76,7 +76,7 @@ file_upload <- reactiveValues(upload_Primer_state = NULL)
 #-Reactive input to allow for compressed files processing.
 R1_file <- reactive({
  
- if(checks$example){return('../basic_Trials/Mutation_mus_R1_001.fastq')}
+ if(checks$example){return('./basic_Trials/Mutation_mus_R1_001.fastq')}
  
 if(!is.null(input$R1)){ 
  if (str_sub(input$R1$datapath, -3) == '.gz'){
@@ -86,7 +86,7 @@ if(!is.null(input$R1)){
   input$R1$datapath}}
 })
 R2_file <- reactive({
- if(checks$example){return('../basic_Trials/Mutation_mus_R2_001.fastq')}
+ if(checks$example){return('./basic_Trials/Mutation_mus_R2_001.fastq')}
  
  if(!is.null(input$R2)){
   if(str_sub(input$R2$datapath, -3) == '.gz'){
@@ -104,7 +104,7 @@ R2_file <- reactive({
 #-Allows reference Primer trimming.
 Reference <- reactive({
  
- if(checks$example){return('../basic_Trials/Reference.fasta')}
+ if(checks$example){return('./basic_Trials/Reference.fasta')}
  
  if(file_upload$upload_Primer_state == 'uploaded'){
   extensionR <- str_split(input$Reference$datapath, '\\.')[[1]][length(str_split(input$Reference$datapath, '\\.')[[1]])]

@@ -5,6 +5,7 @@ observeEvent(input$go_to_mosaic_batch, {
   updateTabsetPanel(session, 'app', selected = 'Mosaic_Finder_batch')
   
 })
+
  # Selects pipeline given the option "reverse_complement"
 pipeline <- reactive({if(input$reverse_complement){
   return("/pipeline_vUMI.pl --r1 ")
@@ -300,14 +301,14 @@ observeEvent(input$Accept_batch,{
   # if(unzipped_files == "Unrecognised input"){showModal error; setwd(CompletePath)}
   
   R1_files <- grep(unziped_files, pattern = '_R1_', value = TRUE)
-  command <- str_c('./Mosaic_standalone_pipe.R',
+  command <- str_c(ScriptsPATH, './Mosaic_standalone_pipe.R',
                 str_c(R1_files, collapse = ' ', sep = ' '),
                 '-reference', 
                 Reference_batch(),
                 command.adapter(),
                 command.primers(),
                 '-output',
-                str_c('./',as.character(datos$tmppipelinedir)),
+                str_c(CompletePATH,as.character(datos$tmppipelinedir)),
                 mismatches(),
                 '-score_threshold',
                 scoring_threshold(),

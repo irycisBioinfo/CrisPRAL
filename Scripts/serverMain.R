@@ -14,35 +14,35 @@ serverMain <- function(input, output, session) {
  
  #---Mosaic Analyser SERVER----
  
- source( './serverMosaic.R', local = TRUE )
+ source( 'Scripts/serverMosaic.R', local = TRUE )
         
 #---BATCH Mosaic Analyser SERVER----
 
-source( './serverMosaic_batch.R', local = TRUE )
+source( 'Scripts/serverMosaic_batch.R', local = TRUE )
  
  #----Run-Pipeline SERVER----
  
- source( './serverRunPipe.R', local = TRUE )
+ source( 'Scripts/serverRunPipe.R', local = TRUE )
  
  #----Run-Pipeline sample SERVER----
  
- source( './serverRunExample.R', local = TRUE )
+ source( 'Scripts/serverRunExample.R', local = TRUE )
  
  #----Load Alignemnt SERVER----
  
- source( './serverAlignment.R', local = TRUE )
+ source( 'Scripts/serverAlignment.R', local = TRUE )
  
  #----Mosaic Grapher SERVER----
  
- source( './serverGraphs.R', local = TRUE )
+ source( 'Scripts/serverGraphs.R', local = TRUE )
  
  #---Lazy Panel SERVER----
  
- source( './serverLazy.R', local = TRUE )
+ source( 'Scripts/serverLazy.R', local = TRUE )
  
  #----Fastqc SERVER----
  
- source( './serverFastqc.R', local = TRUE)
+ # source( 'Scripts/serverFastqc.R', local = TRUE)
  
  
 }

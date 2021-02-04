@@ -15,7 +15,7 @@ observeEvent(input$go_to_lazy, {
   values$show <- "true"
   
   
-  DataTable$EmptyDF <- read.csv("../Lazy_Filter_Project/Empty.csv",
+  DataTable$EmptyDF <- read.csv("./Lazy_Filter_Project/Empty.csv",
                                  header=TRUE,
                                  sep = ',')
   

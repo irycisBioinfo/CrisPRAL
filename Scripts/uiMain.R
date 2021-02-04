@@ -52,12 +52,12 @@ uiMain <- fluidPage(
                 ) # mainPanel end bracket
               ), # tabPanel end bracket
              tabPanel( 'Mosaic Finder', value = 'Mosaic_Finder',
-                      source('./CrisPRAL_ui.R', local = TRUE)$value ),
+                      source('Scripts/ui_CrisPRAL.R', local = TRUE)$value ),
              tabPanel( 'Mosaic Finder BATCH', value = 'Mosaic_Finder_batch',
-                       source('./ui_Mosaic_batch.R', local = TRUE)$value ),
+                       source('Scripts/ui_Mosaic_batch.R', local = TRUE)$value ),
              tabPanel( 'Lazy Panel Filter', id = 'Lazy_Panel',
-                      source('./LazyP_ui.R', local = TRUE)$value ),
-             tabPanel('Fastq Quality Analysis', id = 'FastqcRShiny',
-                      source('./Fastqc_ui.R', local = TRUE)$value )
+                      source('Scripts/ui_LazyP.R', local = TRUE)$value )#,
+             # tabPanel('Fastq Quality Analysis', id = 'FastqcRShiny',
+             #          source('Scripts/ui_Fastqc.R', local = TRUE)$value )
   )
 )

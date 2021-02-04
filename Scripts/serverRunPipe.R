@@ -8,8 +8,8 @@
 #----Running Pipeline----
 
 pipeline <- reactive({if(input$reverse_complement){
-  return("/pipeline_vUMI.pl --r1 ")
-  }else{return("/pipeline_v7.pl --r1 ")}
+  return("/Scripts/pipeline_vUMI.pl --r1 ")
+  }else{return("/Scripts/pipeline_v7.pl --r1 ")}
   })
 
 observeEvent(input$Accept, {
@@ -198,15 +198,14 @@ observeEvent(input$Accept, {
   
   #----Associating clusterN with sequences----
   
-  datos$Tabla_raw_clstrs <- datos$Tabla_raw %>% rowid_to_column('ClusterN') %>% 
-   select(-Abundance, -Freq)
+  # datos$Tabla_raw_clstrs <- datos$Tabla_raw %>% rowid_to_column('ClusterN') %>% 
+  #  select(-Abundance, -Freq)
   
-  datos$clustering <- full_join(datos$Tabla_raw_clstrs, datos$clufast %>% 
-                                 unnest(), by = 'ID') %>% arrange(CLUSTER)
-  datos$clustering <- datos$clustering %>% fill(ClusterN, .direction = 'down') %>% 
-   select(-Identity, -CLUSTER ) %>% 
-   group_by(ClusterN) %>% nest %>% 
-   arrange(ClusterN)
+  # datos$clustering <- full_join(datos$Tabla_raw_clstrs, datos$clufast %>% unnest(), by = 'ID') %>% arrange(CLUSTER)
+  # datos$clustering <- datos$clustering %>% fill(ClusterN, .direction = 'down') %>% 
+  #  select(-Identity, -CLUSTER ) %>% 
+  #  group_by(ClusterN) %>% nest %>% 
+  #  arrange(ClusterN)
   
   #Preparing for Alignment operations---- 
   #-asserting Reference does not provide an error:
@@ -258,7 +257,7 @@ observeEvent(input$Accept, {
   # datos$Tabla is DONE with this last line:
   datos$Tabla = inner_join(datos$Tabla_raw, datos$Tabla_unsort_total_indels) %>% 
    mutate(score = round(score,1), Freq = signif(Freq,2)) %>% 
-   arrange(desc(Abundance)) %>% select(-width,-start,-end)
+   arrange(desc(Abundance))# %>% select(-width,-start,-end)
   
   rownames(datos$Tabla) <- str_c('Cluster', rownames(datos$Tabla))
   
@@ -313,7 +312,7 @@ observeEvent(input$Accept, {
    # datos$Tabla_Target is DONE with this last line:
    datos$Tabla_Target = inner_join(datos$Tabla_raw, datos$TablaT_unsort_total_indels) %>% 
     mutate(score = round(score,1), Freq = signif(Freq,2)) %>% 
-    arrange(desc(Abundance)) %>% select(-width,-start,-end) # Remove columns deemed too confusing for a user.
+    arrange(desc(Abundance))# %>% select(-width,-start,-end) # Remove columns deemed too confusing for a user.
    output$Target_Location <- renderText(paste(Target_location()[1], Target_location()[2], sep = ' '))
    
    rownames(datos$Tabla_Target) <- str_c('Cluster', rownames(datos$Tabla_Target))
