@@ -67,6 +67,8 @@ source( str_c( CompletePATH, '/Modules/are_indels_in_range.R'))
 
 #----Custom functions----
 
+#### ALLOWS USING KEYBORAD ENTER AS A MOUSE CLICK ####.
+
 press_enter <- '
 $(function() {
   var $els = $("[data-proxy-click]");

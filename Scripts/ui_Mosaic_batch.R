@@ -32,7 +32,7 @@ fluidPage(# Application title
         h4("Mandatory input Files"),
         wellPanel(
         br(),
-        fileInput("dir", "Choose a zip file with the .fastq data", accept = c('.zip','.gz','.tar.gz'), multiple = TRUE),
+        fileInput("dir", "Select .fastq data", accept = c('.zip','.gz','.fastq'), multiple = TRUE),
         br(),br(),
         fileInput("Reference_batch", "Reference", accept = c('.fasta', '.fastq', '.txt'))
         ), # wellPanel end bracket
