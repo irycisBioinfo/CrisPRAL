@@ -1,0 +1,1 @@
+/home/bioinfo/Variant_Calling/nextflow_GenomeMapper.nf

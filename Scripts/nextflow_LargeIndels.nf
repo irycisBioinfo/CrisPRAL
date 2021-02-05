@@ -1,0 +1,1 @@
+/home/bioinfo/Proyecto_NF1/nextflow_LargeIndels.nf

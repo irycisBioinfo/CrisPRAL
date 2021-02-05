@@ -1,0 +1,1 @@
+/home/bioinfo/biosoft/Proyecto_NF1.scripts/fix_pos_isoforma_corta.R
