@@ -23,6 +23,10 @@ source( 'Scripts/serverMosaic_batch.R', local = TRUE )
  #----Run-Pipeline SERVER----
  
  source( 'Scripts/serverRunPipe.R', local = TRUE )
+        
+ #---- Short Variant Caller SERVER----
+        
+ source( 'Scripts/serverShortVariantCaller.R', local = TRUE )
  
  #----Run-Pipeline sample SERVER----
  

@@ -55,7 +55,9 @@ uiMain <- fluidPage(
                       source('Scripts/ui_CrisPRAL.R', local = TRUE)$value ),
              tabPanel( 'Mosaic Finder BATCH', value = 'Mosaic_Finder_batch',
                        source('Scripts/ui_Mosaic_batch.R', local = TRUE)$value ),
-             tabPanel( 'Lazy Panel Filter', id = 'Lazy_Panel',
+             tabPanel( 'Single Gene Variant Calling', value = 'Short_Variant_Caller',
+                       source('Scripts/ui_ShortVariantCaller.R', local = TRUE)$value ),
+             tabPanel( 'Lazy Panel Filter', value = 'Lazy_Panel',
                       source('Scripts/ui_LazyP.R', local = TRUE)$value )#,
              # tabPanel('Fastq Quality Analysis', id = 'FastqcRShiny',
              #          source('Scripts/ui_Fastqc.R', local = TRUE)$value )
