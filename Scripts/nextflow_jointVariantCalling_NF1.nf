@@ -1,0 +1,1 @@
+/home/bioinfo/Proyecto_NF1/nextflow_jointVariantCalling_NF1.nf
