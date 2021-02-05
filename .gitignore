@@ -1,0 +1,17 @@
+#Files to be ignore by git
+
+*.Rproj
+.Rproj.user
+.Rhistory
+.RData
+.Ruserdata
+.Rproj.user
+.nextflow*
+basic_Trials*
+*.log
+work*
+data*
+Scripts/bin/trimmomatic*
+Scripts/serverRunPipe_test.R
+Scripts/pipeline_v8.pl
+Scripts/test.R
