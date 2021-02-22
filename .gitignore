@@ -16,3 +16,4 @@ Scripts/serverRunPipe_test.R
 Scripts/pipeline_v8.pl
 Scripts/test.R
 Scripts/GermlineSingularity
+Scripts/nextflow.config
