@@ -26,6 +26,21 @@ downloadCompressedFile <- function(input, output, session, name){
  
 }
 
+downloadFile <- function(input, output, session, data, name){
+  
+  ns <- session$ns
+  
+  output$download <- downloadHandler(
+    filename = function() {
+      paste(name())
+    },
+    content = function(file) {
+      data1 <- data()
+      file <- write_lines(x = data(), file = file,)
+      
+    }
+  )}
+
 downloadCSV <- function(input, output, session, data, name){
   
   ns <- session$ns
