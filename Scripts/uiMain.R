@@ -19,7 +19,7 @@ uiMain <- fluidPage(
                           # Subtitle and help button
                           
                           fluidRow(column(6,(h1("Welcome to the AllInOne tools", style="margin-top:0px;"))), # column end bracket
-                                   column(3,actionButton("btn_landing",label="Help: Take tour of the tool",icon=icon('question-circle'),class="down")) # column end bracket
+                                   column(3,actionButton("btn_landing",label="Debugger: for developing only",icon=icon('question-circle'),class="down")) # column end bracket
                                    ), # fluidRow end bracket
                           fluidRow(column(3, class="landing-page-column",br(),
                                           actionBttn('go_to_mosaic',

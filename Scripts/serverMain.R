@@ -47,6 +47,8 @@ source( 'Scripts/serverMosaic_batch.R', local = TRUE )
  #----Fastqc SERVER----
  
  # source( 'Scripts/serverFastqc.R', local = TRUE)
+        
+observeEvent(input$btn_landing,{return(browser())})
  
  
 }
