@@ -400,10 +400,28 @@ Check_pair_input_files <- reactive({ #Allow warning to be disabled
 ##############################################################################.
 
 output$tablaR <- renderDT(Tabla(), selection = "single", editable = TRUE, 
-                          options = list(search = list(smart = FALSE)), server = TRUE)
+                          extensions = c('Buttons','FixedColumns','Scroller','ColReorder'), 
+                          options = list(dom = 'Bfrtip', 
+                                         scrollX = TRUE,
+                                         deferRender = TRUE, scrollY = 400, scroller = TRUE,
+                                         colReorder = TRUE,
+                                         search = list(smart = FALSE),
+                                         buttons = list('copy', list(extend = 'collection',
+                                                                     buttons = c('csv', 'excel'),
+                                                                     text = 'Download'),
+                                                        'colvis')), server = TRUE)
 
 output$tablaT <- renderDT(TablaT(), editable = TRUE, selection = "single", 
-                          options = list(search = list(smart = FALSE)), server = TRUE)
+                          extensions = c('Buttons','FixedColumns','Scroller','ColReorder'), 
+                          options = list(dom = 'Bfrtip', 
+                                         scrollX = TRUE,
+                                         deferRender = TRUE, scrollY = 400, scroller = TRUE,
+                                         colReorder = TRUE, search = list(smart = FALSE),
+                                         buttons = list('copy', 
+                                                        list(extend = 'collection',
+                                                             buttons = c('csv', 'excel'),
+                                                             text = 'Download'),
+                                                        'colvis')), server = TRUE)
 
 #----Alignment and Table filtering dinamic UI----.
 
