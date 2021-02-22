@@ -371,7 +371,7 @@ find_target_location <- function(Tabla, TablaT, Target){
   #
   # ######################################
   
-  perfectMatches <- filter(TablaT, mismatch == 0, Deletions == 0, Insertions == 0, length == nchar(Target))
+  perfectMatches <- filter(TablaT, mismatch == 0, Deletions == 0, Insertions == 0, Length == nchar(Target))
   
   if(nrow(perfectMatches) == 0){
     
