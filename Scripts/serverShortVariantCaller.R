@@ -112,6 +112,8 @@
       
     }
     
+    withProgress(message = "Performing analisis: ",{
+    
     command_aligner = paste('nextflow',
                             './Scripts/nextflow_GenomeMapper.nf',
                             '--indir',
@@ -127,7 +129,8 @@
                             input$remove_duplicates,
                             '--threads 4',
                             '--outdir',
-                            str_c('./',as.character(datos$tmppipelinedir))
+                            str_c('./',as.character(datos$tmppipelinedir)),
+			                    	'-profile server'
     )
     
     command_SNP = paste('nextflow',
@@ -145,7 +148,8 @@
                         pos_correction(),
                         '--threads 4',
                         '--outdir',
-                        str_c(as.character(datos$tmppipelinedir))
+                        str_c(as.character(datos$tmppipelinedir)), 
+                        '-profile server'
     )
     
     command_INDEL = paste('nextflow',
@@ -164,7 +168,8 @@
                           exon_mapping(),
                           '--threads 4',
                           '--outdir',
-                          str_c(as.character(datos$tmppipelinedir))
+                          str_c(as.character(datos$tmppipelinedir)), 
+                          '-profile server'
     )
 
     system(command_aligner)
@@ -172,7 +177,7 @@
     if(large_indels()){
       system(command_INDEL)
     }
-    #}
+
     
     setwd(datos$tmppipelinedir)
     final_files <- c(dir('.', pattern = 'final_variant_calling_files', full.names = TRUE),
@@ -186,6 +191,8 @@
     incProgress( 1/4 ,detail = 'zipping files...')
     zip(path_to_zip_file, files = final_files)
     setwd(CompletePATH)
+    
+    }) # withProgress end bracket
     
     showModal(modalDialog(
       fluidPage(

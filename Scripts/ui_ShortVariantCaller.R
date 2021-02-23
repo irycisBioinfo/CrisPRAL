@@ -55,7 +55,7 @@ ui <- fluidPage(
         br(),
         h4('Common Operations'),
         numericInput('pos_correction', 'Translate variant positions (POS column) by a set amount',
-                     value = 118, min = -9999, max = 9999, step = 1, width = '100%'),
+                     value = -118, min = -9999, max = 9999, step = 1, width = '100%'),
         checkboxInput('CHROM_transform', label = ' Transform CHROM vcf column to corresponding exons', value = FALSE),
           conditionalPanel( 
             condition = "input.CHROM_transform == true",
