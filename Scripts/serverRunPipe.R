@@ -227,7 +227,6 @@ observeEvent(input$Accept, {
   }
   
   datos$Sequences <- readDNAStringSet(paste(datos$tmppipelinedir,"/cluster", sep = ''))
-  
   #Alignment for Sequences with Reference
   ls_ClusterAln_Ref = Clusters_Alignments(datos$Sequences, datos$Ref, 
                                           gapOpening = input$gap_open, 
@@ -235,29 +234,15 @@ observeEvent(input$Accept, {
                                           type = input$general_allType) #Function in Functions.R module.
   #Another Tabla variable is declared as an unsorted version together with
   #an associated Abundance for INDEL processing in graphing section.
-  datos$Tabla_unsort <- ls_ClusterAln_Ref$tmp %>% rename(Deleted_bps = deletions) %>% rename(Inserted_bps = insertions)
-  
-  
-  datos$aln = ls_ClusterAln_Ref$aln
-  
+  datos$Tabla_unsort <- ls_ClusterAln_Ref$tmp
+
   incProgress( 1/8 ,detail = 'Alignments')
   
-  
-  #Changing deletions and insertion columns to show total number of indels 
-  #instead of total number of indel bps
-  number_of_dels <- map(as.list(deletion(datos$aln)), ~length(.))
-  total_deletions_per_cluster <- as_tibble(purrr::flatten_dbl(number_of_dels)) %>% rename(Deletions = value)
-  number_of_ins <- map(as.list(insertion(datos$aln)), ~length(.))
-  total_insertions_per_cluster <- as_tibble(purrr::flatten_dbl(number_of_ins)) %>% rename(Insertions = value)
-  
-  # datos$Tabla_unsort_total_indels <- cbind(cbind(datos$Tabla_unsort %>% select(-Deleted_bps, -Inserted_bps), total_deletions_per_cluster, total_insertions_per_cluster), datos$Tabla_unsort %>% select(Deleted_bps, Inserted_bps))
-  
-  datos$Tabla_unsort_total_indels <- cbind(datos$Tabla_unsort %>% select(-Deleted_bps, -Inserted_bps), total_deletions_per_cluster, datos$Tabla_unsort %>% select(Deleted_bps), total_insertions_per_cluster, datos$Tabla_unsort %>% select(Inserted_bps))
-  
   # datos$Tabla is DONE with this last line:
-  datos$Tabla = inner_join(datos$Tabla_raw, datos$Tabla_unsort_total_indels) %>% 
+  datos$Tabla = inner_join(datos$Tabla_raw, ls_ClusterAln_Ref$tmp) %>% 
    mutate(score = round(score,1), Freq = signif(Freq,2)) %>% 
    arrange(desc(Abundance))# %>% select(-width,-start,-end)
+
   
   rownames(datos$Tabla) <- str_c('Cluster', rownames(datos$Tabla))
   
@@ -284,33 +269,9 @@ observeEvent(input$Accept, {
                                            gapOpening = input$gap_open, 
                                            gapExtension = input$gap_extend,
                                            type = input$general_allType) #Function in Functions.R module.
-   #Another Tabla variable is declared as an unsorted version together with
-   #an associated Abundance for INDEL processing in graphing section.
-   datos$TablaT_unsort <- ls_ClusterAln_Tar$tmp %>% rename(Deleted_bps = deletions) %>% rename(Inserted_bps = insertions)
-   datos$unsortT_ID_Abundance <- left_join(datos$TablaT_unsort %>% select(ID),
-                                           datos$Tabla_raw %>% select(-Freq),  by = 'ID') #What is this used for?
-   
-   incProgress( 1/8 ,detail = 'Alignments... renaming')
-   
-   datos$alnT = ls_ClusterAln_Tar$aln
-   
-   incProgress( 1/8 ,detail = 'Alignments')
-   
-   
-   #Changing deletions and insertion columns to show total number of indels 
-   #instead of total number of indel bps
-   number_of_delsT <- map(as.list(deletion(datos$alnT)), ~length(.))
-   total_deletions_per_clusterT <- as_tibble(purrr::flatten_dbl(number_of_delsT)) %>% rename(Deletions = value)
-   
-   number_of_insT <- map(as.list(insertion(datos$alnT)), ~length(.))
-   total_insertions_per_clusterT <- as_tibble(purrr::flatten_dbl(number_of_insT)) %>% rename(Insertions = value)
-   
-   datos$TablaT_unsort_total_indels <- cbind(cbind(
-     datos$TablaT_unsort %>% select(-Deleted_bps, -Inserted_bps), total_deletions_per_clusterT), 
-     datos$TablaT_unsort %>% select(Deleted_bps), total_insertions_per_clusterT, datos$TablaT_unsort %>% select(Inserted_bps))
    
    # datos$Tabla_Target is DONE with this last line:
-   datos$Tabla_Target = inner_join(datos$Tabla_raw, datos$TablaT_unsort_total_indels) %>% 
+   datos$Tabla_Target = inner_join(datos$Tabla_raw, ls_ClusterAln_Tar$tmp) %>% 
     mutate(score = round(score,1), Freq = signif(Freq,2)) %>% 
     arrange(desc(Abundance))# %>% select(-width,-start,-end) # Remove columns deemed too confusing for a user.
    output$Target_Location <- renderText(paste(Target_location()[1], Target_location()[2], sep = ' '))

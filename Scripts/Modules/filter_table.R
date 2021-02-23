@@ -48,7 +48,7 @@ if(!is.null(params.range)){
   data.filtered.score_threshold <- data.filtered.score_threshold %>% mutate(overlaps_with_range = case_when(!overlaps_with_range ~ 'no', TRUE ~ 'yes'))
   }
 # We need to keep data.filtered.indel though as TRUE & FALSE to filter more efficiently.
-data.filtered.score <- Tabla %>% filter(score > params.score)
+data.filtered.score <- Tabla %>% filter(score > params.score) %>% mutate(Freq = 100*Abundance/sum(Abundance))
 if(!is.null(params.range)){
   # When writing boolean conditions on an excel, TRUE and FALSE transform to 1 & 0s.
   data.filtered.score <- data.filtered.score %>% mutate(overlaps_with_range = case_when(!overlaps_with_range ~ 'no', TRUE ~ 'yes'))

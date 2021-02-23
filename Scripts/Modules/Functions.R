@@ -327,18 +327,44 @@ Clusters_Alignments <- function(Pattern_Seq, Subject_Seq, gapOpening = 10, gapEx
                           substitutionMatrix = nucleotideSubstitutionMatrix(match = 5, mismatch = -4),
                           gapOpening=gapOpening, 
                           gapExtension=gapExtension)
-  
-  alignment = Fix_gaps(aln, Pattern_Seq, Subject_Seq)
+
+  #Changing deletions and insertion columns to show total number of indels 
+  #instead of total number of indel bps
+  number_of_dels <- map(as.list(deletion(aln)), ~length(.))
+  number_of_ins <- map(as.list(insertion(aln)), ~length(.))
   
   tmp = data.frame(
     ID = names(Pattern_Seq),
     mismatch = nmismatch(aln),
     #alignment_length = nchar(aln), commented out because we wanted length of sequence not the length of the alignment
     score = score(aln),
-    deletions = nindel(aln)@deletion[, 2],
-    insertions = nindel(aln)@insertion[, 2]
+    Deletions = purrr::flatten_dbl(number_of_dels),
+    Deleted_bps = nindel(aln)@deletion[, 2],
+    Insertions = purrr::flatten_dbl(number_of_ins),
+    Inserted_bps = nindel(aln)@insertion[, 2]
   )
   tmp = tmp %>% separate(ID, c("ID","kk"), sep =" ") %>% select(-kk)
+  
+  # Since we have artificially included end gaps into out alignments, we have to compute the new deletions and insertions counts.
+  # alignment = Fix_gaps(aln, Pattern_Seq, Subject_Seq)
+  # browser()
+  for(i in c(1:length(aln))){
+    alignment = Fix_gaps(aln[i], Pattern_Seq[i], Subject_Seq)
+    end_gaps_query <- c(alignment$query[[1]][1] == '-', alignment$query[[1]][length(alignment$query[[1]])] == '-')
+    
+    if(sum(end_gaps_query) > 0){
+      tmp$Deleted_bps[i] <- sum(alignment$query[[1]] == '-')
+      tmp$Deletions[i] <- tmp$Deletions[i]+sum(end_gaps_query)
+    }
+    
+    end_gaps_ref <- c(alignment$ref[[1]][1] == '-', alignment$ref[[1]][length(alignment$ref[[1]])] == '-')
+    
+    if(sum(end_gaps_ref) > 0){
+      tmp$Inserted_bps[i] <- sum(alignment$ref[[1]] == '-')
+      tmp$Insertions[i] <- tmp$Insertions[i]+sum(end_gaps_ref)
+      
+    }
+  }
   
   return(list(tmp = tmp, aln = aln))
 }
@@ -435,7 +461,7 @@ conditional_input_decision_tree <- function(path_to_files){
   if(nrow(path_to_files) > 1){
     if( length(path_to_files.split.extension) == 1 && path_to_files.split.extension[1] == 'fastq'){
       
-      file.rename(path_to_files$datapath, str_c(path_to_files.split.path, path_to_files$name))
+      file.rename(path_to_files$datapath, str_c(path_to_files.split.path,'/',path_to_files$name))
       new_file_paths <- dir(path_to_files.split.path, pattern = 'fastq' ,full.names = TRUE)
       
       return(new_file_paths) # There is no decompression required, return fed arguments as is.
@@ -509,4 +535,19 @@ conditional_input_decision_tree <- function(path_to_files){
     return( new_file_path )
   }
   return(str_c('Unrecognised input data: ', path_to_files))
+}
+
+read.primers <- function(path){
+  
+  library(tidyverse)
+  library(Biostrings)
+  
+  F_Primer1 <- read_lines(path)[2]
+  R_Primer1 <- read_lines(path)[4]
+  
+  F_Primer2 <- as.character(Biostrings::reverseComplement(DNAString(R_Primer1)))
+  R_Primer2 <- as.character(Biostrings::reverseComplement(DNAString(F_Primer1)))
+  
+  store.primers <- list('F_Primer1' = F_Primer1, 'R_Primer1' = R_Primer1, 'F_Primer2' = F_Primer2, 'R_Primer2' = R_Primer2)
+  return(store.primers)
 }
