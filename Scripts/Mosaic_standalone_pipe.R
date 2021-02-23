@@ -38,11 +38,11 @@ library(xlsx)
 
 CompletePATH = paste(getwd(), sep = '') #-Server
 
-source(str_c(CompletePATH,'/Modules/aid_functions.R', sep = ''))
-source(str_c(CompletePATH,'/Modules/Functions.R', sep = ''))
-source(str_c(CompletePATH,'/Modules/filter_table.R', sep = ''))
-source(str_c(CompletePATH,'/Modules/are_indels_in_range.R', sep = ''))
-source(str_c(CompletePATH,'/Modules/mismatches_break_down.R', sep = ''))
+source(str_c(CompletePATH,'/Scripts/Modules/Functions.R', sep = ''))
+source(str_c(CompletePATH,'/Scripts/Modules/filter_table.R', sep = ''))
+source(str_c(CompletePATH,'/Scripts/Modules/are_indels_in_range.R', sep = ''))
+source(str_c(CompletePATH,'/Scripts/Modules/mismatches_break_down.R', sep = ''))
+source(str_c(CompletePATH,'/Scripts/Modules/aid_functions.R', sep = ''))
 
 rename <- dplyr::rename
 filter <- dplyr::filter
@@ -136,7 +136,7 @@ for(file_pair1 in files){
   ###########################.
   
     command = paste0(
-      ScriptsPATH,
+      CompletePATH,'/Scripts',
       "/pipeline_vUMI.pl --r1 ",
       file_pair1,
       " --r2 ",
@@ -232,25 +232,10 @@ for(file_pair1 in files){
   Sequences <- readDNAStringSet(paste(tmppipelinedir,"/cluster", sep = ''))
   Ref <- readDNAStringSet(reference)
   #Alignment for Sequences with Reference
-  ls_ClusterAln_Ref = Clusters_Alignments(Sequences, Ref, type = 'overlap') #Function in Functions.R module.
-  #Another Tabla variable is declared as an unsorted version together with
-  #an associated Abundance for INDEL processing in graphing section.
-  Tabla_unsort <- ls_ClusterAln_Ref$tmp %>% rename(Deleted_bps = deletions) %>% rename(Inserted_bps = insertions)
-  
+  ls_ClusterAln_Ref = Clusters_Alignments(Sequences, Ref, type = 'global') #Function in Functions.R module.
   aln = ls_ClusterAln_Ref$aln
-  
-  #Changing deletions and insertion columns to show total number of indels 
-  #instead of total number of indel bps
-  number_of_dels <- map(as.list(deletion(aln)), ~length(.))
-  total_deletions_per_cluster <- as_tibble(purrr::flatten_dbl(number_of_dels)) %>% rename(Deletions = value)
-  number_of_ins <- map(as.list(insertion(aln)), ~length(.))
-  total_insertions_per_cluster <- as_tibble(purrr::flatten_dbl(number_of_ins)) %>% rename(Insertions = value)
-  
-  # Tabla_unsort_total_indels <- cbind(cbind(Tabla_unsort %>% select(-Deleted_bps, -Inserted_bps), total_deletions_per_cluster, total_insertions_per_cluster), Tabla_unsort %>% select(Deleted_bps, Inserted_bps))
-  
-  Tabla_unsort_total_indels <- cbind(Tabla_unsort %>% select(-Deleted_bps, -Inserted_bps), total_deletions_per_cluster, Tabla_unsort %>% select(Deleted_bps), total_insertions_per_cluster, Tabla_unsort %>% select(Inserted_bps))
-  
-  Tabla = inner_join(Tabla_raw, Tabla_unsort_total_indels) %>% 
+
+  Tabla = inner_join(Tabla_raw, ls_ClusterAln_Ref$tmp) %>% 
     mutate(score = round(score,1), Freq = signif(Freq,2)) %>% 
     arrange(desc(Abundance))# %>% select(-width, -start, -end)
   

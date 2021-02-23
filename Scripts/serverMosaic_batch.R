@@ -301,19 +301,19 @@ observeEvent(input$Accept_batch,{
   # if(unzipped_files == "Unrecognised input"){showModal error; setwd(CompletePath)}
   
   R1_files <- grep(unziped_files, pattern = '_R1_', value = TRUE)
-  command <- str_c(ScriptsPATH, './Mosaic_standalone_pipe.R',
-                str_c(R1_files, collapse = ' ', sep = ' '),
+  command <- str_c(ScriptsPATH, '/Mosaic_standalone_pipe.R',
+                paste(' ',paste(R1_files,collapse = ' '),
                 '-reference', 
                 Reference_batch(),
                 command.adapter(),
                 command.primers(),
                 '-output',
-                str_c(CompletePATH,as.character(datos$tmppipelinedir)),
+                str_c(CompletePATH,'/',as.character(datos$tmppipelinedir)),
                 mismatches(),
                 '-score_threshold',
                 scoring_threshold(),
                 sequences(),
-                command.interest_range(), sep = ' ')
+                command.interest_range(), sep = ' '), sep = '')
 
   incProgress( 1/2 ,detail = 'may take a while...')
   system(command)
