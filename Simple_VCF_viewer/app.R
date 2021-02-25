@@ -8,6 +8,7 @@
 #
 
 library(shiny)
+library(shinyBS)
 library(vcfR)
 library(tidyverse)
 library(DT)
@@ -30,11 +31,17 @@ ui <- fluidPage(
             wellPanel(
                 # checkboxInput(inputId = 'multi_sample', label = tags$s('Check for vcf with multiple samples'), value = FALSE),
                 
-                uiOutput(outputId = 'input_vcf_variable')
+                uiOutput(outputId = 'input_vcf_variable'),
+                bsPopover('input_vcf_variable', title = "Input Data" ,
+                          content = 'Select all your fastq or fastq.gz files, make sure pairs are defined with the basic nomenclature in the file names: _R1_ & _R2_', 
+                          placement = "bottom", trigger = "hover", options = NULL)
+                
             ),  # Well Panel end bracket
             wellPanel(
                 
-                fileInput(inputId = 'vcf_reference', label = 'Input reference sequence', multiple = FALSE, accept = c('fa','fasta','txt'), placeholder = 'Select file'),
+                popify(fileInput('vcf_reference', label = 'Input reference sequence', 
+                                 multiple = FALSE, accept = c('fa','fasta','txt'), placeholder = 'Select file'),
+                       "Input reference sequence",'For the moment reference is only used to determine the variant names, is does not need to be the one used for the variant calling, though it probably makes sense that it is for the variant position to make sense .'),
                 br(),
                 actionButton(inputId = 'run_vcf_reader', label = 'Load')
                 
@@ -68,8 +75,9 @@ ui <- fluidPage(
             fluidRow(
                 column(width = 5,
                 wellPanel(
-                h4('Recalculate Alternate Frequency (AF) values'),
-                textOutput(outputId = 'AF_explanation'),
+                h4('Recalculate Alternate Frequency (AF) values',icon('question-circle'),id='Recalc_AF'),
+                bsPopover('Recalc_AF', title = "Recalculate Alternate Frequency (AF) values" ,content = 'Alternate frequency commonly needs to be recalculated, some variant callers that assume diploid or haploid distribution of the data, and in consequence they print 0,0.5 or 1 in the AF column. Despite the real AF value being something in between.',
+                          placement = "top", trigger = "hover", options = NULL),
                 br(),
                 actionButton('Recalculate_AF',label = 'Recalculate AF', icon = icon("redo-alt"))
                 
@@ -82,8 +90,15 @@ ui <- fluidPage(
 
 # Define server logic required to draw a histogram
 server <- function(input, output) {
-    
     datos <- reactiveValues()
+    
+    output$infocircle <- renderImage({outfile <- "ready_for_download.png"
+        list(src = outfile,
+            contentType = 'image/png',
+            width = 400,
+            height = 300,
+            alt = "This is alternate text")
+    }, deleteFile=FALSE)
     
     observeEvent(input$run_vcf_reader, {
         
@@ -179,11 +194,18 @@ server <- function(input, output) {
     variant_file_name <- reactive({'variant_list.txt'})
     callModule(downloadFile, 'download_variants', data = variants_to_download, name = variant_file_name)
     
-############# recalculate AF #######################
+############# RECALCULATE AF #######################
     #################################.
-    
-    output$AF_explanation <- renderText("Alternate frequency commonly needs to be recalculated, some variant callers that assume diploid or haploid distribution of the data, and in consequence they print 0,0.5 or 1 in the AF column. Despite the real AF value being something in between.")
     observeEvent(input$Recalculate_AF, {datos$vcf_tidy$fix <- datos$vcf_tidy$fix %>% mutate(AF = signif(as.numeric(AO)/DP,digits = 2))})
+    
+############# FIXED TRANSLATION ####################
+    ################################.
+    
+############# POSITION MAPING ######################
+    ################################.
+    
+    
+    
 }
 
 
