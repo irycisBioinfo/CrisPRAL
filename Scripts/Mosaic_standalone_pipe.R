@@ -20,7 +20,8 @@
 # -adapters [FILE]
 # -primers [FILE]
 # 
-# -output [PATH]                              Location where results will be saved. (default: PATH = './')
+# -output [PATH]                              Location where results will be saved. (default: './')
+# -alignment <"global"|"overlap">             Selects alignment method to perform. (default: 'overlap')
 # -score_threshold <[INT] | 'detect'>         Final output will have a table with all data with a score below the threshold equal to INT (default: INT = 0)
 #                                             If -score_threshold = 'detect', a score is selected based on the scoring distribution.
 # -mismatches                                 Flag if present mismatches will be broken down and printed in another column together with the rest of results
@@ -50,6 +51,10 @@ filter <- dplyr::filter
 f <- commandArgs(trailingOnly = TRUE)
 # f <- c('/media/bioinfo/Seagate_Expansion_Drive/ALMUDENA_JUL_2020/C_S35_L001_R1_001.fastq', ',-reference', 'TYR\ reference.fasta', '-primers', 'tyr_primers.fasta', '-output', 'results_Almudena2/', '-score_threshold',"detect", '-indel_interest_range', '70-170')
 files <- grep(f, pattern = 'fastq$', value = TRUE)
+
+######################################################.
+###################### OPTIONS #######################
+######################################################.
 
 # Find primers
 primers_pos <- grep(f, pattern = '-primers')
@@ -97,6 +102,10 @@ if(!is_empty(mismatches)){mismatches <- TRUE}else{mismatches <- FALSE}
 sequences <- grep(f, pattern = '-append_sequences')
 if(!is_empty(sequences)){sequences <- TRUE}else{sequences <- FALSE}
 
+# check alignment options
+alignment_pos <- grep(f, pattern = '-alignment')
+if(!is_empty(alignment_pos)){alignment <- f[alignment_pos + 1]}else{alignment <- 'overlap'}
+
 # Find indel interest range
 interest_range_pos <- grep(f, pattern = '-indel_interest_range')
 if(!is_empty(interest_range_pos)){
@@ -114,6 +123,9 @@ if(!is_empty(interest_range_pos)){
 if(str_sub(output, start = nchar(output)) != '/'){
   output <- str_c(output, '/', sep = '')
 }
+
+#######################################################.
+#######################################################.
 
 # Directory handling:
 
@@ -209,13 +221,6 @@ for(file_pair1 in files){
   allfasta <- allfasta %>% mutate_at(vars(ID), list(~if_else(str_starts(., '>'),
                                                               true = str_extract(., '(?<=>)[:graph:]+'), 
                                                               false = .)))
-  # 
-  # clusterF <- cluster %>% select("ClusterN", "ID", "Identity")
-  # colnames(clusterF) <- c('CLUSTER', 'ID', 'Identity')
-  # clufast <- full_join(allfasta, clusterF) %>% group_by(CLUSTER) %>% nest() %>% arrange(CLUSTER)
-  
-  #Tabla_raw is a rearrangement of cluster to prepare the data for
-  #fusing with Cluster-Sequences aswell as integrating with Alignment data
   
   Tabla_raw = cluster %>%
     group_by(ClusterN) %>%
@@ -232,7 +237,7 @@ for(file_pair1 in files){
   Sequences <- readDNAStringSet(paste(tmppipelinedir,"/cluster", sep = ''))
   Ref <- readDNAStringSet(reference)
   #Alignment for Sequences with Reference
-  ls_ClusterAln_Ref = Clusters_Alignments(Sequences, Ref, type = 'global') #Function in Functions.R module.
+  ls_ClusterAln_Ref = Clusters_Alignments(Sequences, Ref, type = alignment) #Function in Functions.R module.
   aln = ls_ClusterAln_Ref$aln
 
   Tabla = inner_join(Tabla_raw, ls_ClusterAln_Ref$tmp) %>% 
@@ -264,6 +269,7 @@ for(file_pair1 in files){
   Tabla_with_ins <- left_join(Tabla_with_rownames, insertions_clst, by = 'cluster')
   Tabla_with_indels <- left_join(Tabla_with_ins, deletions_clst, by = 'cluster')
   Tabla_final <- Tabla_with_indels
+  
   #################################################.
   ## Identify if indels falls in interest range
   #################################################.

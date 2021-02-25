@@ -307,6 +307,8 @@ observeEvent(input$Accept_batch,{
                 Reference_batch(),
                 command.adapter(),
                 command.primers(),
+                '-alignment',
+                input$alnType_batch,
                 '-output',
                 str_c(CompletePATH,'/',as.character(datos$tmppipelinedir)),
                 mismatches(),
