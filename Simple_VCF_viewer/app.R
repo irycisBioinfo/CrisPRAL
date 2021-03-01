@@ -61,7 +61,6 @@ ui <- fluidPage(
                            h4('Download selected variants'),
                            checkboxInput(inputId = 'select_all_variants', label = 'Select all', value = FALSE),
                            downloadButtonModule("download_variants", "Download"),
-                           actionButton("browser", "browser")
                            
                        ) # Well Panel end bracket
                        ),# Column end bracket
@@ -219,16 +218,8 @@ server <- function(input, output) {
         
     }) # observeEvent end bracket
 
-
-    
-    observeEvent(input$browser,{
-        
-        browser()
-
 ############# VARIANTS NOMENCLATURE ###############
     #################################.
-                
-    })# observeEvent end bracket
 
     variants_to_download <- reactive({
         if(!is.null(datos$reference_type_ab)){
