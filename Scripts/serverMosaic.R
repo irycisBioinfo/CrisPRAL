@@ -399,7 +399,8 @@ Check_pair_input_files <- reactive({ #Allow warning to be disabled
 # TABLE PRINTING ####
 ##############################################################################.
 
-output$tablaR <- renderDT(Tabla(), selection = "single", editable = TRUE, 
+output$tablaR <- renderDT(Tabla(), selection = "single", editable = TRUE,
+                          filter = 'top',
                           extensions = c('Buttons','FixedColumns','Scroller','ColReorder'), 
                           options = list(dom = 'Bfrtip', 
                                          scrollX = TRUE,
@@ -411,7 +412,8 @@ output$tablaR <- renderDT(Tabla(), selection = "single", editable = TRUE,
                                                                      text = 'Download'),
                                                         'colvis')), server = TRUE)
 
-output$tablaT <- renderDT(TablaT(), editable = TRUE, selection = "single", 
+output$tablaT <- renderDT(TablaT(), editable = TRUE, selection = "single",
+                          filter = 'top',
                           extensions = c('Buttons','FixedColumns','Scroller','ColReorder'), 
                           options = list(dom = 'Bfrtip', 
                                          scrollX = TRUE,
