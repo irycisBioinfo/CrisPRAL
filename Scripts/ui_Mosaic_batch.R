@@ -141,6 +141,16 @@ fluidPage(# Application title
           ) # fluidRow closing bracket
         ), # WellPanel PRIMER trimming closing bracket
         wellPanel(
+          
+          h4('Alignment',icon('question-circle'),id='alignment_type_tooltip'),
+          bsTooltip(id = 'alignment_type_tooltip', title = "Alignment Method: 'global' vs 'overlap' Depending on the sequences one alignment may be preferable to the other, the 'global' is prefereable when reads are of very similar length to the reference and end gaps are NOT expected. If sizes vary and some might be smaller than the reference, an overlaping alignment may be beneficial since its much more lenient with leading and trailing end gaps.",
+                    placement = "top", trigger = "hover", options = NULL),
+          selectInput(inputId = 'alnType_batch', label = h5('Select alignment method') ,selected = 'overlap' ,choices = c('global', 'overlap')),
+
+          
+          
+        ),# WellPanel PRIMER trimming closing bracket
+        wellPanel(
         fluidRow(
             column(5, 
                h4('Score threshold: '),h5('clusters with score < threshold will be filtered out onto a separate sheet'),br(),
@@ -168,6 +178,7 @@ fluidPage(# Application title
                                min = 0,
                                max = 99999)
                       ),
+               h4('Other common operations: '),
                checkboxInput(inputId = "print_mismatches", label = 'Append mismatches breakdown to final table', value = FALSE),
                checkboxInput(inputId = "print_sequences", label = 'Append representative sequences to final table (beta)', value = FALSE)
             ) # column end bracket
