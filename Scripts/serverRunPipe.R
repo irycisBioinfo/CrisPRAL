@@ -235,7 +235,13 @@ observeEvent(input$Accept, {
   #Another Tabla variable is declared as an unsorted version together with
   #an associated Abundance for INDEL processing in graphing section.
   datos$Tabla_unsort <- ls_ClusterAln_Ref$tmp
-
+  
+  
+  ############.
+  # alignment data is extracted and stored for the whole app since Graphs uses this to produce the graphic representation
+  datos$aln <- ls_ClusterAln_Ref$aln
+  ############.
+  
   incProgress( 1/8 ,detail = 'Alignments')
   
   # datos$Tabla is DONE with this last line:
