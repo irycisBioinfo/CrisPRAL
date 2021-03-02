@@ -22,8 +22,12 @@
     vcf_r <- reactive({read.vcfR(input$vcf_file$datapath)})
     
     datos$vcf_tidy <- vcfR2tidy(vcf_r())
+    
+    ####
     # Fix numeric interpretation of data:
-    datos$vcf_tidy$fix <- datos$vcf_tidy$fix %>% mutate(across(.cols = c(AC,AO,AF,PAO,QA,PQA,SAF,RPP,RPL,RPR,EPP,DPRA,MEANALT,MQM,PAIRED,PAIREDR), as.numeric))
+    numeric_INFO_values <- datos$vcf_tidy$meta %>% filter(Tag == 'INFO') %>% filter(Type %in% c('Integer', 'Float')) %>% pull(ID)
+    datos$vcf_tidy$fix <- datos$vcf_tidy$fix %>% mutate(across(.cols = numeric_INFO_values , as.numeric))
+    ####
     
     vcf.meta <- reactive({datos$vcf_tidy$meta})
     vcf.table <- reactive({datos$vcf_tidy$fix})
