@@ -36,8 +36,8 @@ options("download.file.method" = "libcurl")
 
 #Bioconductor packages
 Biocpkgs <- c("BiocGenerics", "BiocStyle", "BSgenome", 'Biostrings','msa', 'msaR', "checkmate", "ggdendro",
-          "reshape2", "Rsamtools", "scales", "ShortRead",  "viridis", "viridisLite", "zoo", "mikelove/fastqcTheoreticalGC", 
-          "ngsReports", "wleepang/shiny-directory-input", 'UofABioinformaticsHub/shinyNgsreports')
+          "reshape2", "Rsamtools", "scales", "ShortRead",  "viridis", "viridisLite", "zoo", 
+          "ngsReports")
 lapply(Biocpkgs, require, character.only = TRUE)
 
 
