@@ -6,6 +6,7 @@ library( base )
 base_append <- base::append
 library( shiny )
 library( readr )
+library( vcfR )
 library("BiocManager")
 
 #---Preparation for Lazy Filter----
@@ -27,7 +28,7 @@ lapply(shinypckgs, require, character.only = TRUE)
 #dependant packages required
 deppkgs <- c('devtools', 'tidyverse', 'kableExtra', 'rmarkdown', 'processx', 'DT', 'htmlwidgets', 'seqRFLP', 'farver','R.utils')
 lapply(deppkgs, require, character.only = TRUE)
-# Fixing some masked funcitons:
+# Fixing some masked functions:
 reset <- shinyjs::reset
 count <- dplyr::count
 #devtools::install_github() bugfix

@@ -1,7 +1,10 @@
 # Isolated script for the loading of the simple_vcf_viewer operations
 
-server <- function(input, output) {
-  datos <- reactiveValues()
+  observeEvent(input$go_to_simple_vcf, {
+    
+    updateTabsetPanel(session, 'app', selected = 'Simple_VCF')
+    
+  })
   
   output$infocircle <- renderImage({outfile <- "ready_for_download.png"
   list(src = outfile,
@@ -10,6 +13,9 @@ server <- function(input, output) {
        height = 300,
        alt = "This is alternate text")
   }, deleteFile=FALSE)
+  
+  ################ RUN ####################
+  ########################################.
   
   observeEvent(input$run_vcf_reader, {
     
@@ -53,13 +59,17 @@ server <- function(input, output) {
     info_columns <- which(colnames(datos$vcf_tidy$fix) %in% datos$vcf_tidy$meta$ID)
     basic_columns <- which(! colnames(datos$vcf_tidy$fix) %in% datos$vcf_tidy$meta$ID)
     
+    #### LOAD VCF TABLE ####
+    
     output$vcf_table <- DT::renderDT(extensions = c('Buttons','FixedColumns','Scroller'),
                                      filter = 'top',
                                      options = list(dom = 'Bfrtip',
                                                     scrollX = TRUE, fixedColumns = list(leftColumns = 2),
                                                     deferRender = TRUE, scrollY = 400, scroller = TRUE,
                                                     buttons = list('copy', list(extend = 'collection',
-                                                                                buttons = c('csv', 'excel'),
+                                                                                buttons = list(
+                                                                                  list(extend = 'csv', filename = 'VCF_file'),
+                                                                                  list(extend = 'excel', filename = 'VCF_file')),
                                                                                 text = 'Download'),
                                                                    'colvis', list(extend = 'colvisGroup',
                                                                                   text = 'INFO',
@@ -94,7 +104,7 @@ server <- function(input, output) {
     }
   })#observe event end brackets
   
-  ############# TABLE PROXY #######################
+############# TABLE PROXY #######################
   #################################.
   
   
@@ -109,7 +119,7 @@ server <- function(input, output) {
     
   }) # observeEvent end bracket
   
-  ############# VARIANTS NOMENCLATURE ###############
+############ VARIANTS NOMENCLATURE ###############
   #################################.
   
   variants_to_download <- reactive({
@@ -190,8 +200,10 @@ server <- function(input, output) {
     }
   })# observeEvent end bracket
   
-  ############# POSITION MAPING ######################
+############# POSITION MAPING ######################
   ################################.
+  
+  #### ASSERTS ####
   
   gene_annotation <- reactive({
     read_tsv(input$pos_mapping$datapath, col_names = TRUE)
@@ -234,9 +246,15 @@ server <- function(input, output) {
     return(TRUE)
   })
   
+  #### EVENT ####
+  
   observeEvent(input$Go_mapping,{
     
     if(isFALSE(check_annot_data())){return()}
+    # check if pos_annotation already exists
+    if(any(str_detect(colnames(datos$vcf_tidy$fix), pattern = 'POS_ANNOTATION'))){
+      datos$vcf_tidy$fix <-  datos$vcf_tidy$fix %>% select(-POS_ANNOTATION)
+          }
     
     vcf_pos <- datos$vcf_tidy$fix$POS
     vcf_annot <- c()
@@ -249,5 +267,3 @@ server <- function(input, output) {
     datos$vcf_tidy$fix <- bind_cols(datos$vcf_tidy$fix, POS_ANNOTATION = vcf_annot) %>% relocate(POS_ANNOTATION,.after = POS)
     
   })
-  
-} # server end bracket

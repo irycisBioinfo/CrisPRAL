@@ -48,7 +48,24 @@ uiMain <- fluidPage(
                                             size = "lg",
                                             block = TRUE,
                                             no_outline = FALSE)),
-                                          ), # fluidRow end bracket
+                                          ),
+                          fluidRow(column(4, br(),
+                                          actionBttn('go_to_simple_vcf', label = 'SIMPLE VCF VIEWER',
+                                                     icon = NULL,
+                                                     style = 'pill',
+                                                     color = 'succes',
+                                                     size = 'md',
+                                                     block = TRUE,
+                                                     no_outline = FALSE)),
+                                   column(4, br(),
+                                          actionBttn('go_to_lazyP', label = 'LAZY PANEL VIEWER',
+                                                     icon = NULL,
+                                                     style = 'pill',
+                                                     color = 'royal',
+                                                     size = 'md',
+                                                     block = TRUE,
+                                                     no_outline = TRUE)))# fluidRow end bracket
+                          
                 ) # mainPanel end bracket
               ), # tabPanel end bracket
              tabPanel( 'Mosaic Finder', value = 'Mosaic_Finder',
@@ -57,8 +74,10 @@ uiMain <- fluidPage(
                        source('Scripts/ui_Mosaic_batch.R', local = TRUE)$value ),
              tabPanel( 'Single Gene Variant Calling', value = 'Short_Variant_Caller',
                        source('Scripts/ui_ShortVariantCaller.R', local = TRUE)$value ),
+             tabPanel( 'Simple VCF viewer', value = 'Simple_VCF',
+                       source('Scripts/ui_simple_vcf_viewer.R', local = TRUE)$value ),
              tabPanel( 'Lazy Panel Filter', value = 'Lazy_Panel',
-                      source('Scripts/ui_LazyP.R', local = TRUE)$value )#,
+                      source('Scripts/ui_LazyP.R', local = TRUE)$value )
              # tabPanel('Fastq Quality Analysis', id = 'FastqcRShiny',
              #          source('Scripts/ui_Fastqc.R', local = TRUE)$value )
   )

@@ -19,7 +19,6 @@ source( str_c( ScriptsPATH, '/Modules/Functions.R' ))
 
 options( shiny.maxRequestSize = 500 * 1024 ^ 2 )
 
-# Define UI for application that draws a histogram
 ui <- fluidPage(
 
     # Application title

@@ -44,9 +44,9 @@ source( 'Scripts/serverMosaic_batch.R', local = TRUE )
  
  source( 'Scripts/serverLazy.R', local = TRUE )
  
- #----Fastqc SERVER----
- 
- # source( 'Scripts/serverFastqc.R', local = TRUE)
+ #--- Simple vcf viwer SERVER----
+        
+ source( 'Scripts/serverSimple_vcf_viewer.R', local = TRUE)
         
 observeEvent(input$btn_landing,{return(browser())})
  

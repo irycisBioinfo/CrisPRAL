@@ -1,7 +1,7 @@
 #---Lazy Panel Filter SERVER----
 
 
-observeEvent(input$go_to_lazy, {
+observeEvent(input$go_to_lazyP, {
   
   updateTabsetPanel(session, 'app', selected = 'Lazy_Panel')
   
