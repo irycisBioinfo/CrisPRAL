@@ -42,7 +42,6 @@ CompletePATH = paste(getwd(), sep = '') #-Server
 source(str_c(CompletePATH,'/Scripts/Modules/Functions.R', sep = ''))
 source(str_c(CompletePATH,'/Scripts/Modules/filter_table.R', sep = ''))
 source(str_c(CompletePATH,'/Scripts/Modules/are_indels_in_range.R', sep = ''))
-source(str_c(CompletePATH,'/Scripts/Modules/mismatches_break_down.R', sep = ''))
 source(str_c(CompletePATH,'/Scripts/Modules/aid_functions.R', sep = ''))
 
 rename <- dplyr::rename

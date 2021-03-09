@@ -177,7 +177,7 @@ observeEvent(input$Accept, {
                                                                false = .)))
   
   #####################################################################################
-  # These operations was necesary por MSAlignment, it will be commented out and if in a few weeks no error appears y will be deleted:
+  # These operations was necesary por MSAlignment, it will be commented out and if in a few weeks no error appears and will be deleted:
   # datos$clusterF <- datos$cluster %>% select("ClusterN", "ID", "Identity")
   # colnames(datos$clusterF) <- c('CLUSTER', 'ID', 'Identity')
   # datos$clufast <- full_join(allfasta, datos$clusterF) %>% group_by(CLUSTER) %>% nest() %>% arrange(CLUSTER)
@@ -238,21 +238,26 @@ observeEvent(input$Accept, {
   
   
   ############.
-  # alignment data is extracted and stored for the whole app since Graphs uses this to produce the graphic representation
+  # alignment data is extracted and stored for the whole app since serverGraphs.R uses this to produce the graphic representation
   datos$aln <- ls_ClusterAln_Ref$aln
   ############.
   
   incProgress( 1/8 ,detail = 'Alignments')
   
-  # datos$Tabla is DONE with this last line:
+  #- Finetune datos$Tabla
   datos$Tabla = inner_join(datos$Tabla_raw, ls_ClusterAln_Ref$tmp) %>% 
    mutate(score = round(score,1), Freq = signif(Freq,2)) %>% 
    arrange(desc(Abundance))# %>% select(-width,-start,-end)
-
+  
+  ###########################################################.
+  ##### Mismatch extraction and joining for datos$Tabla #####
+  ###########################################################.
+  
+  datos$Tabla <- mismatches_break_down(ls_ClusterAln_Ref, datos$Tabla)
   
   rownames(datos$Tabla) <- str_c('Cluster', rownames(datos$Tabla))
   
-  datos$Tabla_Original <- datos$Tabla #datos$Tabla will be printed as a reactive function, line located before "Running Pipeline" block. datos$Tabla_Original is made to recover if datos$Tabla is altered by the user.
+  datos$Tabla_Original <- datos$Tabla #datos$Tabla will be printed as a reactive function, line located before "Running Pipeline" block. datos$Tabla_Original is made as recovery if datos$Tabla is altered by the user.
   output$tablaD <- renderDT(Tabla(),filter = 'top', server = TRUE) #Table with multiple selection for PDF formatting
   output$PrintD <- renderDT(Tabla()[sort.default(rows_selected()),], selection = 'none')
   output$Print2 <- renderText(paste("Total amount of Reads: ", 
@@ -265,7 +270,10 @@ observeEvent(input$Accept, {
   datos$namedStringSet <- DNAStringSet(datos$namedSequences$Sequence)
   names(datos$namedStringSet) <- datos$namedSequences$ID
   
-  #Is Target Introduced?
+#########################################################################.
+##### Is Target Introduced? #####
+#########################################################################.
+  
   if(!is.null(Target_FileInput()) && isFALSE(str_detect(Target(), 'ERROR' ))){ 
    incProgress( 1/8 ,detail = 'Looking for Target')
    datos$Target = readDNAStringSet(Target())
@@ -276,10 +284,16 @@ observeEvent(input$Accept, {
                                            gapExtension = input$gap_extend,
                                            type = input$general_allType) #Function in Functions.R module.
    
-   # datos$Tabla_Target is DONE with this last line:
    datos$Tabla_Target = inner_join(datos$Tabla_raw, ls_ClusterAln_Tar$tmp) %>% 
     mutate(score = round(score,1), Freq = signif(Freq,2)) %>% 
     arrange(desc(Abundance))# %>% select(-width,-start,-end) # Remove columns deemed too confusing for a user.
+   
+   ##################################################################.
+   ##### Mismatch extraction and joining for datos$Tabla_Target #####
+   ##################################################################.
+   
+   datos$Tabla_Target <- mismatches_break_down(ls_ClusterAln_Tar, datos$Tabla_Target)
+   
    output$Target_Location <- renderText(paste(Target_location()[1], Target_location()[2], sep = ' '))
    
    rownames(datos$Tabla_Target) <- str_c('Cluster', rownames(datos$Tabla_Target))
@@ -308,9 +322,14 @@ output$temp_text <- renderUI({
 rownames_Tabla <- reactive({
  rownames(datos$Tabla)
 }) 
+###############################################################################.
+##### User Table Edit ####
+###############################################################################.
 
-#----User Table Edit----
-#-Table Filtering:
+  ###########################.
+  #-Table Filtering ####
+  ###########################.
+
 observeEvent(input$Filter, {
  #-Table Reference:
  datos$Tabla <- datos$Tabla_Original %>% rownames_to_column(var = 'rowname') %>% 
@@ -337,7 +356,10 @@ observeEvent(input$Default, {
 }
 )
 
-#-Rowname Custimization:
+  ################################.
+  #-Rowname Customization ####
+  ################################.
+
 proxy_tablaR = dataTableProxy('tablaR')
 proxy_tablaT = dataTableProxy('tablaT')
 proxy_tablaD = dataTableProxy('tablaD')

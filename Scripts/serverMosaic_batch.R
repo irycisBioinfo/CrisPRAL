@@ -287,8 +287,9 @@ observeEvent(input$Accept_batch,{
       )))
     
   }
-  
-  #### END MODAL DIALOG ####
+  #############################################################################.
+  #### COMMAND ####
+  #############################################################################.
   
   withProgress(message = "Performing analisis: ", detail = 'Executing pipeline', {
   
