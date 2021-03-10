@@ -327,6 +327,10 @@ observeEvent(input$Accept_batch,{
   zip(path_to_zip_file,files = final_files)
   setwd(CompletePATH)
   
+  ###################################.
+  ##### FILE READY MODAL DIALOG ####
+  ###################################.
+  
   showModal(modalDialog(
     fluidPage(
       h1(strong("File ready"),align="center"),

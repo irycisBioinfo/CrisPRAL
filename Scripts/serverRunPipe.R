@@ -3,7 +3,7 @@
 ########################### DESCRIPTION ##################################
 # Loads script for pipeline execution with the stablished parameters and
 # loads the main Tables of results. Also defines code to allow user edits on table.
-##########################################################################
+##########################################################################.
 
 #----Running Pipeline----
 
@@ -176,7 +176,7 @@ observeEvent(input$Accept, {
                                                                true = str_extract(., '(?<=>)[:graph:]+'), 
                                                                false = .)))
   
-  #####################################################################################
+  ########################  CLEANUP PROCESS ###################################.
   # These operations was necesary por MSAlignment, it will be commented out and if in a few weeks no error appears and will be deleted:
   # datos$clusterF <- datos$cluster %>% select("ClusterN", "ID", "Identity")
   # colnames(datos$clusterF) <- c('CLUSTER', 'ID', 'Identity')
@@ -255,6 +255,10 @@ observeEvent(input$Accept, {
   
   datos$Tabla <- mismatches_break_down(ls_ClusterAln_Ref, datos$Tabla)
   
+  ##################################.
+  #### OUTPUTING Reference ####
+  ##################################.
+  
   rownames(datos$Tabla) <- str_c('Cluster', rownames(datos$Tabla))
   
   datos$Tabla_Original <- datos$Tabla #datos$Tabla will be printed as a reactive function, line located before "Running Pipeline" block. datos$Tabla_Original is made as recovery if datos$Tabla is altered by the user.
@@ -263,7 +267,10 @@ observeEvent(input$Accept, {
   output$Print2 <- renderText(paste("Total amount of Reads: ", 
                                     Total_Abundance, sep = ''))
   
-  #Data with named groups for FASTAS downloads.
+  ###########################################################.
+  ##### FASTA data preparation #####
+  ###########################################################.
+  
   datos$namedSequences <- datos$Tabla %>% 
    left_join(datos$fasta) %>% select(ID, Sequence) %>%
    mutate(ID = paste(ID, '_', rownames_Tabla()[which(datos$Tabla == ID)] , sep = ''))
@@ -299,6 +306,10 @@ observeEvent(input$Accept, {
    rownames(datos$Tabla_Target) <- str_c('Cluster', rownames(datos$Tabla_Target))
    
    datos$Tabla_Target_Original <- datos$Tabla_Target
+   
+   ##########################.
+   #### OUTPUTING Target ####
+   ##########################.
    
    # Declaring Target Table for Download tab.
    output$tablaTD <- renderDT(TablaT(), server = TRUE) #Table with multiple selection for PDF formatting

@@ -345,24 +345,91 @@ Clusters_Alignments <- function(Pattern_Seq, Subject_Seq, gapOpening = 10, gapEx
   )
   tmp = tmp %>% separate(ID, c("ID","kk"), sep =" ") %>% select(-kk)
   
+  ####################.
+  #### FILL GAPS #####
+  ####################.
+  
+  id <- str_split(names(unaligned(aln@pattern)), pattern = ' ')
+  
+  aligned_names <- c()
+  for(i in id){aligned_names <- c(aligned_names, i[1])}
+  pos_in_table <- match(aligned_names, tmp$ID)
+  
+  insertions <- as.data.frame(indel(aln)@insertion) %>% select(-group_name)
+  deletions <- as.data.frame(indel(aln)@deletion) %>% select(-group_name)
+  
+  insertions_pos <- insertions %>% mutate(middle_pos = paste(start,":",end, sep = ''))
+  deletions_pos <- deletions %>% mutate(middle_pos = paste(start,":",end, sep = ''))
+  
+  insertions_clst <- insertions_pos %>% mutate(cluster = insertions_pos$group) %>% 
+    select(-group) %>% group_by(cluster) %>% summarise(insert_range = paste(middle_pos, collapse = ";"))
+  deletions_clst <- deletions_pos %>% mutate(cluster = deletions_pos$group) %>% 
+    select(-group) %>% group_by(cluster) %>% summarise(deletion_range = paste(middle_pos, collapse = ";"))
+  
+  tmp_with_rownames <- tmp %>% rownames_to_column('cluster') %>% mutate(cluster = as.numeric(cluster))
+  
+  tmp_with_ins <- left_join(tmp_with_rownames, insertions_clst, by = 'cluster')
+  tmp_with_indels <- left_join(tmp_with_ins, deletions_clst, by = 'cluster')
+  tmp <- tmp_with_indels
+  
   # Since we have artificially included end gaps into out alignments, we have to compute the new deletions and insertions counts.
-  # alignment = Fix_gaps(aln, Pattern_Seq, Subject_Seq)
-  # browser()
+  
   for(i in c(1:length(aln))){
     alignment = Fix_gaps(aln[i], Pattern_Seq[i], Subject_Seq)
     end_gaps_query <- c(alignment$query[[1]][1] == '-', alignment$query[[1]][length(alignment$query[[1]])] == '-')
-    
+    # Query gaps
     if(sum(end_gaps_query) > 0){
+      query_length = nchar(alignment$query[[1]])
+      # Do we have gaps leading and trailing?
+      if(sum(end_gaps_query) == 2){
+        l_count= 1
+        while(alignment$query[[1]][l_count] == '-'){
+          l_count = l_count + 1
+        }
+        t_count <- query_length
+        while(alignment$query[[1]][t_count] == '-'){
+          t_count = t_count - 1
+        }
+        tmp$deletion_range[i] <- str_c('1:',l_count,';',tmp$deletion_range[i], ";",t_count,':',query_length, sep = '')
+      # Only leading gaps
+      }else if(end_gaps_query[1] && !end_gaps_query[2]){
+        l_count = sum(alignment$query[[1]] == '-')-tmp$Deleted_bps[i]
+        tmp$deletion_range[i] <- str_c('1:',l_count,';',tmp$deletion_range[i], sep = '')
+      # Only trailing gaps
+      }else if(!end_gaps_query[1] && end_gaps_query[2]){
+        t_count = sum(alignment$query[[1]] == '-')-tmp$Deleted_bps[i]
+        tmp$deletion_range[i] <- str_c(tmp$deletion_range[i], ";",t_count,":",query_length, sep = '')
+      }
       tmp$Deleted_bps[i] <- sum(alignment$query[[1]] == '-')
       tmp$Deletions[i] <- tmp$Deletions[i]+sum(end_gaps_query)
     }
-    
+    # Ref gaps
     end_gaps_ref <- c(alignment$ref[[1]][1] == '-', alignment$ref[[1]][length(alignment$ref[[1]])] == '-')
     
     if(sum(end_gaps_ref) > 0){
+      ref_length = nchar(alignment$ref[[1]])
+      #Gaps leading and trailing
+      if(sum(end_gaps_ref) == 2){
+        l_count = 1
+        while(alignment$query[[1]][l_count] == '-'){
+          l_count = l_count + 1
+        }
+        t_count <- ref_length
+        while(alignment$ref[[1]][t_count] == '-'){
+          t_count = t_count - 1
+        }
+        tmp$insert_range[i] <- str_c('1:',l_count,';',tmp$insert_range[i],';',t_count,':',ref_length, sep = '')
+      } # Only leading gaps
+    else if(end_gaps_ref[1] && !end_gaps_ref[2]){
+      l_count = sum(alignment$ref[[1]] == '-')-tmp$Inserted_bps[i]
+      tmp$insert_range[i] <- str_c('1:',l_count,';',tmp$insert_range[i], sep = '')
+        # Only trailing gaps
+    }else if(!end_gaps_ref[1] && end_gaps_ref[2]){
+      t_count = sum(alignment$ref[[1]] == '-')-tmp$Inserted_bps[i]
+      tmp$insert_range[i] <- str_c(tmp$insert_range[i], ";",t_count,":",ref_length, sep = '')
+    }
       tmp$Inserted_bps[i] <- sum(alignment$ref[[1]] == '-')
       tmp$Insertions[i] <- tmp$Insertions[i]+sum(end_gaps_ref)
-      
     }
   }
   

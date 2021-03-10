@@ -239,35 +239,11 @@ for(file_pair1 in files){
   ls_ClusterAln_Ref = Clusters_Alignments(Sequences, Ref, type = alignment) #Function in Functions.R module.
   aln = ls_ClusterAln_Ref$aln
 
-  Tabla = inner_join(Tabla_raw, ls_ClusterAln_Ref$tmp) %>% 
+  Tabla_final = inner_join(Tabla_raw, ls_ClusterAln_Ref$tmp) %>% 
     mutate(score = round(score,1), Freq = signif(Freq,2)) %>% 
     arrange(desc(Abundance))# %>% select(-width, -start, -end)
   
-  rownames(Tabla) <- str_c('Cluster', rownames(Tabla))
-  
-  id <- str_split(names(unaligned(aln@pattern)), pattern = ' ')
-  
-  aligned_names <- c()
-  for(i in id){aligned_names <- c(aligned_names, i[1])}
-  
-  pos_in_table <- match(aligned_names, Tabla$ID)
-  
-  insertions <- as.data.frame(indel(aln)@insertion) %>% select(-group_name)
-  deletions <- as.data.frame(indel(aln)@deletion) %>% select(-group_name)
-
-  insertions_pos <- insertions %>% mutate(middle_pos = paste(start,":",end, sep = ''))# %>% select(-start,-end,-width)
-  deletions_pos <- deletions %>% mutate(middle_pos = paste(start,":",end, sep = ''))# %>% select(-start,-end,-width)
-  
-  insertions_clst <- insertions_pos %>% mutate(cluster = str_c('Cluster',pos_in_table[insertions_pos$group])) %>% 
-    select(-group) %>% group_by(cluster) %>% summarise(insert_range = paste(middle_pos, collapse = ";"))
-  deletions_clst <- deletions_pos %>% mutate(cluster = str_c('Cluster',pos_in_table[deletions_pos$group])) %>% 
-    select(-group) %>% group_by(cluster) %>% summarise(deletion_range = paste(middle_pos, collapse = ";"))
-  
-  Tabla_with_rownames <- Tabla %>% rownames_to_column('cluster')
-  
-  Tabla_with_ins <- left_join(Tabla_with_rownames, insertions_clst, by = 'cluster')
-  Tabla_with_indels <- left_join(Tabla_with_ins, deletions_clst, by = 'cluster')
-  Tabla_final <- Tabla_with_indels
+  rownames(Tabla_final) <- str_c('Cluster', rownames(Tabla_final))
   
   #################################################.
   ## Identify if indels falls in interest range
