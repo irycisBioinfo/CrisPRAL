@@ -60,7 +60,7 @@
   
   min_alternate_fraction <- reactive({
     if(input$Variant_Caller == 'freebayes'){
-    return(str_c('--min_alt_fraction', input$min_alternate_fraction))
+    return(paste('--min_alt_fraction', input$min_alternate_fraction))
     }else{return('')}
     
   })
@@ -130,7 +130,7 @@
                             '--threads 4',
                             '--outdir',
                             str_c('./',as.character(datos$tmppipelinedir)),
-			                    	'-profile server'
+			                    	'-profile standard'
     )
     
     command_SNP = paste('nextflow',
@@ -149,7 +149,7 @@
                         '--threads 4',
                         '--outdir',
                         str_c(as.character(datos$tmppipelinedir)), 
-                        '-profile server'
+                        '-profile standard'
     )
     
     command_INDEL = paste('nextflow',
@@ -169,7 +169,7 @@
                           '--threads 4',
                           '--outdir',
                           str_c(as.character(datos$tmppipelinedir)), 
-                          '-profile server'
+                          '-profile standard'
     )
 
     system(command_aligner)
@@ -185,7 +185,7 @@
     
     if(input$remove_duplicates){
       final_files <- c(final_files, dir('alignment', pattern = '*dups.sort.bam', full.names = TRUE))
-    }else{final_files <- c(final_files, dir('alignment', pattern = '*bowtie2.sort.bam', full.names = TRUE))}
+    }else{final_files <- c(final_files, dir('alignment', pattern = '*.sort.bam', full.names = TRUE))}
     
     path_to_zip_file <- str_c(CompletePATH,'/',as.character(datos$tmppipelinedir),'/','results.zip')
     incProgress( 1/4 ,detail = 'zipping files...')

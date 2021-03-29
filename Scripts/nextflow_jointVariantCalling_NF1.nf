@@ -24,7 +24,7 @@ V A R I A N T  C A L L E R  - I R Y C I S    v 1.2
       --common_id [STRING]                  Id by which to identify all samples as coming from the same experiment. Assumed to be leading the file name. (default: first two characters of file name are used as experiment identifier)
 
       --min_alt_fraction                    Freebayes specific option, minimumn threshold at which allele frequency is considered real. (default: 0.2)
-      --position_correction [INT]           Final vcf file will have the POS column subtracted by [INT]. (default: 118)
+      --position_correction [INT]           Final vcf file will have the POS column subtracted by [INT]. (default: -118)
       --exon_annotation                     When using a custom reference #CHROM column in the vcf file is not informative at all, by providing an annotation file (ex. annotation.tsv), POS column is used to identify the exon or any other annotaion you would like to include in #CHROM column. (default: "./data/posicion_exonesNF1.tsv")
 
       --remove_duplicates <true | false>    Remove marked as duplicated reads. Options: true, false (default: false)      
@@ -76,6 +76,7 @@ if(params.genome != "GRCh37" && params.genome != "GRCh38"){
 def ploidy = params.ploidy != 'no' || params.ploidy == 'yes' && params.ploidy.getClass() == java.lang.Integer ? "--ploidy ${params.ploidy} ":''
 def reference = params.genome != "GRCh37" && params.genome != "GRCh38" ? "$baseDir/../data/custom_reference/${prefixRef}.fasta": params.indexRef
 def correction = params.position_correction == 'default' ? 118:params.position_correction
+def min_alt_fraction_var = params.min_alt_fraction == '' ? 0.2:"${params.min_alt_fraction}"
 
 if(!params.GVCFmode){
 
@@ -108,7 +109,7 @@ if(!params.GVCFmode){
         }else if(params.vc == 'freebayes'){
 
         """
-        freebayes ${ploidy} -f ${reference} ${bam_file[0]} > ${sampleId}.${params.vc}.vcf
+        freebayes ${ploidy} --min-alternate-fraction ${min_alt_fraction_var} -f ${reference} ${bam_file[0]} > ${sampleId}.${params.vc}.vcf
         """
         }else if(params.vc == 'varscan'){
         """
@@ -162,7 +163,6 @@ if(!params.GVCFmode){
           }else if(params.vc == 'freebayes'){
 
             def GVCF = "--gvcf"
-            def min_alt_fraction_var = params.min_alt_fraction == '' ? 0.2:"${params.min_alt_fraction}"
           """
           freebayes ${ploidy} --min-alternate-fraction ${min_alt_fraction_var} ${GVCF} -f ${reference} ${bams} > ${expId}.${params.vc}.vcf
           cat ${expId}.${params.vc}.vcf | grep -v '<\\*>' > ${expId}.${params.vc}.clean.vcf

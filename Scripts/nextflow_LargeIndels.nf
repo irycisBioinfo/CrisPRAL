@@ -80,20 +80,21 @@ log.info """\
 ================================================================
 V A R I A N T  C A L L E R  - I R Y C I S    v 1.2
 ================================================================
-genome               : $params.genome
-reads                : $params.reads
-adapters             : $params.adapters
+genome                         : $params.genome
+reads                          : $params.reads
+adapters                       : $params.adapters
 
-region_intervals     : $params.region_intervals
-dbSNP                : ${params.dbSNP}
+region_intervals               : $params.region_intervals
+dbSNP                          : ${params.dbSNP}
 
-paired               : $params.paired
-aligner              : minimap2
-variant_caller       : transindel
-remove_duplicates    : $params.remove_duplicates
+paired                         : $params.paired
+aligner                        : minimap2
+variant_caller                 : transindel
+minimun alternate fraction     : $params.min_alt_fraction
+remove_duplicates              : $params.remove_duplicates
 
-read_directory       : $params.indir
-results              : $params.outdir
+read_directory                 : $params.indir
+results                        : $params.outdir
 ===============================================================
 """
 

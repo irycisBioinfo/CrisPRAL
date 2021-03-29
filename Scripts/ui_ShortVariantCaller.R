@@ -38,7 +38,7 @@ ui <- fluidPage(
       ), # wellPanel closing bracket
       wellPanel(
         h4('Pipeline'),
-        selectInput('Aligner', 'Aligner', c('Bowtie2', 'BWA'), selected = 'Bowtie2'),
+        selectInput('Aligner', 'Aligner', c('Bowtie2', 'BWA'), selected = 'BWA'),
         selectInput(inputId = 'Variant_Caller', 'Variant Caller', c('GATK', 'freebayes'), selected = 'freebayes'),
         checkboxInput('large_indels', label = ' Look for large indels', value = TRUE),
         br(),
@@ -51,7 +51,7 @@ ui <- fluidPage(
           condition = "input.Variant_Caller == 'freebayes'",
         numericInput('min_alternate_fraction', 'Minimun alternate fraction (only for freebayes - minimumn threshold at which allele frequency is considered real)', 
                      value = 0.02, min = 0, max = 0.5,step = 0.1, width = '100%')),
-        checkboxInput('remove_duplicates', label = ' Remove duplicates', value = TRUE),
+        checkboxInput('remove_duplicates', label = ' Remove duplicates', value = FALSE),
         br(),
         h4('Common Operations'),
         numericInput('pos_correction', 'Translate variant positions (POS column) by a set amount',
