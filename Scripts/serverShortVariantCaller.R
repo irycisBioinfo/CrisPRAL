@@ -130,7 +130,7 @@
                             '--threads 4',
                             '--outdir',
                             str_c('./',as.character(datos$tmppipelinedir)),
-			                    	'-profile standard'
+			                    	'-profile server'
     )
     
     command_SNP = paste('nextflow',
@@ -149,7 +149,7 @@
                         '--threads 4',
                         '--outdir',
                         str_c(as.character(datos$tmppipelinedir)), 
-                        '-profile standard'
+                        '-profile server'
     )
     
     command_INDEL = paste('nextflow',
@@ -169,7 +169,7 @@
                           '--threads 4',
                           '--outdir',
                           str_c(as.character(datos$tmppipelinedir)), 
-                          '-profile standard'
+                          '-profile server'
     )
 
     system(command_aligner)
