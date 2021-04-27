@@ -22,7 +22,7 @@ titlePanel("Lazy Panel Filter"),
                             multiple = TRUE,
                             accept = c("text/csv",
                                        "text/comma-separated-values,text/plain",
-                                       ".csv")),
+                                       ".csv",".tsv",".bed",".tab")),
                                 
                                 tags$hr(),
                                 
@@ -62,7 +62,8 @@ titlePanel("Lazy Panel Filter"),
                                        "text/comma-separated-values,text/plain",
                                        ".csv",
                                        ".xlsx",
-                                       ".txt")),
+                                       ".txt",
+                                       ".xls")),
                                 
                                 tags$hr(),
                                 
@@ -93,7 +94,7 @@ titlePanel("Lazy Panel Filter"),
                                              selected = "all")
                                 
                        ))
-          ),
+          ), # Sidebar Panel bracket
           
           # Main panel for displaying outputs ----
       mainPanel(
@@ -107,9 +108,12 @@ titlePanel("Lazy Panel Filter"),
                       DTOutput('Genes')
               ),
               tabPanel(p(strong('Filtered File')), value = 'Filtered_File',
-                      fluidRow(column(3, 
-                                  actionButton('Load_filtered_file', 'Start'),
-                                  uiOutput('react_download_button'))),
+                      column(3, 
+                        actionButton('Load_filtered_file', 'Start')),
+                        ##################################################.
+                        ##### Deprecated ####.
+                        ##################################################.
+                        # uiOutput('react_download_button'))),
                       br(),
                       DTOutput('Fil_file'),
                       br(),
@@ -129,14 +133,16 @@ titlePanel("Lazy Panel Filter"),
                          column(5, p(strong(textOutput("Select_column"))),
                                 actionButton('Clean',"Clean Identifiers"),
                                 br(),
-                                DTOutput('Edit_File')),
+                                wellPanel(
+                                DTOutput('Edit_File'))),
                          column(5,
                                 br(),
-                                actionButton('Graph','Gap_Size vs Gene Depth'),
+                                actionButton('Graph','Gap_Size vs Gap Abundance'),
                                 br(),
-                                plotlyOutput('Size_vs_Depth'))
-                       )
+                                wellPanel(
+                                plotlyOutput('Size_vs_Depth'))))) # TabPanel end bracket
               ))
         )
-)
-   )
+  )
+   
+

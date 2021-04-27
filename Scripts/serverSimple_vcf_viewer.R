@@ -60,8 +60,8 @@
       # return(paste("displaying:",input$hoverIndexJS))
     })
     
-    info_columns <- which(colnames(datos$vcf_tidy$fix) %in% datos$vcf_tidy$meta$ID)
-    basic_columns <- which(! colnames(datos$vcf_tidy$fix) %in% datos$vcf_tidy$meta$ID)
+    info_columns <- which(colnames(datos$vcf_tidy$fix %>% select(-ChromKey)) %in% datos$vcf_tidy$meta$ID)
+    basic_columns <- which(! colnames(datos$vcf_tidy$fix %>% select(-ChromKey)) %in% datos$vcf_tidy$meta$ID)
     
     #### LOAD VCF TABLE ####
     
@@ -93,7 +93,7 @@
                                                   vcf.table() %>% select(-ChromKey)
                                                 }) #output end brackets
     
-    datos$reference_type_ab <- switch(reference_type(), 'NF' = 'c', 'NC' = 'g', 'NP' = 'p', 'NG' = 'g', 'NR' = 'c', 'LR' = 'g')
+    datos$reference_type_ab <- switch(reference_type(), 'NF' = 'c', 'NC' = 'g', 'NP' = 'p', 'NG' = 'g', 'NR' = 'c', 'LR' = 'g', 'NM' = 'r')
     
     if(!is.null(datos$reference_type_ab)){
       output$display_variant <- renderText(str_c(reference_ID(),':',

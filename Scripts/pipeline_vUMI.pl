@@ -27,6 +27,7 @@ $PATH =~ s/\/pipeline_vUMI.pl//;
 		{OPT=>"R_Primer1=s", VAR=>\$R_Primer1, DEFAULT => "",DESC=>"1st Reverse Primer trimming by sequence"},
 		{OPT=>"R_Primer2=s", VAR=>\$R_Primer2, DEFAULT => "",DESC=>"2nd Reverse Primer trimming by sequence"},
 		{OPT=>"min_len=s", VAR=>\$minLen, DEFAULT => "100" ,DESC=>"Minimun length for filtering"},
+		{OPT=>"min_qual=s", VAR=>\$minQual, DEFAULT => "15" ,DESC=>"Minimun quality for filtering"},
 		{OPT=>"Np=s", VAR=>\$Np, DEFAULT => "1" ,DESC=>"N-percent maximum difference"},
 		{OPT=>"Nm=s", VAR=>\$Nm, DEFAULT => "10" ,DESC=>"N-minimum overlap (nucleotides)"},
 		{OPT=>"cov=s", VAR=>\$cov, DEFAULT =>"0.8" ,DESC=>"Coverage (clustering) (0-1)"},
@@ -96,7 +97,7 @@ if ($single_end eq "FALSE"){#Paired-End Section:
 
 	}
 
-system("$PATH/bin/prinseq/prinseq-lite.pl -fastq $tmpdir/good_R1.fastq -fastq2 $tmpdir/good_R2.fastq -min_len $minLen -min_qual_mean 20 -out_good $tmpdir/good_filtered -out_bad $tmpdir/bad");
+system("$PATH/bin/prinseq/prinseq-lite.pl -fastq $tmpdir/good_R1.fastq -fastq2 $tmpdir/good_R2.fastq -min_len $minLen -min_qual_mean $minQual -out_good $tmpdir/good_filtered -out_bad $tmpdir/bad");
 
 system("$PATH/bin/ea-utils/clipper/fastq-join -p $Np -m $Nm -o $tmpdir/joined $tmpdir/good_filtered_1.fastq $tmpdir/good_filtered_2.fastq ");
 
@@ -135,7 +136,7 @@ if ($F_Primer1 eq 'Empty') {
 	print("\nDone\n");
 
 	}
-	system("$PATH/bin/prinseq/prinseq-lite.pl -fastq $tmpdir/good_R1.fastq -min_len $minLen -min_qual_mean 30 -out_good $tmpdir/final -out_bad $tmpdir/bad");
+	system("$PATH/bin/prinseq/prinseq-lite.pl -fastq $tmpdir/good_R1.fastq -min_len $minLen -min_qual_mean $minQual -out_good $tmpdir/final -out_bad $tmpdir/bad");
 	system("$PATH/bin/seqtk/seqtk seq -A $tmpdir/final.fastq > $tmpdir/final.fasta");
 }
 

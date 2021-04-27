@@ -229,7 +229,7 @@ fluidPage(# Application title
    actionButton("Run_Example", "Run Example", icon = icon('caret-right')),
    
    br()
-  ), # Sidebar Panel close bracket
+  ,width = 3), # Sidebar Panel close bracket
   
   ##############################################.
   # Main Panel----

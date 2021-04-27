@@ -10,6 +10,10 @@ serverMain <- function(input, output, session) {
  #   stopApp()
  # })
  
+ # REACTIVE VALUES ACCESIBLE BY THE WHOLE APP #
+ datos <- reactiveValues()
+ datos$system_administrator <- "sergio.fern1994@gmail.com"
+        
  options( shiny.maxRequestSize = 500 * 1024 ^ 2 )
  
  #---Mosaic Analyser SERVER----

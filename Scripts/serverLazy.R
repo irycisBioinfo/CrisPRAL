@@ -23,7 +23,15 @@ observeEvent(input$go_to_lazyP, {
   output$Select_column <- renderText({'Select column with genes identificators (Use "clean identifiers" if the column is contaminated), 
     gap start and gap stop coordinates'})
   
-  output$Unf_file <- renderDT({
+  output$Unf_file <- renderDT(extensions = c('Buttons','FixedColumns','Scroller','ColReorder'), 
+                              options = list(dom = 'Bfrtip', 
+                                             scrollX = TRUE,
+                                             deferRender = TRUE, scrollY = 400, scroller = TRUE,
+                                             search = list(smart = FALSE),
+                                             buttons = list('copy', list(extend = 'collection',
+                                                                         buttons = c('csv', 'excel'),
+                                                                         text = 'Download'),
+                                                            'colvis')), server = TRUE,{
     
     # input$file1 will be NULL initially. After the user selects
     # and uploads a file, head of that data file by default,
@@ -31,24 +39,65 @@ observeEvent(input$go_to_lazyP, {
     
     req(input$file1)
     
-    DataTable$UnfilteredDF <- read.csv(input$file1$datapath,
-                                       header = input$header,
-                                       sep = input$sep,
-                                       quote = input$quote,
-                                       strip.white = TRUE)
+    readData <- function(file = input$file1$datapath, header = input$header, sep = input$sep, quote = input$quote, strip.white = TRUE){
+      
+      out <- tryCatch({
+        
+        read.table(file,
+                   header = header,
+                   sep = sep,
+                   quote = quote,
+                   strip.white = strip.white)
+        
+      },
+      error = function(cond){
+        
+        if(suppressWarnings(str_detect(cond, "did not have"))){
+          
+          showModal(modalDialog(
+            fluidPage(
+              h1(strong("::ERROR::"),align="center"),
+              hr(),
+              fluidRow(column(4,offset = 4,
+                              div(style='max-width:150px;max-height:150px;width:3%;height:5%;', 
+                                  img(src="caution-icon.png", height='150', width='150', align="middle")))),
+              h2(paste("It seems the separation value selected is not appropriate, try selecting another.",sep = ''), align = 'center'),
+              h3(paste("If problem persists contact system administrator,",datos$system_administrator,sep = ''), align = 'center'),
+              
+              easyClose = TRUE,
+              footer = NULL
+            )))
+          
+          return(read_lines(file))
+          }else{return("Unknown error, contact administration at sergio.fern1994@gmail.com")}
+        
+      })
+      return(out)
+    }
+    
+    DataTable$UnfilteredDF <- readData(input$file1$datapath)
     
     if(input$disp == "head") {
-      return(head(DataTable$UnfilteredDF))
+      return(head(as.tibble(DataTable$UnfilteredDF)))
     }
     else {
-      return(DataTable$UnfilteredDF)
+      return(as.tibble(DataTable$UnfilteredDF))
     }
     
-  })
+  }, rownames=FALSE)
   
   
 
-  output$Edit_File <- renderDT({
+  output$Edit_File <- renderDT(filter = 'top',
+                               extensions = c('Buttons','FixedColumns','Scroller','ColReorder'), 
+                               options = list(dom = 'Bfrtip', 
+                                              scrollX = TRUE,
+                                              deferRender = TRUE, scrollY = 400, scroller = TRUE,
+                                              search = list(smart = FALSE),
+                                              buttons = list('copy', list(extend = 'collection',
+                                                                          buttons = c('csv', 'excel'),
+                                                                          text = 'Download'),
+                                                             'colvis')), server = TRUE,rowname = FALSE,{
 
     if (length(input$Fil_file2_columns_selected) == 1){ 
       
@@ -91,7 +140,16 @@ observeEvent(input$go_to_lazyP, {
     
   })
   
-  output$Fil_file2 = renderDT({
+  output$Fil_file2 = renderDT(filter = 'top',
+                              extensions = c('Buttons','FixedColumns','Scroller','ColReorder'), 
+                              options = list(dom = 'Bfrtip', 
+                                             scrollX = TRUE,
+                                             deferRender = TRUE, scrollY = 400, scroller = TRUE,
+                                             search = list(smart = FALSE),
+                                             buttons = list('copy', list(extend = 'collection',
+                                                                         buttons = c('csv', 'excel'),
+                                                                         text = 'Download'),
+                                                            'colvis')), server = TRUE,{
     
     if(input$disp == "head") {
       return(head(DataTable$FilteredDT))
@@ -143,16 +201,14 @@ observeEvent(input$go_to_lazyP, {
     
   })
   
-  #filename <- reactive({paste(substring(text = input$file1$name, first = 1, 
-  #last = nchar(input$file1$name)-3), 'filtered', '.csv', sep='')})
-  filenameLazy <- reactive({paste(substring(text = input$file1$name, first = 1, 
-                                        last = nchar(input$file1$name)-3), 
-                              'filtered', sep='')})
+  filenameLazy <- reactive({paste(str_split(input$file1$name, pattern = "\\.")[[1]][1], 
+                              'filtered', sep='_')})
   
   observeEvent(input$Load_filtered_file, {
-    
+    withProgress(message = 'Filtering data',{
     if (!is.null(DataTable$PanelDF)){
       for (i in 1:length(unlist(DataTable$PanelDF))){
+        incProgress(amount=1/length(unlist(DataTable$PanelDF)))
         dt_temp = filter_all(DataTable$UnfilteredDF, 
                              any_vars(str_detect(., paste('(?<![:alnum:])',DataTable$PanelDF[i,], 
                                                           '(?![:alnum:])', sep = ''))))
@@ -169,7 +225,17 @@ observeEvent(input$go_to_lazyP, {
       
     }
     
-    output$Fil_file = renderDT({
+    output$Fil_file = renderDT(filter = 'top',
+                               extensions = c('Buttons','FixedColumns','Scroller','ColReorder'), 
+                               options = list(dom = 'Bfrtip', 
+                                              scrollX = TRUE,
+                                              deferRender = TRUE, scrollY = 400, scroller = TRUE,
+                                              colReorder = TRUE,
+                                              search = list(smart = FALSE),
+                                              buttons = list('copy', list(extend = 'collection',
+                                                                          buttons = c('csv', 'excel'),
+                                                                          text = 'Download'),
+                                                             'colvis')), server = TRUE,{
       
       if(input$disp == "head") {
         return(head(DataTable$FilteredDT))
@@ -179,20 +245,23 @@ observeEvent(input$go_to_lazyP, {
       }}
       
       ,selection = 'single')
-    
+    })# Progress bar end brackets
   })
-  
+  ##################################################.
+  ##### Deprecated ####.
+  ##################################################.
   #Generates hidden download button
-  output$react_download_button <- renderUI({ req(input$Load_filtered_file)
-    br()
-    downloadButtonModule(id = 'downloadFile1', 
-                         'Download CSV')})
+  # output$react_download_button <- renderUI({ req(input$Load_filtered_file)
+  #   br()
+  #   downloadButtonModule(id = 'downloadFile1', 
+  #                        'Download CSV')})
   
   #Calls personal module for CSV file generation from DataTable object, 
   #specific inputs and filename.
-  FilteredDT <- reactive({DataTable$FilteredDT})
-  callModule(downloadCSV, 
-             id = 'downloadFile1', FilteredDT, filenameLazy)
+  
+  # FilteredDT <- reactive({DataTable$FilteredDT})
+  # callModule(downloadCSV, 
+  #            id = 'downloadFile1', FilteredDT, filenameLazy)
   
   output$chooseOrg <- renderUI({
     req(input$Fil_file_rows_selected)
