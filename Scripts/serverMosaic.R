@@ -563,19 +563,6 @@ clustersMSA <- reactive({
  
 })
 
-
-prettyprintCrashpreventor <- reactive({
- if (nrow(clustersMSA())/50 < 1){
-  
-  c(1:nrow(clustersMSA()))
-  
- }else if(nrow(clustersMSA())/50 > 1){
-  
-  unique(round(seq.int(from = 1, to = nrow(clustersMSA()), length.out = 50)))
-  
- }
-})
-
 #########################################.
 #### FILE NAME LOGIC ####
 #########################################.
