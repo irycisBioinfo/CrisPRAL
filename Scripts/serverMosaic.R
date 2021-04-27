@@ -567,7 +567,11 @@ clustersMSA <- reactive({
 #### FILE NAME LOGIC ####
 #########################################.
 
-input_filename_generic <- reactive({paste(
+input_filename_generic <- reactive({
+  
+  req(input$R1$name)
+  
+  paste(
  str_replace(#Removes possible double 
   #underscore "_"
   str_replace(#Removes Read number ID

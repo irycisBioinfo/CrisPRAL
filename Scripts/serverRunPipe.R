@@ -177,7 +177,7 @@ observeEvent(input$Accept, {
                                                                false = .)))
   
   # We want to double the amount of total reads when coming from a paired-end experiment.
-  if(input$single){ correct_paired_reads = 1 }else{ correct_paired_reads = 2 }
+  if(input$single_end){ correct_paired_reads = 1 }else{ correct_paired_reads = 2 }
   
   
   datos$Tabla_raw = datos$cluster %>%
