@@ -60,8 +60,8 @@
       # return(paste("displaying:",input$hoverIndexJS))
     })
     
-    info_columns <- which(colnames(datos$vcf_tidy$fix) %in% datos$vcf_tidy$meta$ID)
-    basic_columns <- which(! colnames(datos$vcf_tidy$fix) %in% datos$vcf_tidy$meta$ID)
+    info_columns <- which(colnames(datos$vcf_tidy$fix %>% select(-ChromKey)) %in% datos$vcf_tidy$meta$ID)
+    basic_columns <- which(! colnames(datos$vcf_tidy$fix %>% select(-ChromKey)) %in% datos$vcf_tidy$meta$ID)
     
     #### LOAD VCF TABLE ####
     

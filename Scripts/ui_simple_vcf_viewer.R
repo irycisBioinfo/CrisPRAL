@@ -27,8 +27,7 @@ ui <- fluidPage(
         br(),
         actionButton(inputId = 'run_vcf_reader', label = 'Load')
         
-      )
-    ),  # SidebarPanel end bracket
+      ),width = 3),  # SidebarPanel end bracket
     
     # Show a plot of the generated distribution
     mainPanel(
@@ -62,18 +61,18 @@ ui <- fluidPage(
                            placement = "top", trigger = "hover", options = NULL),
                  br(),
                  actionButton('Recalculate_AF',label = 'Recalculate AF', icon = icon("redo-alt"))
-               )),# wellPanel & column
-        
+               ))),# wellPanel & column, fluidRow
+      fluidRow( 
         column(width = 5,
                wellPanel(
                  h4('Fixed translation',icon('question-circle'),id='Fixed_trans'),
                  bsPopover('Fixed_trans', title = "Fixed translation" ,content = 'Translate the selected columns by a fixed amount, useful to map vcf to a different reference.',
                            placement = "top", trigger = "hover", options = NULL),
-                 numericInput('translate_int', label = '', value = 0,min = -9999999, max = 9999999),
+                 numericInput('translate_int', label = '', value = 0, min = -9999999, max = 9999999),
                  br(),
                  actionButton('Translate',label = 'Translate', icon = icon("cut"))
-               )),# wellPanel & column
-        
+               ))),# wellPanel & column, fluidRow
+      fluidRow( 
         column(width = 5,
                wellPanel(
                  h4('Map position',icon('question-circle'),id='pos_map_info'),

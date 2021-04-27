@@ -60,9 +60,15 @@ warningCLSTR <- reactive({if(length(datos$clustersStringSet) > 100){
   }else{return(FALSE)}
 })
 
+#-Table data made reactive.
+Tabla <- reactive({datos$Tabla})
+TablaT <- reactive({datos$Tabla_Target})
+#-Specific tables made reactive.
+TablaVar <- reactive({datos$variants})
+
 #---Reactive values-Data storage----  
 
-datos <- reactiveValues()
+# datos <- reactiveValues()
 charts <- reactiveValues()
 checks <- reactiveValues()
 checks$Table_has_been_edited <- FALSE
@@ -171,10 +177,6 @@ ObsT <- observe({
  }else{
   hideTab( inputId ='Alignment', target = 'Target')
  }})
-
-#-Table data made reactive.
-Tabla <- reactive({datos$Tabla})
-TablaT <- reactive({datos$Tabla_Target})
 
 Target_location <- reactive({find_target_location(Tabla(), TablaT(), datos$Target)}) #function in Functions.R
 
@@ -408,7 +410,9 @@ output$tablaR <- renderDT(Tabla(), selection = "single", editable = TRUE,
                                          colReorder = TRUE,
                                          search = list(smart = FALSE),
                                          buttons = list('copy', list(extend = 'collection',
-                                                                     buttons = c('csv', 'excel'),
+                                                                     buttons = list(
+                                                                     list(extend = 'csv', filename = input_filename_results()),
+                                                                     list(extend = 'excel', filename = input_filename_results())),
                                                                      text = 'Download'),
                                                         'colvis')), server = TRUE)
 
@@ -572,8 +576,12 @@ prettyprintCrashpreventor <- reactive({
  }
 })
 
+#########################################.
+#### FILE NAME LOGIC ####
+#########################################.
+
 input_filename_generic <- reactive({paste(
- str_replace(#Removes posible double 
+ str_replace(#Removes possible double 
   #underscore "_"
   str_replace(#Removes Read number ID
    substring(text = input$R1$name, 
@@ -621,21 +629,21 @@ output$downloadReport <- downloadHandler(
   file.rename(out, file) }
 )
 
-output$downloadMSA_clstr <- downloadHandler(
- filename = function(){
-  paste(input_filename_clstrs_msa(), 'pdf', sep = '.')
- },
- content = function(file) {
-  tmpFile <- tempfile(pattern = 'msa', tmpdir = '.', fileext = '.pdf')
-  msaPrettyPrint(clustersMSA(), file = tmpFile, output = "pdf",
-                 consensusColor="ColdHot", askForOverwrite = FALSE, 
-                 showLogo="top", showLegend = FALSE,
-                 subset = prettyprintCrashpreventor(),
-                 furtherCode=c("\\textbf{Multiple Sequence Alignment: ClustalW} ",
-                               "\\DNAgroups{GAR,CTY}","\\defconsensus{.}{lower}{upper}",
-                               "\\showruler{1}{top}"))
-  file.rename(tmpFile, file)}
-)
+# output$downloadMSA_clstr <- downloadHandler(
+#  filename = function(){
+#   paste(input_filename_clstrs_msa(), 'pdf', sep = '.')
+#  },
+#  content = function(file) {
+#   tmpFile <- tempfile(pattern = 'msa', tmpdir = '.', fileext = '.pdf')
+#   msaPrettyPrint(clustersMSA(), file = tmpFile, output = "pdf",
+#                  consensusColor="ColdHot", askForOverwrite = FALSE, 
+#                  showLogo="top", showLegend = FALSE,
+#                  subset = prettyprintCrashpreventor(),
+#                  furtherCode=c("\\textbf{Multiple Sequence Alignment: ClustalW} ",
+#                                "\\DNAgroups{GAR,CTY}","\\defconsensus{.}{lower}{upper}",
+#                                "\\showruler{1}{top}"))
+#   file.rename(tmpFile, file)}
+# )
 
 # ############################################################################.
 # CALLMODULES ####

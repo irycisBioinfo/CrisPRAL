@@ -28,7 +28,7 @@ observeEvent( c( input$tablaR_rows_selected, input$tablaT_rows_selected,
    
    datos$prev_selected_row <- tabla_rows_selected()
    
-   # tabla_rows_selected() provides the row that has been clicked, in the case of the unfiltered Tabla() there si no issue,
+   # tabla_rows_selected() provides the row that has been clicked, in the case of the unfiltered Tabla() there is no issue,
    # however if the user filters the data Tabla(), the row clicked does not correspond anymore with the Cluster#
    # Thus we need to find the ID in datos$Tabla_Original and then extract the sequence from datos$namedStringSet
    
@@ -60,11 +60,7 @@ observeEvent( c( input$tablaR_rows_selected, input$tablaT_rows_selected,
        comp[i] = "|"
      }
    }
-   
    pos <- Position_vector(paste(query, collapse = ''), paste(ref, collapse = ''), datos$aln2) #Generates positioning vector from strings.
-   
-   # writePairwiseAlignments(datos$aln2, "tmp.pair")
-   # alignment <- grep(read_lines("tmp.pair", skip_empty_rows = TRUE), pattern = '^#', invert = TRUE, value = TRUE)
    
    if (!is.null(tabla_rows_selected()))
    {
@@ -105,15 +101,103 @@ observeEvent( c( input$tablaR_rows_selected, input$tablaT_rows_selected,
     )
    }
    
-   # datos$clustering4StringSet <- datos$clustering %>% unnest() %>% filter(ClusterN == tabla_rows_selected()) %>% select(-ClusterN)
-   # datos$clustersStringSet <- DNAStringSet(datos$clustering4StringSet$SEQ)
-   # names(datos$clustersStringSet) <- datos$clustering4StringSet$ID
-   
    output$Display_Unaligned <- renderUI({
     checkboxInput("display_unaligned", 
                   p(strong("Display unaligned fasta")), 
                   value = FALSE)
    })
+   
+   # ############################################################################.
+   ##### MISMATCHES TABLE ####
+   ##############################################################################.
+   
+   datos$TablaMM <- tibble(SNP = str_split(Table_to_download()[tabla_rows_selected(),] %>% 
+                                              pull(SNP), pattern = ';')[[1]]) %>% 
+      separate(SNP, c('lead','Alternate'), sep = '>') %>% 
+      mutate(Reference = str_extract(lead, pattern = "[ACTG]$")) %>% relocate(Reference, .before = Alternate) %>%
+      mutate(Position = as.numeric(str_remove(lead, pattern = "[ATCG]$"))) %>% 
+      select(-lead) %>% relocate(Position, .before = Reference) %>%
+      mutate(Nomenclature = str_c(Position,Reference,'>',Alternate)) %>%
+      mutate(Type = 'Variant')
+   
+   # ############################################################################.
+   # INDELS TABLES ####
+   ##############################################################################.
+   
+   # Find selected entry in datos$aln
+   alignment_selected <- match(Table_to_download()[tabla_rows_selected(),]$ID, datos$Tabla_unsort$ID)
+   original_pos <- Position_vector(paste(query, collapse = ''), paste(ref, collapse = ''), datos$aln[alignment_selected])
+   
+   #################### ROUGH NOTES & TRIALS #######################.
+   
+   del_pos <- original_pos
+   ins_pos <- original_pos
+   
+   adjustment_d <- lag(cumsum(width(deletion(datos$aln[alignment_selected])[[1]])))
+   adjustment_d[1] <- 0
+   map_pos_dels_aln <- start(deletion(datos$aln[alignment_selected])[[1]])+adjustment_d
+   
+   alt_dels <- str_sub(datos$aln@pattern[alignment_selected],map_pos_dels_aln-1,map_pos_dels_aln-1)
+   ref_dels <- str_sub(datos$aln@subject[alignment_selected],map_pos_dels_aln-1,map_pos_dels_aln+(width(deletion(datos$aln[alignment_selected])[[1]])-1))
+   
+   adjustment_i <- lag(cumsum(width(insertion(datos$aln[alignment_selected])[[1]])))
+   adjustment_i[1] <- 0
+   map_pos_ins_aln <- start(insertion(datos$aln[alignment_selected])[[1]])+adjustment_i
+   
+   alt_ins <- str_sub(datos$aln@subject[alignment_selected],map_pos_ins_aln-1,map_pos_ins_aln-1)
+   ref_ins <- str_sub(datos$aln@pattern[alignment_selected],map_pos_ins_aln-1,map_pos_ins_aln+(width(insertion(datos$aln[alignment_selected])[[1]])-1))
+   
+   ##################################################.
+   
+   datos$TablaDels <- tibble(deletion_range = str_split(Table_to_download()[tabla_rows_selected(),] %>% 
+                                                           select(deletion_range) %>% 
+                                                           pull(), pattern = ';')[[1]]) %>% 
+                        separate(deletion_range, c('Start','End'), sep = ':') %>% mutate(Size = c(as.numeric(End)-(as.numeric(Start)-1)))
+   
+   del_pos[!str_split(datos$aln@subject[alignment_selected], '')[[1]] %in% '-'][as.numeric(datos$TablaDels$Start) - 1] <- as.numeric(datos$TablaDels$Start) - 1
+   del_pos_maped <- match(as.numeric(datos$TablaDels$Start) - 1,del_pos)
+   
+   datos$TablaDels <- datos$TablaDels %>% 
+      mutate(Position = as.numeric(Start) -1) %>% 
+      mutate(Reference = str_sub(unaligned(datos$aln@subject[alignment_selected]), start = Position, end = End)) %>% 
+      mutate(Alternate = str_sub(unaligned(datos$aln@pattern[alignment_selected]), start = Position, end = Position)) %>% 
+      select(-End, -Start) %>% mutate(Nomenclature = str_c(Position, Reference,'>',Alternate, sep = '')) %>%
+      mutate(Type = 'Deletion')
+   datos$TablaIns <- tibble(insert_range = str_split(Table_to_download()[tabla_rows_selected(),] %>% 
+                                                           select(insert_range) %>% 
+                                                           pull(), pattern = ';')[[1]]) %>% 
+      separate(insert_range, c('Start','End'), sep = ':')
+   
+   datos$TablaIns <- datos$TablaIns %>% 
+      mutate(Position = as.numeric(Start) -1) %>% 
+      mutate(Reference = str_sub(unaligned(datos$aln@subject[alignment_selected]), start = Position, end = Position)) %>% 
+      mutate(Alternate = str_sub(unaligned(datos$aln@pattern[alignment_selected]), start = Position, end = End)) %>% 
+      select(-End,-Start) %>% mutate(Nomenclature = str_c(Position, Reference,'>',Alternate, sep = '')) %>%
+      mutate(Type = 'Insert')
+   
+   ################# Fuse all data ##################.
+   
+   datos$variants <-  bind_rows(datos$TablaMM,datos$TablaDels,datos$TablaIns) %>% drop_na() %>% arrange(Position)
+   
+   ################ Define dinamic UI ###############.
+   
+   output$mutations <- renderUI({
+      
+      wellPanel(
+         checkboxInput('show_indels',label = 'Display formatted mismatches and InDels', value = TRUE),
+         conditionalPanel(condition = 'input.show_indels == true',
+                          fluidRow(
+                                    wellPanel(
+                                       h3("Mutations"),
+                                       DTOutput('formatted_variants'))
+                          ) # fluidRow end bracket
+                          
+         ))} # renderUI end bracket
+   )
+   
+   # ############################################################################.
+   ##### BLAST SEARCH AND DOWNLOADS ####
+   ##############################################################################.
    
    output$Blast_Search <- renderUI({column(3, wellPanel(
     helpText(a(div(img(src="BLASTn.png")), 
@@ -133,12 +217,6 @@ observeEvent( c( input$tablaR_rows_selected, input$tablaT_rows_selected,
     downloadButtonModule('downloadFASTA1',
                          'Download FASTA')
    })
-   
-   # output$downloadFASTAS_clstr <- renderUI({
-   #  br()
-   #  downloadButtonModule('downloadFASTAS_clstr',
-   #                       'Download all Cluster FASTAs')
-   # })
    
    br()
    output$downloadPAIR_file <- renderUI({

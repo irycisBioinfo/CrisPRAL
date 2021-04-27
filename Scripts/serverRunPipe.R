@@ -176,20 +176,15 @@ observeEvent(input$Accept, {
                                                                true = str_extract(., '(?<=>)[:graph:]+'), 
                                                                false = .)))
   
-  ########################  CLEANUP PROCESS ###################################.
-  # These operations was necesary por MSAlignment, it will be commented out and if in a few weeks no error appears and will be deleted:
-  # datos$clusterF <- datos$cluster %>% select("ClusterN", "ID", "Identity")
-  # colnames(datos$clusterF) <- c('CLUSTER', 'ID', 'Identity')
-  # datos$clufast <- full_join(allfasta, datos$clusterF) %>% group_by(CLUSTER) %>% nest() %>% arrange(CLUSTER)
+  # We want to double the amount of total reads when coming from a paired-end experiment.
+  if(input$single){ correct_paired_reads = 1 }else{ correct_paired_reads = 2 }
   
-  #datos$Tabla_raw is a rearrangement of datos$cluster to prepare the data for
-  #fusing with Cluster-Sequences aswell as integrating with Alignment data
   
   datos$Tabla_raw = datos$cluster %>%
    group_by(ClusterN) %>%
-   mutate(Abundance = n()*2) %>%
+   mutate(Abundance = n()*correct_paired_reads) %>%
    ungroup() %>%
-   mutate(Freq = 100 *Abundance / (n()*2)) %>%
+   mutate(Freq = 100 *Abundance / (n()*correct_paired_reads)) %>%
    filter(Identity == "*") %>%
    select(ID, Abundance, Freq, Length) %>%
    arrange(desc(Abundance))
@@ -330,6 +325,7 @@ output$temp_text <- renderUI({
  verbatimTextOutput('explicative_text')
 })
 
+# Rownames can be changed and these affect the outputing of the pie chart.
 rownames_Tabla <- reactive({
  rownames(datos$Tabla)
 }) 

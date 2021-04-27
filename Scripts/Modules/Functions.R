@@ -181,7 +181,7 @@ Position_vector <- function(input, ref, aln){
   #Once positioning vector is completed '-' must be reintegrated to account for 
   #inserts with respect to ref.
   
-  loc <- which( ref %in% '-')
+  loc <- which( str_split(ref,pattern = '')[[1]] %in% '-')
   
   for ( i in loc ){
     pos <- unlist(strsplit(pos, split = ''))
@@ -189,24 +189,35 @@ Position_vector <- function(input, ref, aln){
     if (pos[counter] != ' '){
       if (pos[counter-1] == ' '){
         
-        pos <- base::append( pos, ' ', after = counter -1) #Why counter -1? lets try to remove it
+        pos <- base::append( pos, ' ', after = counter -1)
         pos[ length( pos )] <- ''
         
       }else{
         
         while ( pos[counter] != ' '){ #-To prevent the splitting of whole numbers.
           counter <- counter + 1
-          
         }
+        #### Introduced spacers after the exit of the while loop ###
+        pos <- base::append( pos, ' ', after = counter -1)
+        pos[ length( pos )] <- ''
+        ############################################################.
       }
     }else{
       
-      pos <- base::append( pos, ' ', after = counter -1) #Why counter -1? lets try to remove it
+      pos <- base::append( pos, ' ', after = counter -1)
       pos[ length( pos )] <- ''
       
     }
   }
+  
   return(pos)
+}
+
+introduce_ws_for_inserts <- function(pos_vector, aln, mut_positions){
+  
+  pos_vector[!str_split(aln@subject, '')[[1]] %in% '-'][mut_positions] <- mut_positions
+  return(pos_vector)
+  
 }
 
 lengthFixing <- function(v_length, pos){
@@ -338,11 +349,14 @@ Clusters_Alignments <- function(Pattern_Seq, Subject_Seq, gapOpening = 10, gapEx
     mismatch = nmismatch(aln),
     #alignment_length = nchar(aln), commented out because we wanted length of sequence not the length of the alignment
     score = score(aln),
+    start = start(subject(aln)),
+    end = end(subject(aln)),
     Deletions = purrr::flatten_dbl(number_of_dels),
     Deleted_bps = nindel(aln)@deletion[, 2],
     Insertions = purrr::flatten_dbl(number_of_ins),
     Inserted_bps = nindel(aln)@insertion[, 2]
   )
+  
   tmp = tmp %>% separate(ID, c("ID","kk"), sep =" ") %>% select(-kk)
   
   ####################.
@@ -370,16 +384,15 @@ Clusters_Alignments <- function(Pattern_Seq, Subject_Seq, gapOpening = 10, gapEx
   
   tmp_with_ins <- left_join(tmp_with_rownames, insertions_clst, by = 'cluster')
   tmp_with_indels <- left_join(tmp_with_ins, deletions_clst, by = 'cluster')
-  tmp <- tmp_with_indels
+  tmp <- tmp_with_indels %>% select(-cluster)
   
   # Since we have artificially included end gaps into out alignments, we have to compute the new deletions and insertions counts.
-  
   for(i in c(1:length(aln))){
     alignment = Fix_gaps(aln[i], Pattern_Seq[i], Subject_Seq)
     end_gaps_query <- c(alignment$query[[1]][1] == '-', alignment$query[[1]][length(alignment$query[[1]])] == '-')
     # Query gaps
     if(sum(end_gaps_query) > 0){
-      query_length = nchar(alignment$query[[1]])
+      query_length = length(alignment$query[[1]])
       # Do we have gaps leading and trailing?
       if(sum(end_gaps_query) == 2){
         l_count= 1
@@ -397,7 +410,8 @@ Clusters_Alignments <- function(Pattern_Seq, Subject_Seq, gapOpening = 10, gapEx
         tmp$deletion_range[i] <- str_c('1:',l_count,';',tmp$deletion_range[i], sep = '')
       # Only trailing gaps
       }else if(!end_gaps_query[1] && end_gaps_query[2]){
-        t_count = sum(alignment$query[[1]] == '-')-tmp$Deleted_bps[i]
+        t_size = sum(alignment$query[[1]] == '-')-tmp$Deleted_bps[i]
+        t_count = query_length - t_size
         tmp$deletion_range[i] <- str_c(tmp$deletion_range[i], ";",t_count,":",query_length, sep = '')
       }
       tmp$Deleted_bps[i] <- sum(alignment$query[[1]] == '-')
@@ -407,7 +421,7 @@ Clusters_Alignments <- function(Pattern_Seq, Subject_Seq, gapOpening = 10, gapEx
     end_gaps_ref <- c(alignment$ref[[1]][1] == '-', alignment$ref[[1]][length(alignment$ref[[1]])] == '-')
     
     if(sum(end_gaps_ref) > 0){
-      ref_length = nchar(alignment$ref[[1]])
+      ref_length = length(alignment$ref[[1]])
       #Gaps leading and trailing
       if(sum(end_gaps_ref) == 2){
         l_count = 1
