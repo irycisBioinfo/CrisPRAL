@@ -53,13 +53,6 @@ Table_to_download <- reactive({
     return(TablaT())
 }})
 
-warningCLSTR <- reactive({if(length(datos$clustersStringSet) > 100){
-    return('Warning: Number of sequences for Multiple Sequence Alignment exceed max computing limit, 100 will be computed but only the first 50 entries will be shown')
-  }else if(length(datos$clustersStringSet) > 50){
-    return('Warning: Number of sequences for Multiple Sequence Alignment exceed max printing limit, only the first 50 entries will be shown')
-  }else{return(FALSE)}
-})
-
 #-Table data made reactive.
 Tabla <- reactive({datos$Tabla})
 TablaT <- reactive({datos$Tabla_Target})
