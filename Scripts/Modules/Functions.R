@@ -318,23 +318,24 @@ Unravel_Positions <- function(Insert_per_loci, Insert_data){
   
   Insert_per_loci <- Insert_per_loci %>% add_column(Total_Count)
   
-  return(Insert_per_loci)
-  
+    return(Insert_per_loci)
+  }
 }
 
-Group_list <- function(data){
+Group_list <- function(data, no_other){
   
   if (typeof(data) == "list"){
     Groups <- c(1:nrow(data))
     for (i in 1:length(Groups)){ Groups[i] <- paste('Group ',i, sep = '') }
+    if(no_other){return(Groups)}else{return(Groups[nrow(data)] <- 'Other')}
     
-    Groups[nrow(data)] <- 'Other'
-    
+    # What is this else about?? I don't know O_O
   }else{
     Groups <- c(1:length(data))
     for (i in 1:length(Groups)){ Groups[i] <- paste('Group ',i, sep = '') }
+    if(no_other){return(Groups)}else{return(Groups[nrow(data)] <- 'Other')}
   }
-  return(Groups)
+  
 }
 
 Clusters_Alignments <- function(Pattern_Seq, Subject_Seq, gapOpening = 10, gapExtension = 0.5, type = "overlap" ){
