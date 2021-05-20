@@ -1,7 +1,7 @@
 # Server-Mosaic
 
 ########################### DESCRIPTION ##################################
-# Loads script for pipeline execution with the stablished parameters and
+# Loads script for pipeline execution with the established parameters and
 # loads the main Tables of results. Also defines code to allow user edits on table.
 ##########################################################################.
 
@@ -10,6 +10,26 @@
 pipeline <- reactive({if(input$reverse_complement){
   return("/Scripts/pipeline_vUMI.pl --r1 ")
   }else{return("/Scripts/pipeline_v7.pl --r1 ")}
+  })
+
+error <- reactive({
+  log_file <- paste0(datos$tmppipelinedir,'/',input_filename_generic(),'.log')
+  write_lines(date(),log_file)
+  write_lines("===============================================================\n",log_file, append = TRUE)
+  write_lines(x = datos$process.log, log_file, append = TRUE)
+  
+  showModal(modalDialog(
+    fluidPage(
+      h1(strong("Warning"),align="center"),
+      hr(),
+      fluidRow(column(4,offset = 4,
+                      div(style='max-width:150px;max-height:150px;width:3%;height:5%;', 
+                          img(src="caution-icon.png", height='150', width='150', align="middle")))),
+      h2(paste("ERROR: Pipeline was broken; check files, parameter values, reload and if problem persists contact administrator at sergio.fern1994@gmail.com" ,sep = ''), align = 'center'),
+      easyClose = TRUE,
+      footer = NULL
+    )))
+  
   })
 
 observeEvent(input$Accept, {
@@ -125,17 +145,22 @@ observeEvent(input$Accept, {
    collapse = "",
    sep = ""
   )
-  
-  system(command) #-Executes perl script
+
+  datos$process.log <- system(command, intern = TRUE) #-Executes perl script
   
   incProgress( 1/5 ,detail = 'Alignments')
   
   if(!file.exists(paste(datos$tmppipelinedir,"/cluster.tsv", sep = ''))){
    #-Missing files
    
-   output$Print2 <- renderText(paste0(':ERROR: Pipeline was broken; check files, extensions, reload and if problem persists contact administrator at sergio.fern1994@gmail.com'))
-   return()
+    error()
+    return()
    
+  }else if(isTRUE(file.info(paste(datos$tmppipelinedir,"/cluster.tsv", sep = ''))[1] == 0)){
+    
+    error()
+    return()
+    
   }
   
   #This directory has to be reactive
@@ -143,18 +168,18 @@ observeEvent(input$Accept, {
                           col_names = FALSE)
   datos$cluster <- read_tsv(paste(datos$tmppipelinedir,"/cluster.bak.tsv", sep = ''), 
                             col_names = FALSE)
-  
+
   if (isEmpty(colnames(datos$fasta))){#-If dataset is completely filtered 
    #due to any restriction app crashes
    if (!is.null(datos$Tabla)){
     Total_Abundance = sum(datos$Tabla_raw['Abundance'])
     output$Print2 <- renderText(paste("Total amount of Reads: ", Total_Abundance, 
-                                      '
-                                      :WARNING: All data of new process was filtered. Posibly something happened, adjust parameters & make sure files are correctly introduced.
+                                      ':WARNING: All data of new process was filtered. Posibly something happened, adjust parameters & make sure files are correctly introduced.
                                       Keeping previous Results...', sep = ''))
     return()
     
    }else{
+    browser()
     output$Print2 <- renderText(':WARNING: All data was filtered. Posibly something happened, adjust parameters & make sure files are correctly introduced.')
     return()
    }
@@ -171,10 +196,10 @@ observeEvent(input$Accept, {
   justIds <- allfasta %>% filter(str_starts(X1, '>'))
   allfasta <- bind_cols(justIds, justfasta)
   colnames(allfasta) <- c('ID','SEQ')
-  allfasta <- allfasta %>% mutate_at(vars(ID), 
-                                                 list(~if_else(str_starts(., '>'),
-                                                               true = str_extract(., '(?<=>)[:graph:]+'), 
-                                                               false = .)))
+  allfasta <- allfasta %>% mutate_at(vars(ID),
+                                     list(~if_else(str_starts(., '>'),
+                                                   true = str_extract(., '(?<=>)[:graph:]+'), 
+                                                   false = .)))
   
   # We want to double the amount of total reads when coming from a paired-end experiment.
   if(input$single_end){ correct_paired_reads = 1 }else{ correct_paired_reads = 2 }
