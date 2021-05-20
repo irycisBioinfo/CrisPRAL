@@ -185,7 +185,7 @@ observeEvent( c( input$tablaR_rows_selected, input$tablaT_rows_selected,
       
       wellPanel(
          checkboxInput('show_indels',label = 'Display formatted mismatches and InDels', value = TRUE),
-         conditionalPanel(condition = 'input.show_indels == true',
+         conditionalPanel(condition = 'input.show_indels == false',
                           fluidRow(
                                     wellPanel(
                                        h3("Mutations"),
