@@ -301,7 +301,12 @@ Unzip_file <- function(PATH, fileGZ_path){
 Unravel_Positions <- function(Insert_per_loci, Insert_data){
   
   Total_Count <- c(rep(0,nrow(Insert_per_loci)))
-  
+  # Case there are no inserts
+  if(nrow(Insert_data)==0){
+    Insert_per_loci <- Insert_per_loci %>% add_column(Total_Count)
+    
+  }else{
+    #Case there are some inserts
   for (i in 1:nrow(Insert_data)){
     
     start <- Insert_data['start'][i,]
