@@ -1,10 +1,69 @@
 #Graph generating script.
 
+Graph_Data <- reactive({
+  
+  ####################################################################.
+  ############# Setting up the Data for plotting #############
+  ####################################################################.
+  
+  # incProgress( 1/8 ,detail = 'Mutation Frequency') #User feedback
+  # 
+  # #Extracting Sequences, identificators, sizes and score.
+  # VCSeq = list(as.character(datos$aln))
+  # VCIDs = Tabla() %>% select(ID, score)
+  # # This is the size of the read, not the size of the alignment
+  # SizeList = list(nchar(VCSeq))
+  # 
+  # #Subset Tabla():
+  # 
+  # Tabla() %>% select(ID, Abundance, score)
+  # 
+  # #Bind identificator with sequence and size as to not lose them when we 
+  # #filter by size
+  # Graph_Data <- bind_cols(VCIDs, SizeList, VCSeq)
+  
+  Graph_Data <- Tabla() %>%
+    filter(score >= input$score_threshold) %>%
+    filter(Abundance >= input$abundance_minimum)
+  
+  #### Why datos$Tabla_Original ?
+  # Graph_Data <- left_join(Graph_Data, datos$Tabla_Original %>% select(ID, Abundance)) %>%
+  #  filter(score >= input$score_threshold) %>% 
+  #  filter(Abundance >= input$abundance_minimum) %>% 
+  #  select(-score) %>% arrange(desc(Abundance))
+  
+  ######################################.
+  ##### Filter by DT column search #####
+  ######################################.
+  
+  if(!is_empty(which(col_search_filters() != ''))){
+    for(i in which(col_search_filters() != ''))
+    {
+      
+      if(i %in% c(2:12)){
+        # Numeric filter:
+        min <- as.numeric(str_split(col_search_filters()[[i]], pattern = " ... ")[[1]][1])
+        max <- as.numeric(str_split(col_search_filters()[[i]], pattern = " ... ")[[1]][2])
+        
+        Graph_Data <- Graph_Data %>% filter(Graph_Data[i] >= min)
+        Graph_Data <- Graph_Data %>% filter(Graph_Data[i] <= max)
+      } else {
+        # Character filters
+        Graph_Data <- Graph_Data %>% filter(str_detect(Graph_Data[[i]], pattern = col_search_filters()[[i]]))
+        
+      }
+    }
+  }
+  
+  return(Graph_Data)
+
+})
+
 Check_if_graphs_are_altered <- eventReactive(input$Visualization,{
  
  if(!is.null(datos$Tabla_prev)){
-  if(nrow(datos$Tabla_prev) != nrow(Tabla()) && input$Visualization == 'Graphics'){
-   
+  if(nrow(datos$Tabla_prev) != nrow(Graph_Data()) && input$Visualization == 'Graphics' && datos$warn == TRUE){
+   datos$warn = FALSE
    showModal(modalDialog(
     fluidPage(
      h1(strong("Warning"),align="center"),
@@ -28,50 +87,64 @@ observeEvent(input$Visualization,{
 })
 
 observeEvent(input$GG,{
- 
+  # 
+  # browser()
+  
+  datos$warn = TRUE
  withProgress(message = "Plotting graphs: ", detail = 'Calculating', {
+
   
   if(!is.null(datos$Tabla_prev) && file.exists(paste(session$token,'/default_charts.Rdata', sep = '')) && 
      file.exists(session$token,'/defaults_charts_doc.Rdata', sep = '')){
    
-   if(nrow(datos$Tabla_prev) != nrow(Tabla()) && nrow(Tabla()) == nrow(datos$Tabla_Original)){
+   if(nrow(datos$Tabla_prev) != nrow(Graph_Data()) && nrow(Graph_Data()) == nrow(datos$Tabla_Original)){
     #This double conditioning while seeming redundant allows the re-processing
     # of graphs in the case saved objects are not loading correctly.
     
-    load(paste(session$token,'/default_charts.Rdata', sep = ''))
-    load(paste(session$token,'/defaults_charts_doc.Rdata', sep = ''))
-    
-    output$Mut_Freq <- renderPlotly({print(MF)})
-    output$In_sizes <- renderPlotly({print(IS)})
-    output$Del_sizes <- renderPlotly({print(DS)})
-    output$In_loc <- renderPlotly({print(IL)})
-    output$Del_loc <- renderPlotly({print(DL)})
-    datos$Pie_data <- Pie_data
-    output$Pie_summary <- renderPlotly({Edit_Pie_chart()})
-    
-    charts$tmpFilePiepng <- tmpFilePiepng
-    charts$tmpFileDSpng <- tmpFileDSpng
-    charts$tmpFileDLpng <- tmpFileDLpng
-    charts$tmpFileISpng <- tmpFileISpng
-    charts$tmpFileILpng <- tmpFileILpng
-    charts$tmpFileMFpng <- tmpFileMFpng
+      load(paste(session$token,'/default_charts.Rdata', sep = ''))
+      load(paste(session$token,'/defaults_charts_doc.Rdata', sep = ''))
+      
+      output$Mut_Freq <- renderPlotly({print(MF)})
+      output$In_sizes <- renderPlotly({print(IS)})
+      output$Del_sizes <- renderPlotly({print(DS)})
+      output$In_loc <- renderPlotly({print(IL)})
+      output$Del_loc <- renderPlotly({print(DL)})
+      datos$Pie_data <- Pie_data
+      output$Pie_summary <- renderPlotly({Edit_Pie_chart()})
+      
+      charts$tmpFilePiepng <- tmpFilePiepng
+      charts$tmpFileDSpng <- tmpFileDSpng
+      charts$tmpFileDLpng <- tmpFileDLpng
+      charts$tmpFileISpng <- tmpFileISpng
+      charts$tmpFileILpng <- tmpFileILpng
+      charts$tmpFileMFpng <- tmpFileMFpng
     
     return()
     
-   }}
+   }
+}
+   
+   
+################################.
+#### Pie-Chart-processing ######
+################################.
   
-  #-Pie-Chart-processing----
+  Other <- Graph_Data() %>% filter(Freq < 1)
+  datos$Pie_data <- select(Graph_Data(), ID, Freq) %>% filter(Freq > 1)
+  no_other <- FALSE
+  if(nrow(Graph_Data() %>% filter(Freq < 1)) != 0){
+    
+    datos$Pie_data <- datos$Pie_data %>% add_row(ID = paste('<1% groups', 
+                                        '(', count(Other['Freq']) , ')', 
+                                        sep = ''), 
+                             Freq = sum(Other['Freq']))
+    
+  }else{no_other <- TRUE}
   
-  Other <- datos$Tabla %>% filter(Freq < 1)
-  datos$Pie_data <- select(Tabla(), ID, Freq) %>% filter(Freq > 1) %>% 
-   add_row(ID = paste('<1% groups', 
-                      '(', count(Other['Freq']) , ')', 
-                      sep = ''), 
-           Freq = sum(Other['Freq']))
   
   #-Pie-Chart-plotting online
   
-  Groups <- Group_list(datos$Pie_data) #- Function in Functions.R module
+  Groups <- Group_list(datos$Pie_data, no_other) #- Function in Functions.R module
   datos$Pie_data <- add_column(datos$Pie_data, Groups)
   Pie_data <- datos$Pie_data #required for default workspace saving
   
@@ -91,9 +164,7 @@ observeEvent(input$GG,{
           yaxis = list(showgrid = FALSE, zeroline = FALSE, 
                        showticklabels = FALSE))
   
-  
-  # charts$tmpFilePie <- tempfile(fileext = '.png')
-  
+  # File management
   charts$tmpFilePiehtml <- paste(datos$tmppipelinedir, str_sub(tempfile(fileext = '.html'), start = 16), sep = '')
   charts$tmpFilePiepng <- paste(datos$tmppipelinedir, str_sub(tempfile(fileext = '.png'), start = 16), sep = '')
   tmpFilePiepng <- charts$tmpFilePiepng
@@ -102,40 +173,49 @@ observeEvent(input$GG,{
   
   output$Pie_summary <- renderPlotly({Edit_Pie_chart()})
   
-  #-----------Setting up the Data for further plotting----------------
+#########################################################.
+#### Substitute read sequence by sequence_alignment: ####
+#########################################################.
   
-  incProgress( 1/8 ,detail = 'Mutation Frequency') #User feedback
+  # filtered_data_bool serves the purpose of selecting aln data of interest BEFORE processing
+  filtered_data_bool <- !is.na(match(datos$Tabla_unsort$ID, Graph_Data()$ID))
   
-  #Extracting Sequences, identificators, sizes and score.
-  VCSeq = list(as.character(datos$aln))
-  VCIDs = select(datos$Tabla_unsort, ID, score)
-  # This is the size of the read, not the size of the alignment
-  SizeList = list(nchar(datos$aln@pattern))
+
   
-  #Bind identificator with sequence and size as to not lose them when we 
-  #filter by size
-  Graph_Data <- bind_cols(VCIDs, SizeList, VCSeq)
-  Graph_Data <- left_join(Graph_Data, datos$Tabla_Original %>% select(ID, Abundance)) %>%
-   filter(score >= input$score_threshold) %>% 
-   filter(Abundance >= input$abundance_minimum) %>% 
-   select(-score) %>% arrange(desc(Abundance))
+  datos$aln_filtered <- datos$aln[filtered_data_bool]
+  aligned_sequence <- as.character(datos$aln_filtered)
+  aligned_seq_start <- start(datos$aln_filtered@subject)-1 # start = 1 ? offset = 0
+  n=0
+  startgaps <- list()
+  for(i in aligned_seq_start){
+    n = n + 1
+    startgaps[n] <- str_c(rep('-',i), collapse = '')
+  }
+  aligned_sequence <- str_c(startgaps, aligned_sequence)
+  
+  alignmed_width <- nchar(aligned_sequence)
+  aligned_Ids <- datos$Tabla_unsort$ID[filtered_data_bool]
+  aligned_table <- bind_cols(ID = aligned_Ids, Width = alignmed_width, SEQ_align = aligned_sequence)
+  
+  Graph_data_aln <- left_join(Graph_Data(), aligned_table, by = 'ID')
+  
+  # Final touches: select usable columns and add  # SizeList = list(nchar(Tabla()$SEQ))
+  
+  Graph_data_aln <- Graph_data_aln %>% select(ID, Abundance, Width, SEQ_align)
+
+  ######################################.
   
   #Name the tables
-  colnames(Graph_Data) = c('ID', 'Size', 'Sequence', 'Abundance')
+  colnames(Graph_data_aln) = c('ID', 'Abundance', 'Size', 'Sequence')
   
-  # Does this make sense?
-  #Leave enough margin in order to correct for coverage lax
-  Filtered_Graph_Data = filter(Graph_Data, Size < width(datos$Ref)*(1.5))
-  Dump = filter(Graph_Data, Size > width(datos$Ref)*(1.5))
-  
-  TableSize = max(Filtered_Graph_Data['Size'])
-  
-  datos$unsort_ID_Abundance <- left_join(datos$Tabla_unsort %>% filter(score >= input$score_threshold) %>% select(ID), 
+  TableSize = max(Graph_data_aln['Size'])
+  # We are using table_unsort because it matches the order of datos$aln, but it is missing the Abundance values, which is why we fuse it with Tabla_raw
+  datos$unsort_ID_Abundance <- left_join(datos$Tabla_unsort[filtered_data_bool,] %>% select(ID),
                                          datos$Tabla_raw %>% select(-Freq),  by = 'ID')
-  
-  #----------------Processing-------------------------
-  
-  IDsSize = (count(Filtered_Graph_Data))*TableSize
+  ######################################.
+  ############ Processing ##############
+  ######################################.
+  IDsSize = (count(Graph_data_aln))*TableSize
   
   # Data Frame is constructed producing for every ID a variable named
   # Position, Character, and Abundance. Where position is the position
@@ -143,12 +223,12 @@ observeEvent(input$GG,{
   # position and Abundance the number un sequences with that same base
   # in that position.
   
-  LetterPerPosition = data.frame(ID = rep(Filtered_Graph_Data$ID,TableSize), 
-                                 Position = sort(rep(1:TableSize,count(Filtered_Graph_Data))),
-                                 Chr = substring(Filtered_Graph_Data$Sequence, 
-                                                 sort(rep(1:TableSize,count(Filtered_Graph_Data))), 
-                                                 sort(rep(1:TableSize,count(Filtered_Graph_Data)))),
-                                 Abundance = rep(Filtered_Graph_Data$Abundance, TableSize))
+  LetterPerPosition = data.frame(ID = rep(Graph_data_aln$ID,TableSize), 
+                                 Position = sort(rep(1:TableSize,count(Graph_data_aln))),
+                                 Chr = substring(Graph_data_aln$Sequence, 
+                                                 sort(rep(1:TableSize,count(Graph_data_aln))), 
+                                                 sort(rep(1:TableSize,count(Graph_data_aln)))),
+                                 Abundance = rep(Graph_data_aln$Abundance, TableSize))
   
   LetterPerPosition_Total = LetterPerPosition %>%
                              group_by(Position, Chr, Abundance) %>%
@@ -182,24 +262,41 @@ observeEvent(input$GG,{
   
   #With alternative consensus the most abundant mutation for each position is extracted.
   Alternative_Consensus <- LetterPerPosition_SubChange %>% filter(as.character(Chr) != Base) %>% 
-                           #filter(as.character(Chr) != '-') %>% 
+                           filter(as.character(Chr) != '-') %>% 
                            group_by(Position) %>% filter(Probability == max(Probability))
-  
   #Deletions_per_position is useful to plot a line graph in conjuntion with BasePerPosition_info 
   Deletion_per_position <- left_join(LetterPerPosition_Ref, LetterPerPosition_SubChange %>% filter(as.character(Chr) == '-') %>% 
                                        select(-Base),by = 'Position') %>% mutate(Chr = '-') %>% 
                                        mutate(Total = case_when(is.na(Total) ~0, TRUE ~as.double(Total))) %>% 
                                        mutate(Probability = case_when(is.na(Probability) ~ 0, TRUE ~ Probability))
   
+  #7/05/2021 we filter out deletions and unmodified positions:
+  LetterPerPosition_SubChange <- LetterPerPosition_SubChange %>% filter(as.character(Chr) != '-') %>% 
+                                 filter(as.character(Chr) != Base) %>% 
+                                 group_by(Position) %>% mutate(Probability = sum(Probability)) %>% 
+                                 select(Position, Base, Probability) %>% distinct()
+  
+  #Fuse info of LetterPerPosition_SubChange and Alternative_Consensus: but why?
+  #BECAUSE: We want to identify how much of the total amount of reads have a nucleotide change,
+  # but with the purpose of not saturating we are just plotting the leading change, ie A,C,G OR T.
+  BasePerPosition_info <- left_join(LetterPerPosition_SubChange, Alternative_Consensus %>% select(-Base, -Total, -Probability), by = 'Position')
+  # I'm unsure about the purpose of this line, is it to combine positions with different entries?
+  BasePerPosition_info <- BasePerPosition_info %>%
+                          mutate(Chr = case_when(is.na(Chr) ~ as.character(Base), TRUE ~ as.character(Chr))) %>%
+                          mutate(Chr = case_when(Position == lead(Position) ~ paste(Chr, ',' ,lead(Chr), sep = ''), TRUE ~ as.character(Chr))) %>%
+                          distinct(Position, .keep_all = TRUE)
+  incProgress( 1/8 , detail = 'Deletions')
+  
+  
   #-Insert_per_loci to include insertions in summary plot
   #-Insert locations processing
   
-  Insert_data = as.data.frame(indel(datos$aln)@insertion)
-  DFGraph_Data <- as.data.frame(Graph_Data)
+  Insert_data = as.data.frame(shift(indel(datos$aln_filtered)@insertion,start(subject(datos$aln_filtered))-1))
+  DFGraph_Data <- as.data.frame(Graph_Data()) # Why not Graph_data_aln?
   Insert_data <- Insert_data %>% 
     mutate(Count = DFGraph_Data['Abundance'][group,]) %>% 
     select(start, end, Count)
-  Insert_per_loci <- as.data.frame(c(1:max(width(datos$Sequences))))
+  Insert_per_loci <- as.data.frame(c(1:max(Insert_data$end)))
   colnames(Insert_per_loci) <- c('Position')
   Insert_per_loci <- Unravel_Positions(Insert_per_loci, Insert_data)
   colnames(Insert_per_loci) <- c('Position', 'Total_Count')
@@ -207,21 +304,7 @@ observeEvent(input$GG,{
   Insert_per_loci <- Insert_per_loci %>% mutate(Probability = Total_Count/sum(datos$Tabla$Abundance))
   #New name to distinguish between purposes (summary plot vs bar chart)
   Insert_per_position <- left_join(LetterPerPosition_Ref, Insert_per_loci, by = 'Position') %>%
-                          select(-Total_Count)
-  
-  
-  LetterPerPosition_SubChange <- LetterPerPosition_SubChange %>% filter(as.character(Chr) != '-') %>% 
-                                 filter(as.character(Chr) != Base) %>% group_by(Position) %>% mutate(Probability = sum(Probability)) %>% 
-                                 select(Position, Base, Probability) %>% distinct()
-  
-  #Fuse info of LetterPerPosition_SubChange and Alternative_Consensus
-  BasePerPosition_info <- left_join(LetterPerPosition_SubChange, Alternative_Consensus %>% select(-Base, -Total, -Probability), by = 'Position')
-  # I'm unsure about the purpose of this line, is it to combine positions with different entries?
-  BasePerPosition_info <- BasePerPosition_info %>% 
-                          mutate(Chr = case_when(Position == lead(Position) ~ paste(Chr, ',' ,lead(Chr), sep = ''), TRUE ~ as.character(Chr))) %>% 
-                          distinct(Position, .keep_all = TRUE)
- 
-  incProgress( 1/8 , detail = 'Deletions')
+    select(-Total_Count)
   
   # Total_Deletions_locations <- Deletion_per_position %>% select(Position, Total) %>% filter(Total != 0)
   
@@ -231,54 +314,63 @@ observeEvent(input$GG,{
   #Plot scale range:
   range = c(0,max(c(Insert_per_loci$Total_Count, Deletion_per_position$Total))+max(c(Insert_per_loci$Total_Count, Deletion_per_position$Total))*0.02)
   
-  #-----------------Plotting--------------------------
+  ####################################################.
+  ################# Plotting #########################
+  ####################################################.
   
-  # plot.new()-error
+  Mutations_graph <- left_join(left_join(Deletion_per_position  %>% select(-Total), BasePerPosition_info %>% select(-Base), by = "Position"), Insert_per_position %>% select(-Base), by = 'Position')
   
-  #-Base Frequency
+  Mutations_graph <- Mutations_graph %>% rename(Chr.deletions = Chr.x) %>% rename(Chr.variants = Chr.y) %>%
+                  rename(Probability.deletions = Probability.x) %>% rename(Probability.variants = Probability.y) %>%
+                  rename(Probability.insertions = Probability) %>%
+                  mutate(Probability.variants = case_when(is.na(Probability.variants) ~ 0, TRUE ~ Probability.variants))
   
-  # colorscheme = c('rgba(255, 77, 77, 0.7)', 'rgba(38, 38, 38, 0.7)', 'rgba(77, 77, 255, 0.7)', 'rgba(128, 255, 128, 0.7)', 'rgba(179, 102, 255, 0.7)')
-  # colorscheme = c('red', 'black', 'blue', 'green', 'gray')
-  # colorscheme = setNames(colorscheme, c('T', 'G', 'C', 'A', '-'))
+    ####################################################.
+    ############# Base Frequency #######################
+    ####################################################.
   
-  MF <- plot_ly(BasePerPosition_info %>% ungroup(), x = ~Position, y = ~Probability, name = 'Variants',
-                type = 'scatter', mode = 'lines', text = ~paste(Chr,'>',Base, ' at Position: ',Position,sep = ''), 
+  MF <- plot_ly(Mutations_graph %>% ungroup(), x = Mutations_graph$Position, y = ~Probability.variants, name = 'Variants',
+                type = 'scatter', mode = 'lines', text = ~paste(Chr.variants,'>',Base, ' at Position: ',Position,sep = ''), 
                 hovertemplate = paste('<i>Most abundant change</i>: %{text}'), line = list(shape = 'spline', color = "royalblue")) %>% 
         add_trace(xaxis='x2', showlegend = FALSE, opacity = 0) %>%
         add_trace(xaxis='x3', showlegend = FALSE, opacity = 0) %>%
-        add_trace(xaxis='x4', showlegend = FALSE, line = list(color = "royalblue"),opacity = 0) %>%
+        add_trace(xaxis='x4', showlegend = FALSE, opacity = 0) %>%
+        add_trace(xaxis='x5', showlegend = FALSE, opacity = 0) %>%
         layout(yaxis = list(range=c(0,1), text='Fraction of variation from reference per position'), 
-               xaxis = list(ticktext = BasePerPosition_info$Base[BasePerPosition_info$Base == 'T'], 
-                            tickvals = BasePerPosition_info$Position[BasePerPosition_info$Base == 'T'] , 
+               xaxis = list(ticktext = LetterPerPosition_Ref$Base[LetterPerPosition_Ref$Base == 'T'], 
+                            tickvals = LetterPerPosition_Ref$Position[LetterPerPosition_Ref$Base == 'T'] , 
                             tickmode = "array", 
                             tickangle = 0,
                             title = 'Reference',
                             tickfont=list( color='red' )),
-               xaxis2 = list(ticktext = BasePerPosition_info$Base[BasePerPosition_info$Base == 'G'],
-                             tickvals = BasePerPosition_info$Position[BasePerPosition_info$Base == 'G'],
+               xaxis2 = list(ticktext = LetterPerPosition_Ref$Base[LetterPerPosition_Ref$Base == 'G'],
+                             tickvals = LetterPerPosition_Ref$Position[LetterPerPosition_Ref$Base == 'G'],
                              overlaying='x',
                              tickmode = "array", 
                              tickangle = 0,
-                             title = 'Reference',
                              tickfont=list( color='blue' )),
-               xaxis3 = list(ticktext = BasePerPosition_info$Base[BasePerPosition_info$Base == 'C'],
-                             tickvals = BasePerPosition_info$Position[BasePerPosition_info$Base == 'C'],
+               xaxis3 = list(ticktext = LetterPerPosition_Ref$Base[LetterPerPosition_Ref$Base == 'C'],
+                             tickvals = LetterPerPosition_Ref$Position[LetterPerPosition_Ref$Base == 'C'],
                              overlaying='x',
                              tickmode = "array", 
                              tickangle = 0,
-                             title = 'Reference',
                              tickfont=list( color='black' )),
-               xaxis4 = list(ticktext = BasePerPosition_info$Base[BasePerPosition_info$Base == 'A'],
-                             tickvals = BasePerPosition_info$Position[BasePerPosition_info$Base == 'A'],
+               xaxis4 = list(ticktext = LetterPerPosition_Ref$Base[LetterPerPosition_Ref$Base == 'A'],
+                             tickvals = LetterPerPosition_Ref$Position[LetterPerPosition_Ref$Base == 'A'],
                              overlaying='x',
                              tickmode = "array", 
                              tickangle = 0,
-                             title = 'Reference',
-                             tickfont=list( color='green' )))
+                             tickfont=list( color='green' )),
+               xaxis5 = list(ticktext = LetterPerPosition_Ref$Base[LetterPerPosition_Ref$Base == 'N'],
+                             tickvals = LetterPerPosition_Ref$Position[LetterPerPosition_Ref$Base == 'N'],
+                             overlaying='x',
+                             tickmode = "array", 
+                             tickangle = 0,
+                             tickfont=list( color='gray' )))
   
-  MF <- MF %>% add_lines(data = Deletion_per_position, x = ~Position, y = ~Probability, name = 'Deletions' ,line = list(shape = 'spline', color = 'tomato'),
+  MF <- MF %>% add_lines(data = Mutations_graph, x =  Mutations_graph$Position, y = ~Probability.deletions, name = 'Deletions' ,line = list(shape = 'spline', color = 'tomato'),
                          text = ~paste('del','>',Base, ' at Position: ',Position,sep = ''), hovertemplate = paste('<i>Deletion abundance: </i>%{text}'))
-  MF <- MF %>% add_lines(data = Insert_per_position, x = ~Position, y = ~Probability, name = 'Insertions',line = list(shape = 'spline', color = 'limegreen'),
+  MF <- MF %>% add_lines(data = Mutations_graph, x = Mutations_graph$Position, y = ~Probability.insertions, name = 'Insertions',line = list(shape = 'spline', color = 'limegreen'),
                          text = ~paste('ins','>',Base, ' at Position: ',Position,sep = ''), hovertemplate = paste('<i>Insertion abundance: </i>%{text}'))
   
   output$Mut_Freq <- renderPlotly({print(MF)})
