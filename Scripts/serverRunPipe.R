@@ -110,6 +110,8 @@ observeEvent(input$Accept, {
    input$single_end,
    " --min_len ",
    input$MinLength,
+   " --min_qual ",
+   input$MinQual,
    " --Adapter_R1 ",
    as.character(AdapterR1()),
    " --Adapter_R2 ",
