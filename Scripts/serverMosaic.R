@@ -393,34 +393,67 @@ Check_pair_input_files <- reactive({ #Allow warning to be disabled
 # ############################################################################.
 # TABLE PRINTING ####
 ##############################################################################.
+to_be_hidden_by_default <- reactive({c(grep(colnames(Tabla()), pattern = 'start'),
+                                             grep(colnames(Tabla()), pattern = 'end'),
+                                             grep(colnames(Tabla()), pattern = 'SEQ'))})
 
 output$tablaR <- renderDT(Tabla(), selection = "single", editable = TRUE,
                           filter = 'top',
                           extensions = c('Buttons','FixedColumns','Scroller','ColReorder'), 
-                          options = list(dom = 'Bfrtip', 
+                          options = list(columnDefs = list(list(targets = to_be_hidden_by_default(), visible = FALSE)),
+                                         stateSave = TRUE,
+                                         dom = 'Bfrtip', 
                                          scrollX = TRUE,
                                          deferRender = TRUE, scrollY = 400, scroller = TRUE,
                                          colReorder = TRUE,
                                          search = list(smart = FALSE),
                                          buttons = list('copy', list(extend = 'collection',
                                                                      buttons = list(
-                                                                     list(extend = 'csv', filename = input_filename_results()),
-                                                                     list(extend = 'excel', filename = input_filename_results())),
+                                                                               list(extend = 'csv', filename = input_filename_results()),
+                                                                               list(extend = 'excel', filename = input_filename_results())),
                                                                      text = 'Download'),
                                                         'colvis')), server = TRUE)
 
 output$tablaT <- renderDT(TablaT(), editable = TRUE, selection = "single",
                           filter = 'top',
                           extensions = c('Buttons','FixedColumns','Scroller','ColReorder'), 
-                          options = list(dom = 'Bfrtip', 
+                          options = list(columnDefs = list(list(targets = to_be_hidden_by_default(), visible = FALSE)),
+                                         stateSave = TRUE,
+                                         dom = 'Bfrtip', 
                                          scrollX = TRUE,
                                          deferRender = TRUE, scrollY = 400, scroller = TRUE,
                                          colReorder = TRUE, search = list(smart = FALSE),
-                                         buttons = list('copy', 
-                                                        list(extend = 'collection',
-                                                             buttons = c('csv', 'excel'),
-                                                             text = 'Download'),
+                                         buttons = list('copy', list(extend = 'collection',
+                                                                     buttons = list(
+                                                                       list(extend = 'csv', filename = input_filename_results()),
+                                                                       list(extend = 'excel', filename = input_filename_results())),
+                                                                     text = 'Download'),
                                                         'colvis')), server = TRUE)
+
+col_search_filters <- reactive({
+  
+  keys <- colnames(Tabla())
+  nkeys <- length(keys)
+  col_filters <- vector("list", nkeys)
+  for(i in 1:nkeys){col_filters[[i]] <- input$tablaR_search_columns[i]}
+  col_filters <- setNames(col_filters, keys)
+  return(col_filters)
+
+})
+
+output$formatted_variants <- renderDT(TablaVar(), filter = 'top',
+                                        extensions = c('Buttons','Scroller'),
+                                        rownames = FALSE, selection = 'single',
+                                        options = list(dom = 'Bfrtip',
+                                                       scrollX = TRUE,
+                                                       deferRender = TRUE, scrollY = 200, scroller = TRUE,
+                                                       colReorder = TRUE,
+                                                       search = list(smart = FALSE),
+                                                       buttons = list('copy', list(extend = 'collection',
+                                                                                   buttons = c('csv', 
+                                                                                               'excel'),
+                                                                                   text = 'Download'),
+                                                                      'colvis')), server = TRUE)
 
 #----Alignment and Table filtering dinamic UI----.
 
