@@ -382,7 +382,10 @@ observeEvent(input$GG,{
   htmlwidgets::saveWidget(MF, paste(CompletePATH,'/', charts$tmpFileMFhtml, sep = ''))
   webshot2::webshot(charts$tmpFileMFhtml, charts$tmpFileMFpng)
   
-  #-Deletions per loci
+  
+  ####################################################.
+  ############# Deletions per loci ###################
+  ####################################################.
   
   DL <- plot_ly(Deletion_per_position, x = ~Position, y = ~Total, marker = list(color = 'tomato'),
                 type = 'bar', name = 'Deletions') %>%
@@ -398,9 +401,11 @@ observeEvent(input$GG,{
   htmlwidgets::saveWidget(DL, paste(CompletePATH,'/', charts$tmpFileDLhtml, sep = ''))
   webshot2::webshot(charts$tmpFileDLhtml, charts$tmpFileDLpng)
   
-  #-Deletion Sizes
+  ####################################################.
+  ############### Deletion Sizes #####################
+  ####################################################.
   
-  datos$Del_Data = as.data.frame(InDel_Extraction(datos$aln[datos$aln@score >= input$score_threshold], datos$unsort_ID_Abundance)[1])
+  datos$Del_Data = as.data.frame(InDel_Extraction(datos$aln_filtered, datos$unsort_ID_Abundance)[1])
   
   #Fill data will with ceros for the x-axis to not look too short
   
@@ -430,9 +435,11 @@ observeEvent(input$GG,{
   
   incProgress( 1/8, detail = 'Insertions')
   
-  #-Insertion Sizes
+  ####################################################.
+  ############### Insertion Sizes ####################
+  ####################################################.
   
-  datos$In_Data = as.data.frame(InDel_Extraction(datos$aln[datos$aln@score >= input$score_threshold], datos$unsort_ID_Abundance)[2])
+  datos$In_Data = as.data.frame(InDel_Extraction(datos$aln_filtered, datos$unsort_ID_Abundance)[2])
   
   rows_to_add = as_tibble()
   if(nrow(datos$In_Data) < 10){
@@ -461,7 +468,10 @@ observeEvent(input$GG,{
   htmlwidgets::saveWidget(IS, paste(CompletePATH,'/', charts$tmpFileIShtml, sep = ''))
   webshot2::webshot(charts$tmpFileIShtml, charts$tmpFileISpng)
   
-  #-Insertion per Loci
+  ####################################################.
+  ############### Insertion per Loci #################
+  ####################################################.
+  
   incProgress(1/8)
   
   IL = plot_ly(Insert_per_loci, y = ~Total_Count, x = ~Position, type = 'bar', marker = list(color = 'limegreen')) %>%
@@ -476,9 +486,7 @@ observeEvent(input$GG,{
   tmpFileILpng <- charts$tmpFileILpng
   htmlwidgets::saveWidget(IL, paste(CompletePATH,'/', charts$tmpFileILhtml, sep = ''))
   webshot2::webshot(charts$tmpFileILhtml, charts$tmpFileILpng)
-  
-  output$Dump = renderText(paste('Filter Clusters due to excesive sequence size (>1.5*Reference Sequence length): ',
-                                 as.character(count(Dump)),sep = ''))
+
   # })
  })
  
@@ -488,7 +496,7 @@ observeEvent(input$GG,{
                 'tmpFileISpng', 'tmpFileILpng', 'tmpFileMFpng'), file = paste(session$token,'/defaults_charts_doc.Rdata', sep = ''))
  }
  
- datos$Tabla_prev <- Tabla()
+ datos$Tabla_prev <- Graph_Data()
  
 })
 
@@ -511,4 +519,6 @@ Edit_Pie_chart <- reactive({
  PC_online <- PC_online %>% layout(xaxis = list(showgrid = FALSE, zeroline = FALSE, 
                                                 showticklabels = FALSE),
                                    yaxis = list(showgrid = FALSE, zeroline = FALSE, 
-                                                showticklabels = FALSE))})
+                                                showticklabels = FALSE))
+ 
+ })
