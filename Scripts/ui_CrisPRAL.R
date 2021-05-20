@@ -270,6 +270,7 @@ fluidPage(# Application title
                         conditionalPanel(
                          condition = "input.display_unaligned == true",
                          uiOutput('Unaligned_Fasta')),
+                        uiOutput("mutations"),
                         uiOutput('Blast_Search'),
                         uiOutput('downloadPAIR_file'),
                         br(),
