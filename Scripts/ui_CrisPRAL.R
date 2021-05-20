@@ -61,6 +61,13 @@ fluidPage(# Application title
      min = 31,
      max = 400,
      step = 10),
+    numericInput(
+      "MinQual",
+      "Minimum average read quality",
+      value = 30,
+      min = 0,
+      max = 50,
+      step = 5),
   
       ##############################################.
       # Adapter trimming-----
@@ -198,7 +205,7 @@ fluidPage(# Application title
          "Maximun difference (%)",
          min = 1,
          max = 100,
-         value = 0
+         value = 1
         ),
         sliderInput(
          "Nm",
