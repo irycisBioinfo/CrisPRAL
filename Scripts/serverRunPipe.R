@@ -250,6 +250,12 @@ observeEvent(input$Accept, {
   
   datos$Tabla <- mismatches_break_down(ls_ClusterAln_Ref, datos$Tabla)
   
+  #################################################.
+  ## Append sequences as the last column
+  #################################################.
+  # This operations have the objective of being able to compare sequences of different samples between each other.
+  datos$Tabla <- inner_join(datos$Tabla, allfasta)
+  
   ##################################.
   #### OUTPUTING Reference ####
   ##################################.
