@@ -562,7 +562,7 @@ clustersMSA <- reactive({
 
 input_filename_generic <- reactive({
   
-  req(input$R1$name)
+  req(input$R1)
   
   paste(
  str_replace(#Removes possible double 
@@ -594,6 +594,7 @@ input_filename_clstrs_msa <- reactive({paste(input_filename_clstrs(), '_msa', se
 datos$alignmentdir <- 'empty' #Temporal asignment
 
 output$downloadReport <- downloadHandler(
+  
  filename = function() {
   paste(input_filename_results(),'pdf', sep = '.')
  },
@@ -612,22 +613,6 @@ output$downloadReport <- downloadHandler(
                                           alignments = datos$alignmentdir) )
   file.rename(out, file) }
 )
-
-# output$downloadMSA_clstr <- downloadHandler(
-#  filename = function(){
-#   paste(input_filename_clstrs_msa(), 'pdf', sep = '.')
-#  },
-#  content = function(file) {
-#   tmpFile <- tempfile(pattern = 'msa', tmpdir = '.', fileext = '.pdf')
-#   msaPrettyPrint(clustersMSA(), file = tmpFile, output = "pdf",
-#                  consensusColor="ColdHot", askForOverwrite = FALSE, 
-#                  showLogo="top", showLegend = FALSE,
-#                  subset = prettyprintCrashpreventor(),
-#                  furtherCode=c("\\textbf{Multiple Sequence Alignment: ClustalW} ",
-#                                "\\DNAgroups{GAR,CTY}","\\defconsensus{.}{lower}{upper}",
-#                                "\\showruler{1}{top}"))
-#   file.rename(tmpFile, file)}
-# )
 
 # ############################################################################.
 # CALLMODULES ####
