@@ -177,7 +177,7 @@ observeEvent(input$Accept, {
                                                                false = .)))
   
   # We want to double the amount of total reads when coming from a paired-end experiment.
-  if(input$single){ correct_paired_reads = 1 }else{ correct_paired_reads = 2 }
+  if(input$single_end){ correct_paired_reads = 1 }else{ correct_paired_reads = 2 }
   
   
   datos$Tabla_raw = datos$cluster %>%
@@ -203,7 +203,6 @@ observeEvent(input$Accept, {
   #  arrange(ClusterN)
   
   #Preparing for Alignment operations---- 
-  #-asserting Reference does not provide an error:
   if(isFALSE(str_detect(Reference(), 'ERROR' ))){ #Checks whether Reference() returns an extension error.
    datos$Ref = readDNAStringSet(Reference())
   }else{
@@ -318,7 +317,7 @@ observeEvent(input$Accept, {
    
    output$Target_Location <- renderText(Target())
   }
- })
+ }) #withProgress
 }) # observeEvent close bracket
 
 output$temp_text <- renderUI({

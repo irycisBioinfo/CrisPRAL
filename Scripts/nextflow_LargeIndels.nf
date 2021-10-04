@@ -43,21 +43,21 @@ if (params.help){
 if(params.paired){
 
   //Reads must be read twice, both as a trupple and as an array
-   Channel
+  Channel
       .fromFilePairs(params.reads, size: 2,  checkIfExists: true, flat:true)
       .take( params.dev ? params.number_of_inputs : -1 ) //TESTING: should only run partial data
       .into{ [ch_pre_samples, ch_FlowCell_lane] }
 
 
    //Make ch_pre_samples a tuple to process SampleId in processes more easily and to include it in ReadGroup (RG) info.
-   ch_pre_samples.map{it -> new Tuple(it[0].split("_")[0],it[1,2])}.set{ ch_samples_with_id }
+  ch_pre_samples.map{it -> new Tuple(it[0].split("_")[0],it[1,2])}.set{ ch_samples_with_id }
 
    //Identify fastq data for Read group definition "ID". RG:ID = {flowcell}.{lane}.{uniqueId} [must be unique despite documentation stating otherwise]
-   ch_FlowCell_lane.splitFastq(record: true, pe: true, limit: 1).map{it -> new Tuple(it[0].split("_")[0], it[1].readHeader.split(":")[2,3,9].join("."))}.set{ch_RG_ID}
+  ch_FlowCell_lane.splitFastq(record: true, pe: true, limit: 1).map{it -> new Tuple(it[0].split("_")[0], it[1].readHeader.split(":")[2,3,9].join("."))}.set{ch_RG_ID}
 
 }else{
 
-   Channel
+  Channel
       .fromPath(params.reads, checkIfExists: true)
       .splitCsv(header:true)
       .map{ row-> [row.sampleId, [row.read]] }
@@ -65,9 +65,9 @@ if(params.paired){
       .ifEmpty {error "File ${params.reads} not parsed properly"}
       .into{ [ch_samples, ch_sampleName, ch_FlowCell_lane] }
 
-   ch_FlowCell_lane.splitFastq(record: true, pe: true, limit: 1).map{it -> new Tuple(it[0].split("_")[0], it[1].readHeader.split(":")[2,3,9].join("."))}.set{ch_RG_ID}
+  ch_FlowCell_lane.splitFastq(record: true, pe: true, limit: 1).map{it -> new Tuple(it[0].split("_")[0], it[1].readHeader.split(":")[2,3,9].join("."))}.set{ch_RG_ID}
 
- }
+}
 //Fuse Ids and samples to manage SampleId as a tuple together with the samples they identify.
 ch_RG_ID.concat(ch_samples_with_id).groupTuple().map{ it -> [[it[0],it[1][0]],it[1][1]] }.set{ ch_samples }
 
