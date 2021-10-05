@@ -19,4 +19,6 @@ Scripts/GermlineSingularity
 Scripts/nextflow.config
 Scripts/Modules/patternFinding_Jose.R
 Scripts/Modules/custom_table_structures.R
-
+*.csv
+*.txt
+[0-9]*
