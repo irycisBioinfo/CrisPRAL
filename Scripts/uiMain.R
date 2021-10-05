@@ -18,24 +18,26 @@ uiMain <- fluidPage(
                           
                           # Subtitle and help button
                           
-                          fluidRow(column(6,(h1("Welcome to the AllInOne tools", style="margin-top:0px;"))), # column end bracket
-                                   column(3,actionButton("btn_landing",label="Debugger: for developing only",icon=icon('question-circle'),class="down")) # column end bracket
+                          fluidRow(column(width = 4),column(6,(h1("Welcome to the AllInOne tools", style="margin-top:0px;"))), # column end bracket
+                                   column(1,actionButton("btn_landing",label="Debugger: for developing only",icon=icon('question-circle'),class="down")) # column end bracket
                                    ), # fluidRow end bracket
-                          fluidRow(column(3, class="landing-page-column",br(),
+                          fluidRow(#Blank centering column
+                                   column(1),
+                                   column(3, class="landing-page-column",br(),
+                                          actionBttn('go_to_mosaic_batch',
+                                                     label = 'MOSAIC FINDER batch',
+                                                     icon = NULL,
+                                                     style = "pill",
+                                                     color = "warning",
+                                                     size = "lg",
+                                                     block = TRUE,
+                                                     no_outline = FALSE)),
+                                   column(4, class="landing-page-column",br(),
                                           actionBttn('go_to_mosaic',
                                             label = 'MOSAIC FINDER',
                                             icon = NULL,
                                             style = "pill",
                                             color = "danger",
-                                            size = "lg",
-                                            block = TRUE,
-                                            no_outline = FALSE)),
-                                   column(3, class="landing-page-column",br(),
-                                          actionBttn('go_to_mosaic_batch',
-                                            label = 'MOSAIC FINDER batch',
-                                            icon = NULL,
-                                            style = "pill",
-                                            color = "warning",
                                             size = "lg",
                                             block = TRUE,
                                             no_outline = FALSE)),
@@ -49,7 +51,7 @@ uiMain <- fluidPage(
                                             block = TRUE,
                                             no_outline = FALSE)),
                                           ),
-                          fluidRow(column(4, br(),
+                          fluidRow(column(2),column(4, br(),
                                           actionBttn('go_to_simple_vcf', label = 'SIMPLE VCF VIEWER',
                                                      icon = NULL,
                                                      style = 'pill',
