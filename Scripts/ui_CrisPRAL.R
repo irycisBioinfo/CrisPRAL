@@ -30,15 +30,16 @@ fluidPage(# Application title
  ## Mosaic Finder ----
  ###############################################.
  
- titlePanel( title=(div("Mosaic Finder", img(src="dna_free.png")))),
+ titlePanel( title="", windowTitle = "Mosaic Finder"),
+ fixedRow(column(div(h1("Mosaic Finder", img(src="dna_free.png"))), width = 3)),
  
    ###############################################.
    ## Side Bar ----
    ###############################################.
- 
- #with a slider input for number of bins
+
  sidebarLayout(
-  sidebarPanel(
+  sidebarPanel(width = 3,
+
    checkboxInput("crispr-cas", p(strong('Crispr-Cas9 Analysis')), value = TRUE),
    wellPanel(
     checkboxInput("single_end", p(strong("Single end data"))), # Choose between single end or paired end inputs
@@ -235,8 +236,7 @@ fluidPage(# Application title
    actionButton("Accept", "Run", icon = icon('caret-right')),
    actionButton("Run_Example", "Run Example", icon = icon('caret-right')),
    
-   br()
-  ,width = 3), # Sidebar Panel close bracket
+   br()), # Sidebar Panel close bracket
   
   ##############################################.
   # Main Panel----
