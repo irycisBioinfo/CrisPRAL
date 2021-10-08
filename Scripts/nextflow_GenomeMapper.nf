@@ -131,7 +131,7 @@ if(params.genome != "GRCh37" && params.genome != "GRCh38"){
     
   }
 
-   process Building_genome_dictionary {
+  process Building_genome_dictionary {
     tag "Creating Dictionary file (GATK)"
     label 'big_mem'
 
@@ -196,27 +196,27 @@ process FASTQ_Trimming {
 
   publishDir "$params.outdir/trimmed_data"
 
-   input:
-   set sampleId, file(samples) from ch_samples
+  input:
+  set sampleId, file(samples) from ch_samples
 
-   output:
-   set sampleId, file('*.fastq.gz') into ch_alignment
+  output:
+  set sampleId, file('*.fastq.gz') into ch_alignment
 
-   script:
+  script:
 
-   if(params.paired){
+  if(params.paired){
 
       """
       trimmomatic PE -threads ${params.threads} ${samples[0]} ${samples[1]} ${sampleId[0]}_R1.fastq.gz bad_1 ${sampleId[0]}_R2.fastq.gz bad_2 ${adapter_trimm} SLIDINGWINDOW:15:${params.minqual} MINLEN:${params.minlen}
       """
-   }
-   else{
+  }
+  else{
 
       """
       trimmomatic SE -threads ${params.threads} ${samples[0]} ${sampleId[0]}_trimmed.fastq.gz ${adapter_trimm} SLIDINGWINDOW:15:${params.minqual} MINLEN:${params.minlen}
       """
-   }
-  }
+  } 
+}
 
 //------------------------------------------------------------Alignment----------------------------------------------------
 //-------------------------------------------------------------------------------------------------------------------------
@@ -228,18 +228,18 @@ process Alignment {
 
   tag "Aligns reads to a reference genome using bwa or bowtie2"
   label 'big_mem'
-   
+  
   publishDir "$params.outdir/alignment"
 
-   input:
-   set sampleId, file(fastq_file) from ch_alignment
+  input:
+  set sampleId, file(fastq_file) from ch_alignment
 
-   output:
-   set sampleId, file('*.sam') into ch_sam_to_bam
+  output:
+  set sampleId, file('*.sam') into ch_sam_to_bam
 
-   script:
+  script:
 
-   if(params.paired){
+  if(params.paired){
 
       if(params.aln == 'bwa'){
 
@@ -351,17 +351,17 @@ if(params.remove_duplicates){
 
     publishDir "$params.outdir/alignment"
 
-     input:
-     set sampleId, file(bam_file) from ch_remove_duplicates
+    input:
+    set sampleId, file(bam_file) from ch_remove_duplicates
 
-     output:
-     set sampleId, file('*.bam') into ch_index_bam
+    output:
+    set sampleId, file('*.bam') into ch_index_bam
 
-     script:
+    script:
 
-     """
-     gatk MarkDuplicates -I ${bam_file[0]} -M ${sampleId[0]}.metrix.dups -O ${sampleId[0]}.${params.aln}.rmdups.sort.bam
-     """
+    """
+    gatk MarkDuplicates -I ${bam_file[0]} -M ${sampleId[0]}.metrix.dups -O ${sampleId[0]}.${params.aln}.rmdups.sort.bam
+    """
 
       }
   }
@@ -381,9 +381,9 @@ process BAM_file_indexing{
 
   script:
 
-   """
-   samtools index -@ ${params.threads} ${bam_file[0]}
-   """
+  """
+  samtools index -@ ${params.threads} ${bam_file[0]}
+  """
 
   }
 
@@ -444,6 +444,9 @@ if(params.dbSNP != 'NO_FILE'){
 //-------------------------------------------Variant Calling--------------------------------------------------------------
 //------------------------------------------------------------------------------------------------------------------------
 /*
+
+Cov Stats are now performed externally
+
 process basic_coverage_stats {
   tag "Obtain basic coverage statistics"
   publishDir "$params.outdir/alignment", mode: 'copy'
