@@ -7,9 +7,10 @@ observeEvent(input$go_to_mosaic_batch, {
 })
 
  # Selects pipeline given the option "reverse_complement"
-pipeline <- reactive({if(input$reverse_complement){
-  return("/pipeline_vUMI.pl --r1 ")
-}else{return("/pipeline_v7.pl --r1 ")}
+pipeline <- reactive({
+  if(input$reverse_complement){
+    return("/pipeline_vUMI.pl --r1 ")
+  }else{return("/pipeline_v7.pl --r1 ")}
 })
 
 # ############################################################################.
@@ -26,7 +27,7 @@ observeEvent(c(input$resetA_batch, input$input_type_A_batch), {
 })
 
 Adapter_Directinput_batch <- eventReactive(input$uploadAdapters_batch,
-                                     { c(input$R1_Adapter_batch,input$R2_Adapter_batch) })
+  { c(input$R1_Adapter_batch,input$R2_Adapter_batch) })
 Adapter_FileInput_batch <- reactive({
   if (is.null(file_upload$upload_Adapter_state_batch)) {
     return(NULL)
@@ -251,8 +252,12 @@ interest_range <- reactive({
 command.interest_range <- reactive({
   if( is.null(interest_range())){
     return(NULL)
-  }else{return( str_c('-indel_interest_range',
-                      interest_range(), sep = ' ') )}
+  }else{return( 
+    str_c(
+      '-indel_interest_range',
+      interest_range(), sep = ' ') 
+    )
+  }
 })
 
 output$advanced_for_the_time_being <- renderText(paste0('For the time being advanced options are all fixed to default values of identity and coverage of 1 and a minimun length of 100 bps'))
@@ -274,79 +279,115 @@ observeEvent(input$Accept_batch,{
     
     name <- names(required_values[required_values == 'NULL'])
     
-    showModal(modalDialog(
-      fluidPage(
-        h1(strong("Warning"),align="center"),
-        hr(),
-        fluidRow(column(4,offset = 4,
-                        div(style='max-width:150px;max-height:150px;width:3%;height:5%;', 
-                            img(src="caution-icon.png", height='150', width='150', align="middle")))),
-        h2(paste("A ", name ," is required to align reads." ,sep = ''), align = 'center'),
-        easyClose = TRUE,
-        footer = NULL
-      )))
-    
+    showModal(
+      modalDialog(
+        fluidPage(
+          h1(strong("Warning"),align="center"),
+          hr(),
+          fluidRow(
+            column(
+              4,
+              offset = 4,
+              div(
+                style='max-width:150px;max-height:150px;width:3%;height:5%;', 
+                img(src="caution-icon.png", height='150', width='150', align="middle")
+              )
+            )
+          ),
+          h2(paste("A ", name ," is required to align reads." ,sep = ''), align = 'center'),
+          easyClose = TRUE,
+          footer = NULL
+        )
+      )
+    )
   }
+
   #############################################################################.
   #### COMMAND ####
   #############################################################################.
   
   withProgress(message = "Performing analisis: ", detail = 'Executing pipeline', {
   
-  datos$tmppipelinedir <- str_c(session$token, '/data', str_sub(tempfile(), start = 21))
-  dir.create(datos$tmppipelinedir)
-  
-  # req(input$Reference_batch, input$dir)
-  unziped_files <- conditional_input_decision_tree(input$dir)
-  
-  # if(unzipped_files == "Unrecognised input"){showModal error; setwd(CompletePath)}
-  
-  R1_files <- grep(unziped_files, pattern = '_R1_', value = TRUE)
-  command <- str_c(ScriptsPATH, '/Mosaic_standalone_pipe.R',
-                paste(' ',paste(R1_files,collapse = ' '),
-                '-reference', 
-                Reference_batch(),
-                command.adapter(),
-                command.primers(),
-                '-alignment',
-                input$alnType_batch,
-                '-output',
-                str_c(CompletePATH,'/',as.character(datos$tmppipelinedir)),
-                mismatches(),
-                '-score_threshold',
-                scoring_threshold(),
-                sequences(),
-                command.interest_range(), sep = ' '), sep = '')
+    datos$tmppipelinedir <- str_c(session$token, '/data', str_sub(tempfile(), start = 21))
+    dir.create(datos$tmppipelinedir)
+    
+    # req(input$Reference_batch, input$dir)
+    unziped_files <- conditional_input_decision_tree(input$dir)
+    
+    # if(unzipped_files == "Unrecognised input"){showModal error; setwd(CompletePath)}
+    
+    R1_files <- grep(unziped_files, pattern = '_R1_', value = TRUE)
+    command <- str_c(
+      ScriptsPATH, '/Mosaic_standalone_pipe.R',
+      paste(
+        ' ',
+        paste(R1_files,collapse = ' '),
+        '-reference', 
+        Reference_batch(),
+        command.adapter(),
+        command.primers(),
+        '-alignment',
+        input$alnType_batch,
+        '-output',
+        str_c(CompletePATH,'/',as.character(datos$tmppipelinedir)),
+        mismatches(),
+        '-score_threshold',
+        scoring_threshold(),
+        sequences(),
+        command.interest_range(), 
+        sep = ' '
+      ), sep = ''
+    )
 
-  incProgress( 1/2 ,detail = 'may take a while...')
-  system(command)
-  setwd(datos$tmppipelinedir)
-  final_files <- dir('.', pattern = '*.xlsx', full.names = TRUE)
-  path_to_zip_file <- str_c(CompletePATH,'/',as.character(datos$tmppipelinedir),'/','results.zip')
-  incProgress( 1/4 ,detail = 'zipping files...')
-  zip(path_to_zip_file,files = final_files)
-  setwd(CompletePATH)
-  
-  ###################################.
-  ##### FILE READY MODAL DIALOG ####
-  ###################################.
-  
-  showModal(modalDialog(
-    fluidPage(
-      h1(strong("File ready"),align="center"),
-      hr(),
-      fluidRow(column(4,offset = 4,
-                      div(style='max-width:150px;max-height:150px;width:3%;height:5%;', 
-                          img(src='ready_for_download.png', height='150', width='150', align="middle")))),
-      h2(paste("Click to download file." ,sep = ''), align = 'center'),
-      fluidRow(column(4,offset = 4.5,
-                      callModule(downloadZIP, 'downloadZIP_batch', data = path_to_zip_file, 'results'))),
-      easyClose = TRUE,
-      footer = NULL
-    )))
- 
+    incProgress( 1/2 ,detail = 'may take a while...')
+    system(command)
+    setwd(datos$tmppipelinedir)
+    final_files <- dir('.', pattern = '*.xlsx', full.names = TRUE)
+    path_to_zip_file <- str_c(CompletePATH,'/',as.character(datos$tmppipelinedir),'/','results.zip')
+    incProgress( 1/4 ,detail = 'zipping files...')
+    zip(path_to_zip_file,files = final_files)
+    setwd(CompletePATH)
+    
+    ###################################.
+    ##### FILE READY MODAL DIALOG ####
+    ###################################.
+    
+    showModal(
+      modalDialog(
+        fluidPage(
+          h1(strong("File ready"),align="center"),
+          hr(),
+          fluidRow(
+            column(
+              4,
+              offset = 4,
+              div(
+                style='max-width:150px;max-height:150px;width:3%;height:5%;', 
+                img(src='ready_for_download.png', height='150', width='150', align="middle")
+              )
+            )
+          ),
+          h2(paste("Click to download file." ,sep = ''), align = 'center'),
+          fluidRow(
+            column(
+              4,
+              offset = 4.5,
+              callModule(
+                downloadZIP, 
+                'downloadZIP_batch', 
+                data = path_to_zip_file, 
+                'results'
+              )
+            )
+          ),
+          easyClose = TRUE,
+          footer = NULL
+        )
+      )
+    )
+
   })# withProgress closing bracket
- })# observerEvent end bracket
+})# observerEvent end bracket
 
 # input_filename_batch <- reactive({
 #   'results'})

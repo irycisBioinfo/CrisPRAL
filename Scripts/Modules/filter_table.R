@@ -1,5 +1,5 @@
 #!/usr/bin/Rscript
-
+#TODO: CHange the structure of these columns
 filter.table <- function(Tabla, name = 'out' ,path = './',params.mm = 0, params.indel = 0, params.score = 0, params.range = NULL){
 
 #### DESCRIPTION: #####
