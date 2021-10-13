@@ -639,7 +639,7 @@ read.primers <- function(path){
   return(store.primers)
 }
 
-mismatches_break_down <- function(alignment_raw, data){
+mismatches_break_down <- function(alignment_raw, data, interest_range = c()){
   
   #### DESCRIPTION: #####
   #
@@ -655,12 +655,35 @@ mismatches_break_down <- function(alignment_raw, data){
   mmTable <- mmTable %>% select(-PatternStart, -PatternEnd, SubjectEnd)
   mmTable <- mmTable %>% group_by(PatternId)
   mmTable <- mmTable %>% group_by(PatternId) %>% mutate(SNP = str_c(SubjectStart,SubjectSubstring,'>',PatternSubstring))
-  mmTable <- mmTable %>% select(1,6) %>% mutate(SNP = str_c(SNP, collapse = ';')) %>% ungroup() %>% distinct()
+  if(!is.null(interest_range)){
+    mmTable <- mmTable %>% 
+      mutate(overlaps_with_range.SNP = case_when(SubjectStart %in% interest_range ~ TRUE,TRUE ~ FALSE))
+    mmTable <- mmTable %>% 
+      select(1,6,7) %>% mutate(SNP = str_c(SNP, collapse = ';')) %>% 
+      mutate(overlaps_with_range.SNP = case_when(any(overlaps_with_range.SNP) == TRUE ~ TRUE, TRUE ~ FALSE )) %>% 
+      ungroup() %>% 
+      distinct()
+  }else{
+    mmTable <- mmTable %>% 
+      select(1,6) %>% mutate(SNP = str_c(SNP, collapse = ';')) %>% 
+      ungroup() %>% 
+      distinct()
+  }
+  if(!is.null(interest_range)){
+    Unsort_Tabla_SNP <- left_join(
+      alignment_raw$tmp %>% rownames_to_column() %>% 
+        mutate('rowname' = as.integer(rowname)), 
+      mmTable %>% rename(rowname = PatternId), by = 'rowname') %>% column_to_rownames('rowname') %>%
+        mutate(across(starts_with('overlaps'), ~case_when(is.na(.) ~ FALSE, TRUE ~ .))) %>%
+        select(ID,SNP,overlaps_with_range.SNP)
+  }else{
+    Unsort_Tabla_SNP <- left_join(
+      alignment_raw$tmp %>% rownames_to_column() %>% 
+        mutate('rowname' = as.integer(rowname)), 
+      mmTable %>% rename(rowname = PatternId), by = 'rowname') %>% column_to_rownames('rowname') %>% 
+      select(ID,SNP)
+  }
   
-  Unsort_Tabla_SNP <- left_join(alignment_raw$tmp %>% rownames_to_column() %>% 
-                                  mutate('rowname' = as.integer(rowname)), 
-                                mmTable %>% rename(rowname = PatternId), by = 'rowname') %>% 
-    column_to_rownames('rowname') %>% select(ID,SNP)
   final_table <- left_join(data,Unsort_Tabla_SNP, by = 'ID')
   
   return(final_table)
