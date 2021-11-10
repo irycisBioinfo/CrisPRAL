@@ -142,12 +142,7 @@ Position_vector <- function(input, ref, aln){
   # sequence provided.
   #
   # #################
-<<<<<<< HEAD
 
-=======
-  
-  
->>>>>>> d072b78fbf967e6d6585a701b56f7bea56e10d11
   v_length = nchar(input)
   
   tmp = seq(10,100, 10)
@@ -230,13 +225,8 @@ lengthFixing <- function(v_length, pos){
   #
   # Helper function for Position_vector()
   #
-<<<<<<< HEAD
   #############
 
-=======
-  #############.
-  
->>>>>>> d072b78fbf967e6d6585a701b56f7bea56e10d11
   if (str_sub(pos, v_length, v_length) != ' '){
     v_length = v_length+1
     return(lengthFixing(v_length, pos))
