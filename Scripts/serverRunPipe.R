@@ -1,19 +1,38 @@
 # Server-Mosaic
 
 ########################### DESCRIPTION ##################################
-# Loads script for pipeline execution with the stablished parameters and
+# Loads script for pipeline execution with the established parameters and
 # loads the main Tables of results. Also defines code to allow user edits on table.
-##########################################################################
+##########################################################################.
 
 #----Running Pipeline----
 
 pipeline <- reactive({if(input$reverse_complement){
-  return("/pipeline_vUMI.pl --r1 ")
-  }else{return("/pipeline_v7.pl --r1 ")}
+  return("/Scripts/pipeline_vUMI.pl --r1 ")
+  }else{return("/Scripts/pipeline_v7.pl --r1 ")}
+  })
+
+error <- reactive({
+  log_file <- paste0(datos$tmppipelinedir,'/',input_filename_generic(),'.log')
+  write_lines(date(),log_file)
+  write_lines("===============================================================\n",log_file, append = TRUE)
+  write_lines(x = datos$process.log, log_file, append = TRUE)
+  
+  showModal(modalDialog(
+    fluidPage(
+      h1(strong("Warning"),align="center"),
+      hr(),
+      fluidRow(column(4,offset = 4,
+                      div(style='max-width:150px;max-height:150px;width:3%;height:5%;', 
+                          img(src="caution-icon.png", height='150', width='150', align="middle")))),
+      h2(paste("ERROR: Pipeline was broken; check files, parameter values, reload and if problem persists contact administrator at sergio.fern1994@gmail.com" ,sep = ''), align = 'center'),
+      easyClose = TRUE,
+      footer = NULL
+    )))
+  
   })
 
 observeEvent(input$Accept, {
- 
  checks$example <- FALSE
  
  required_values <- list("Reference sequence" = input$Reference$name, 'Fastq File' = input$R1$name)
@@ -91,6 +110,8 @@ observeEvent(input$Accept, {
    input$single_end,
    " --min_len ",
    input$MinLength,
+   " --min_qual ",
+   input$MinQual,
    " --Adapter_R1 ",
    as.character(AdapterR1()),
    " --Adapter_R2 ",
@@ -126,17 +147,22 @@ observeEvent(input$Accept, {
    collapse = "",
    sep = ""
   )
-  
-  system(command) #-Executes perl script
+
+  datos$process.log <- system(command, intern = TRUE) #-Executes perl script
   
   incProgress( 1/5 ,detail = 'Alignments')
   
   if(!file.exists(paste(datos$tmppipelinedir,"/cluster.tsv", sep = ''))){
    #-Missing files
    
-   output$Print2 <- renderText(':ERROR: Pipeline was broken; check files, extensions, reload and if problem persists contact administrator at sergio.fern1994@gmail.com')
-   return()
+    error()
+    return()
    
+  }else if(isTRUE(file.info(paste(datos$tmppipelinedir,"/cluster.tsv", sep = ''))[1] == 0)){
+    
+    error()
+    return()
+    
   }
   
   #This directory has to be reactive
@@ -144,18 +170,18 @@ observeEvent(input$Accept, {
                           col_names = FALSE)
   datos$cluster <- read_tsv(paste(datos$tmppipelinedir,"/cluster.bak.tsv", sep = ''), 
                             col_names = FALSE)
-  
+
   if (isEmpty(colnames(datos$fasta))){#-If dataset is completely filtered 
    #due to any restriction app crashes
    if (!is.null(datos$Tabla)){
     Total_Abundance = sum(datos$Tabla_raw['Abundance'])
     output$Print2 <- renderText(paste("Total amount of Reads: ", Total_Abundance, 
-                                      '
-                                      :WARNING: All data of new process was filtered. Posibly something happened, adjust parameters & make sure files are correctly introduced.
+                                      ':WARNING: All data of new process was filtered. Posibly something happened, adjust parameters & make sure files are correctly introduced.
                                       Keeping previous Results...', sep = ''))
     return()
     
    }else{
+    browser()
     output$Print2 <- renderText(':WARNING: All data was filtered. Posibly something happened, adjust parameters & make sure files are correctly introduced.')
     return()
    }
@@ -164,48 +190,44 @@ observeEvent(input$Accept, {
    colnames(datos$fasta) <- c("ID", "Sequence")
    colnames(datos$cluster) <- c("ClusterN", "Length", "ID", "Identity")
   } 
-  
-  datos$allfasta <- read_delim(paste(datos$tmppipelinedir,"/final.fasta" ,sep = ''), 
+
+  allfasta <- read_delim(paste(datos$tmppipelinedir,"/final.fasta" ,sep = ''), 
                                delim = ' ', col_names =FALSE) %>% select(X1)
   
-  datos$justfasta <- datos$allfasta %>% filter(!str_starts(X1, '>'))
-  datos$justIds <- datos$allfasta %>% filter(str_starts(X1, '>'))
-  datos$allfasta <- bind_cols(datos$justIds, datos$justfasta)
-  colnames(datos$allfasta) <- c('ID','SEQ')
-  datos$allfasta <- datos$allfasta %>% mutate_at(vars(ID), 
-                                                 list(~if_else(str_starts(., '>'),
-                                                               true = str_extract(., '(?<=>)[:graph:]+'), 
-                                                               false = .)))
+  justfasta <- allfasta %>% filter(!str_starts(X1, '>'))
+  justIds <- allfasta %>% filter(str_starts(X1, '>'))
+  allfasta <- bind_cols(justIds, justfasta)
+  colnames(allfasta) <- c('ID','SEQ')
+  allfasta <- allfasta %>% mutate_at(vars(ID),
+                                     list(~if_else(str_starts(., '>'),
+                                                   true = str_extract(., '(?<=>)[:graph:]+'), 
+                                                   false = .)))
   
-  datos$clusterF <- datos$cluster %>% select("ClusterN", "ID", "Identity")
-  colnames(datos$clusterF) <- c('CLUSTER', 'ID', 'Identity')
-  datos$clufast <- full_join(datos$allfasta, datos$clusterF) %>% group_by(CLUSTER) %>% nest() %>% arrange(CLUSTER)
+  # We want to double the amount of total reads when coming from a paired-end experiment.
+  if(input$single_end){ correct_paired_reads = 1 }else{ correct_paired_reads = 2 }
   
-  #datos$Tabla_raw is a rearrangement of datos$cluster to prepare the data for
-  #fusing with Cluster-Sequences aswell as integrating with Alignment data
   
   datos$Tabla_raw = datos$cluster %>%
    group_by(ClusterN) %>%
-   mutate(Abundance = n()*2) %>%
+   mutate(Abundance = n()*correct_paired_reads) %>%
    ungroup() %>%
-   mutate(Freq = 100 *Abundance / (n()*2)) %>%
+   mutate(Freq = 100 *Abundance / (n()*correct_paired_reads)) %>%
    filter(Identity == "*") %>%
-   select(ID, Abundance, Freq) %>%
+   select(ID, Abundance, Freq, Length) %>%
    arrange(desc(Abundance))
   
   Total_Abundance = sum(datos$Tabla_raw['Abundance'])
   
   #----Associating clusterN with sequences----
   
-  datos$Tabla_raw_clstrs <- datos$Tabla_raw %>% rowid_to_column('ClusterN') %>% 
-   select(-Abundance, -Freq)
+  # datos$Tabla_raw_clstrs <- datos$Tabla_raw %>% rowid_to_column('ClusterN') %>% 
+  #  select(-Abundance, -Freq)
   
-  datos$clustering <- full_join(datos$Tabla_raw_clstrs, datos$clufast %>% 
-                                 unnest(), by = 'ID') %>% arrange(CLUSTER)
-  datos$clustering <- datos$clustering %>% fill(ClusterN, .direction = 'down') %>% 
-   select(-Identity, -CLUSTER ) %>% 
-   group_by(ClusterN) %>% nest %>% 
-   arrange(ClusterN)
+  # datos$clustering <- full_join(datos$Tabla_raw_clstrs, datos$clufast %>% unnest(), by = 'ID') %>% arrange(CLUSTER)
+  # datos$clustering <- datos$clustering %>% fill(ClusterN, .direction = 'down') %>% 
+  #  select(-Identity, -CLUSTER ) %>% 
+  #  group_by(ClusterN) %>% nest %>% 
+  #  arrange(ClusterN)
   
   #Preparing for Alignment operations---- 
   #-asserting Reference does not provide an error:
@@ -227,7 +249,6 @@ observeEvent(input$Accept, {
   }
   
   datos$Sequences <- readDNAStringSet(paste(datos$tmppipelinedir,"/cluster", sep = ''))
-  
   #Alignment for Sequences with Reference
   ls_ClusterAln_Ref = Clusters_Alignments(datos$Sequences, datos$Ref, 
                                           gapOpening = input$gap_open, 
@@ -235,86 +256,88 @@ observeEvent(input$Accept, {
                                           type = input$general_allType) #Function in Functions.R module.
   #Another Tabla variable is declared as an unsorted version together with
   #an associated Abundance for INDEL processing in graphing section.
-  datos$Tabla_unsort <- ls_ClusterAln_Ref$tmp %>% rename(Deleted_bps = deletions) %>% rename(Inserted_bps = insertions)
+  datos$Tabla_unsort <- ls_ClusterAln_Ref$tmp
   
   
-  datos$aln = ls_ClusterAln_Ref$aln
+  ############.
+  # alignment data is extracted and stored for the whole app since serverGraphs.R uses this to produce the graphic representation
+  datos$aln <- ls_ClusterAln_Ref$aln
+  ############.
   
   incProgress( 1/8 ,detail = 'Alignments')
   
-  
-  #Changing deletions and insertion columns to show total number of indels 
-  #instead of total number of indel bps
-  number_of_dels <- map(as.list(deletion(datos$aln)), ~length(.))
-  total_deletions_per_cluster <- as_tibble(purrr::flatten_dbl(number_of_dels)) %>% rename(Deletions = value)
-  number_of_ins <- map(as.list(insertion(datos$aln)), ~length(.))
-  total_insertions_per_cluster <- as_tibble(purrr::flatten_dbl(number_of_ins)) %>% rename(Insertions = value)
-  
-  # datos$Tabla_unsort_total_indels <- cbind(cbind(datos$Tabla_unsort %>% select(-Deleted_bps, -Inserted_bps), total_deletions_per_cluster, total_insertions_per_cluster), datos$Tabla_unsort %>% select(Deleted_bps, Inserted_bps))
-  
-  datos$Tabla_unsort_total_indels <- cbind(datos$Tabla_unsort %>% select(-Deleted_bps, -Inserted_bps), total_deletions_per_cluster, datos$Tabla_unsort %>% select(Deleted_bps), total_insertions_per_cluster, datos$Tabla_unsort %>% select(Inserted_bps))
-  
-  # datos$Tabla is DONE with this last line:
-  datos$Tabla = inner_join(datos$Tabla_raw, datos$Tabla_unsort_total_indels) %>% 
+  #- Finetune datos$Tabla
+  datos$Tabla = inner_join(datos$Tabla_raw, ls_ClusterAln_Ref$tmp) %>% 
    mutate(score = round(score,1), Freq = signif(Freq,2)) %>% 
-   arrange(desc(Abundance)) %>% select(-width,-start,-end)
+   arrange(desc(Abundance))# %>% select(-width,-start,-end)
+  
+  ###########################################################.
+  ##### Mismatch extraction and joining for datos$Tabla #####
+  ###########################################################.
+  
+  datos$Tabla <- mismatches_break_down(ls_ClusterAln_Ref, datos$Tabla)
+  
+  #################################################.
+  ## Append sequences as the last column
+  #################################################.
+  # This operations have the objective of being able to compare sequences of different samples between each other.
+  datos$Tabla <- inner_join(datos$Tabla, allfasta)
+  
+  ##################################.
+  #### OUTPUTING Reference ####
+  ##################################.
   
   rownames(datos$Tabla) <- str_c('Cluster', rownames(datos$Tabla))
   
-  datos$Tabla_Original <- datos$Tabla #datos$Tabla will be printed as a reactive function, line located before "Running Pipeline" block. datos$Tabla_Original is made to recover if datos$Tabla is altered by the user.
-  output$tablaD <- renderDT(Tabla(), server = TRUE) #Table with multiple selection for PDF formatting
+  datos$Tabla_Original <- datos$Tabla #datos$Tabla will be printed as a reactive function, line located before "Running Pipeline" block. datos$Tabla_Original is made as recovery if datos$Tabla is altered by the user.
+  output$tablaD <- renderDT(Tabla(),filter = 'top', server = TRUE) #Table with multiple selection for PDF formatting
   output$PrintD <- renderDT(Tabla()[sort.default(rows_selected()),], selection = 'none')
   output$Print2 <- renderText(paste("Total amount of Reads: ", 
                                     Total_Abundance, sep = ''))
   
-  #Data with named groups for FASTAS downloads.
+  ###########################################################.
+  ##### FASTA data preparation #####
+  ###########################################################.
+  
   datos$namedSequences <- datos$Tabla %>% 
    left_join(datos$fasta) %>% select(ID, Sequence) %>%
    mutate(ID = paste(ID, '_', rownames_Tabla()[which(datos$Tabla == ID)] , sep = ''))
   datos$namedStringSet <- DNAStringSet(datos$namedSequences$Sequence)
   names(datos$namedStringSet) <- datos$namedSequences$ID
   
-  #Is Target Introduced?
+#########################################################################.
+##### Is Target Introduced? #####
+#########################################################################.
+  
   if(!is.null(Target_FileInput()) && isFALSE(str_detect(Target(), 'ERROR' ))){ 
    incProgress( 1/8 ,detail = 'Looking for Target')
    datos$Target = readDNAStringSet(Target())
    
    #Alignment for Sequences with Target
-   ls_ClusterAln_Tar = Clusters_Alignments(datos$Sequences, datos$Target) #Function in Functions.R module.
-   #Another Tabla variable is declared as an unsorted version together with
-   #an associated Abundance for INDEL processing in graphing section.
-   datos$TablaT_unsort <- ls_ClusterAln_Tar$tmp %>% rename(Deleted_bps = deletions) %>% rename(Inserted_bps = insertions)
-   datos$unsortT_ID_Abundance <- left_join(datos$TablaT_unsort %>% select(ID),
-                                           datos$Tabla_raw %>% select(-Freq),  by = 'ID') #What is this used for?
+   ls_ClusterAln_Tar = Clusters_Alignments(datos$Sequences, datos$Target,
+                                           gapOpening = input$gap_open, 
+                                           gapExtension = input$gap_extend,
+                                           type = input$general_allType) #Function in Functions.R module.
    
-   incProgress( 1/8 ,detail = 'Alignments... renaming')
-   
-   datos$alnT = ls_ClusterAln_Tar$aln
-   
-   incProgress( 1/8 ,detail = 'Alignments')
-   
-   
-   #Changing deletions and insertion columns to show total number of indels 
-   #instead of total number of indel bps
-   number_of_delsT <- map(as.list(deletion(datos$alnT)), ~length(.))
-   total_deletions_per_clusterT <- as_tibble(purrr::flatten_dbl(number_of_delsT)) %>% rename(Deletions = value)
-   
-   number_of_insT <- map(as.list(insertion(datos$alnT)), ~length(.))
-   total_insertions_per_clusterT <- as_tibble(purrr::flatten_dbl(number_of_insT)) %>% rename(Insertions = value)
-   
-   datos$TablaT_unsort_total_indels <- cbind(cbind(
-     datos$TablaT_unsort %>% select(-Deleted_bps, -Inserted_bps), total_deletions_per_clusterT), 
-     datos$TablaT_unsort %>% select(Deleted_bps), total_insertions_per_clusterT, datos$TablaT_unsort %>% select(Inserted_bps))
-   
-   # datos$Tabla_Target is DONE with this last line:
-   datos$Tabla_Target = inner_join(datos$Tabla_raw, datos$TablaT_unsort_total_indels) %>% 
+   datos$Tabla_Target = inner_join(datos$Tabla_raw, ls_ClusterAln_Tar$tmp) %>% 
     mutate(score = round(score,1), Freq = signif(Freq,2)) %>% 
-    arrange(desc(Abundance)) %>% select(-width,-start,-end)
+    arrange(desc(Abundance))# %>% select(-width,-start,-end) # Remove columns deemed too confusing for a user.
+   
+   ##################################################################.
+   ##### Mismatch extraction and joining for datos$Tabla_Target #####
+   ##################################################################.
+   
+   datos$Tabla_Target <- mismatches_break_down(ls_ClusterAln_Tar, datos$Tabla_Target)
+   
    output$Target_Location <- renderText(paste(Target_location()[1], Target_location()[2], sep = ' '))
    
    rownames(datos$Tabla_Target) <- str_c('Cluster', rownames(datos$Tabla_Target))
    
    datos$Tabla_Target_Original <- datos$Tabla_Target
+   
+   ##########################.
+   #### OUTPUTING Target ####
+   ##########################.
    
    # Declaring Target Table for Download tab.
    output$tablaTD <- renderDT(TablaT(), server = TRUE) #Table with multiple selection for PDF formatting
@@ -328,20 +351,25 @@ observeEvent(input$Accept, {
    
    output$Target_Location <- renderText(Target())
   }
-  #browser()
  })
-})
+}) # observeEvent close bracket
 
 output$temp_text <- renderUI({
  verbatimTextOutput('explicative_text')
 })
 
+# Rownames can be changed and these affect the outputing of the pie chart.
 rownames_Tabla <- reactive({
  rownames(datos$Tabla)
 }) 
+###############################################################################.
+##### User Table Edit ####
+###############################################################################.
 
-#----User Table Edit----
-#-Table Filtering:
+  ###########################.
+  #-Table Filtering ####
+  ###########################.
+
 observeEvent(input$Filter, {
  #-Table Reference:
  datos$Tabla <- datos$Tabla_Original %>% rownames_to_column(var = 'rowname') %>% 
@@ -368,7 +396,10 @@ observeEvent(input$Default, {
 }
 )
 
-#-Rowname Custimization:
+  ################################.
+  #-Rowname Customization ####
+  ################################.
+
 proxy_tablaR = dataTableProxy('tablaR')
 proxy_tablaT = dataTableProxy('tablaT')
 proxy_tablaD = dataTableProxy('tablaD')

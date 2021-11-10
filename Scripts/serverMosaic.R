@@ -1,4 +1,3 @@
-# serverMosaic <- function(input, output, session) {
 #---Mosaic Analyser SERVER----
 #-Reset block-
 
@@ -10,6 +9,12 @@ reset('Target')
 observeEvent(input$toggle2, {
  toggleDropdownButton(inputId = "mydropdown")
 }, ignoreInit = TRUE)
+
+observeEvent(input$go_to_mosaic, {
+  
+  updateTabsetPanel(session, 'app', selected = 'Mosaic_Finder')
+  
+})
 
 #------TESTING-----
 
@@ -48,16 +53,15 @@ Table_to_download <- reactive({
     return(TablaT())
 }})
 
-warningCLSTR <- reactive({if(length(datos$clustersStringSet) > 100){
-    return('Warning: Number of sequences for Multiple Sequence Alignment exceed max computing limit, 100 will be computed but only the first 50 entries will be shown')
-  }else if(length(datos$clustersStringSet) > 50){
-    return('Warning: Number of sequences for Multiple Sequence Alignment exceed max printing limit, only the first 50 entries will be shown')
-  }else{return(FALSE)}
-})
+#-Table data made reactive.
+Tabla <- reactive({datos$Tabla})
+TablaT <- reactive({datos$Tabla_Target})
+#-Specific tables made reactive.
+TablaVar <- reactive({datos$variants})
 
 #---Reactive values-Data storage----  
 
-datos <- reactiveValues()
+# datos <- reactiveValues()
 charts <- reactiveValues()
 checks <- reactiveValues()
 checks$Table_has_been_edited <- FALSE
@@ -65,34 +69,41 @@ checks$Table_back_to_default <- FALSE
 file_upload <- reactiveValues(upload_Adapter_state = NULL)
 file_upload <- reactiveValues(upload_Primer_state = NULL)
 
+# ############################################################################.
+# FILES ####
+##############################################################################.
 #-Reactive input to allow for compressed files processing.
 R1_file <- reactive({
  
- if(checks$example){return('../basic_Trials/Mutation_mus_R1_001.fastq')}
+ if(checks$example){return('./basic_Trials/Mutation_mus_R1_001.fastq')}
  
 if(!is.null(input$R1)){ 
  if (str_sub(input$R1$datapath, -3) == '.gz'){
   #Function "Unzip_file" defined in Functions.R
-  Unzip_file(CompletePATH, input$R1$datapath)}
+  Unzip_file(str_remove(input$R1$datapath, pattern = '.gz'), input$R1$datapath)}
  else{
   input$R1$datapath}}
 })
 R2_file <- reactive({
- if(checks$example){return('../basic_Trials/Mutation_mus_R2_001.fastq')}
+ if(checks$example){return('./basic_Trials/Mutation_mus_R2_001.fastq')}
  
  if(!is.null(input$R2)){
   if(str_sub(input$R2$datapath, -3) == '.gz'){
-   Unzip_file(CompletePATH, input$R2$datapath)}
+   Unzip_file(str_remove(input$R2$datapath, pattern = '.gz'), input$R2$datapath)}
   else{
    input$R2$datapath}
  }else{
   return('Empty')
  }})
 
+# ############################################################################.
+# REFERENCE & TARGET ####
+##############################################################################.
+
 #-Allows reference Primer trimming.
 Reference <- reactive({
  
- if(checks$example){return('../basic_Trials/Reference.fasta')}
+ if(checks$example){return('./basic_Trials/Reference.fasta')}
  
  if(file_upload$upload_Primer_state == 'uploaded'){
   extensionR <- str_split(input$Reference$datapath, '\\.')[[1]][length(str_split(input$Reference$datapath, '\\.')[[1]])]
@@ -160,10 +171,6 @@ ObsT <- observe({
   hideTab( inputId ='Alignment', target = 'Target')
  }})
 
-#-Table data made reactive.
-Tabla <- reactive({datos$Tabla})
-TablaT <- reactive({datos$Tabla_Target})
-
 Target_location <- reactive({find_target_location(Tabla(), TablaT(), datos$Target)}) #function in Functions.R
 
 #Generates reactive UI depending on the presence of a Target or not.
@@ -175,7 +182,9 @@ output$is.nullTarget1 <- renderUI({
   }else{c("Reference")})
 })
 
-#----Filtering Parameters declarations----
+# ############################################################################.
+# ADAPTERS ####
+##############################################################################.
 
 #This following set of observeEvents allows the user to change his mind on 
 #uploaded Adapter files.
@@ -228,7 +237,10 @@ AdapterR2 <- reactive({
 output$checkR1A <- renderText(paste("R1 Adapter: ",AdapterR1(), sep = ''))
 output$checkR2A <- renderText(paste("R2 Adapter: ",AdapterR2(), sep = ''))
 
-#Same than the Adapter strings but with the Primers.
+# ############################################################################.
+# PRIMERS ####
+##############################################################################.
+
 observeEvent(c(input$PrimerFile, input$uploadPrimers), {
  file_upload$upload_Primer_state <- 'uploaded'
 }) 
@@ -311,7 +323,10 @@ output$checkRP1 <- renderText(paste("Read 2, 5' end: ",PrimerR2_5(),
                                     sep = ''))
 output$checkRP2 <- renderText(paste("Read 2, 3' end: ",PrimerR2_3(), 
                                     sep = ''))
-#---------Modal dialog WARNING----
+
+# ############################################################################.
+# MODAL DIALOG ASSERTION ####
+##############################################################################.
 
 Check_pair_input_files <- reactive({ #Allow warning to be disabled
  
@@ -375,15 +390,72 @@ Check_pair_input_files <- reactive({ #Allow warning to be disabled
  
 })
 
-#----Reactive table printing----
+# ############################################################################.
+# TABLE PRINTING ####
+##############################################################################.
+to_be_hidden_by_default <- reactive({c(grep(colnames(Tabla()), pattern = 'start'),
+                                             grep(colnames(Tabla()), pattern = 'end'),
+                                             grep(colnames(Tabla()), pattern = 'SEQ'))})
 
-output$tablaR <- renderDT(Tabla(), selection = "single", editable = TRUE, 
-                          options = list(search = list(smart = FALSE)), server = TRUE)
+output$tablaR <- renderDT(Tabla(), selection = "single", editable = TRUE,
+                          filter = 'top',
+                          extensions = c('Buttons','FixedColumns','Scroller','ColReorder'), 
+                          options = list(columnDefs = list(list(targets = to_be_hidden_by_default(), visible = FALSE)),
+                                         stateSave = TRUE,
+                                         dom = 'Bfrtip', 
+                                         scrollX = TRUE,
+                                         deferRender = TRUE, scrollY = 400, scroller = TRUE,
+                                         colReorder = TRUE,
+                                         search = list(smart = FALSE),
+                                         buttons = list('copy', list(extend = 'collection',
+                                                                     buttons = list(
+                                                                               list(extend = 'csv', filename = input_filename_results()),
+                                                                               list(extend = 'excel', filename = input_filename_results())),
+                                                                     text = 'Download'),
+                                                        'colvis')), server = TRUE)
 
-output$tablaT <- renderDT(TablaT(), editable = TRUE, selection = "single", 
-                          options = list(search = list(smart = FALSE)), server = TRUE)
+output$tablaT <- renderDT(TablaT(), editable = TRUE, selection = "single",
+                          filter = 'top',
+                          extensions = c('Buttons','FixedColumns','Scroller','ColReorder'), 
+                          options = list(columnDefs = list(list(targets = to_be_hidden_by_default(), visible = FALSE)),
+                                         stateSave = TRUE,
+                                         dom = 'Bfrtip', 
+                                         scrollX = TRUE,
+                                         deferRender = TRUE, scrollY = 400, scroller = TRUE,
+                                         colReorder = TRUE, search = list(smart = FALSE),
+                                         buttons = list('copy', list(extend = 'collection',
+                                                                     buttons = list(
+                                                                       list(extend = 'csv', filename = input_filename_results()),
+                                                                       list(extend = 'excel', filename = input_filename_results())),
+                                                                     text = 'Download'),
+                                                        'colvis')), server = TRUE)
 
-#----Alignment and Table filtering dinamic UI----
+col_search_filters <- reactive({
+  
+  keys <- colnames(Tabla())
+  nkeys <- length(keys)
+  col_filters <- vector("list", nkeys)
+  for(i in 1:nkeys){col_filters[[i]] <- input$tablaR_search_columns[i]}
+  col_filters <- setNames(col_filters, keys)
+  return(col_filters)
+
+})
+
+output$formatted_variants <- renderDT(TablaVar(), filter = 'top',
+                                        extensions = c('Buttons','Scroller'),
+                                        rownames = FALSE, selection = 'single',
+                                        options = list(dom = 'Bfrtip',
+                                                       scrollX = TRUE,
+                                                       deferRender = TRUE, scrollY = 200, scroller = TRUE,
+                                                       colReorder = TRUE,
+                                                       search = list(smart = FALSE),
+                                                       buttons = list('copy', list(extend = 'collection',
+                                                                                   buttons = c('csv', 
+                                                                                               'excel'),
+                                                                                   text = 'Download'),
+                                                                      'colvis')), server = TRUE)
+
+#----Alignment and Table filtering dinamic UI----.
 
 Back_to_default <- reactive({
  if(!checks$Table_back_to_default){return(actionButton('Default', 'Default'))}
@@ -429,6 +501,10 @@ output$alignment_with_filtering <- renderUI({
                     column(2, Back_to_default())
                    )
          )))})
+
+# ############################################################################.
+# MANUAL TABLE EDITING CONFIGURATION ####
+##############################################################################.
 
 observeEvent(c(input$tablaR_cell_edit, input$tablaT_cell_edit),{
  
@@ -491,7 +567,9 @@ observeEvent(c(input$tablaR_cell_edit, input$tablaT_cell_edit),{
  reset('tablaT_cell_edit')
 })
 
-#-Reactive functions for CallModule and downloads----
+# ############################################################################.
+# DOWNLOADS ####
+##############################################################################.
 
 aln2PAIR <- reactive({datos$aln2})
 aln2FASTA <- reactive({alignedSubject(datos$aln2)})
@@ -511,21 +589,16 @@ clustersMSA <- reactive({
  
 })
 
+#########################################.
+#### FILE NAME LOGIC ####
+#########################################.
 
-prettyprintCrashpreventor <- reactive({
- if (nrow(clustersMSA())/50 < 1){
+input_filename_generic <- reactive({
   
-  c(1:nrow(clustersMSA()))
+  req(input$R1)
   
- }else if(nrow(clustersMSA())/50 > 1){
-  
-  unique(round(seq.int(from = 1, to = nrow(clustersMSA()), length.out = 50)))
-  
- }
-})
-
-input_filename_generic <- reactive({paste(
- str_replace(#Removes posible double 
+  paste(
+ str_replace(#Removes possible double 
   #underscore "_"
   str_replace(#Removes Read number ID
    substring(text = input$R1$name, 
@@ -554,6 +627,7 @@ input_filename_clstrs_msa <- reactive({paste(input_filename_clstrs(), '_msa', se
 datos$alignmentdir <- 'empty' #Temporal asignment
 
 output$downloadReport <- downloadHandler(
+  
  filename = function() {
   paste(input_filename_results(),'pdf', sep = '.')
  },
@@ -573,26 +647,15 @@ output$downloadReport <- downloadHandler(
   file.rename(out, file) }
 )
 
-output$downloadMSA_clstr <- downloadHandler(
- filename = function(){
-  paste(input_filename_clstrs_msa(), 'pdf', sep = '.')
- },
- content = function(file) {
-  tmpFile <- tempfile(pattern = 'msa', tmpdir = '.', fileext = '.pdf')
-  msaPrettyPrint(clustersMSA(), file = tmpFile, output = "pdf",
-                 consensusColor="ColdHot", askForOverwrite = FALSE, 
-                 showLogo="top", showLegend = FALSE,
-                 subset = prettyprintCrashpreventor(),
-                 furtherCode=c("\\textbf{Multiple Sequence Alignment: ClustalW} ",
-                               "\\DNAgroups{GAR,CTY}","\\defconsensus{.}{lower}{upper}",
-                               "\\showruler{1}{top}"))
-  file.rename(tmpFile, file)}
-)
+# ############################################################################.
+# CALLMODULES ####
+##############################################################################.
 
 callModule(downloadCSV, 'downloadFile2',Table_to_download, input_filename_csv)
 
-#CallModule only declares itself once, check all variables that should be 
-#updating automatically (reactive variables)
+# CallModule only declares itself once, check all variables that should be 
+# updating automatically (reactive variables)
+
 callModule(downloadPAIR, 'downloadPAIR1', aln2PAIR, input_filename_pair)
 
 callModule(downloadFASTA, 'downloadFASTA1', 

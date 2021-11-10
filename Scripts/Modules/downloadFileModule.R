@@ -3,6 +3,7 @@
 
 downloadButtonModule <- function(id, label = ''){
   
+  
   ns <- NS(id)
   
   downloadButton(ns('download'), label)
@@ -25,6 +26,21 @@ downloadCompressedFile <- function(input, output, session, name){
  
 }
 
+downloadFile <- function(input, output, session, data, name){
+  
+  ns <- session$ns
+  
+  output$download <- downloadHandler(
+    filename = function() {
+      paste(name())
+    },
+    content = function(file) {
+      data1 <- data()
+      file <- write_lines(x = data(), file = file,)
+      
+    }
+  )}
+
 downloadCSV <- function(input, output, session, data, name){
   
   ns <- session$ns
@@ -37,6 +53,21 @@ downloadCSV <- function(input, output, session, data, name){
       
       data1 <- data() %>% rownames_to_column() %>% rename(Tag = 'rowname')
       file <- write_csv(data1, file)
+      
+    }
+  )}
+
+downloadZIP <- function(input, output, session, data, name){
+  
+  ns <- session$ns
+  
+  output$download <- downloadHandler(
+    filename = function() {
+      paste(name,'zip', sep = '.')
+    },
+    content = function(file) {
+      
+      file <- file.copy(data, file)
       
     }
   )}
