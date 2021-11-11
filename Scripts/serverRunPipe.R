@@ -32,6 +32,9 @@ error <- reactive({
   
   })
 
+############# ACCEPT button press ################
+##################################################
+
 observeEvent(input$Accept, {
  checks$example <- FALSE
  
@@ -96,9 +99,9 @@ observeEvent(input$Accept, {
  
  withProgress(message = "Performing analisis: ", detail = 'Clustering, may take a while...', {
   
-  datos$tmppipelinedir <- paste(session$token, '/data', str_sub(tempfile(), start = 21) ,sep = '')
+  datos$tmppipelinedir <- paste('sessions/',session$token, '/data_Mosaic_', str_sub(tempfile(), start = 21) ,sep = '')
   
-  dir.create(datos$tmppipelinedir)
+  dir.create(datos$tmppipelinedir, recursive = TRUE)
   
   command = paste(
    CompletePATH,

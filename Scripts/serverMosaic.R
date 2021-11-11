@@ -27,9 +27,6 @@ observeEvent(input$go_to_mosaic, {
 #             tags$span(style="background-color:rgba(0,0,255,0.40)", "d"), sep = ""))
 # ))})
 
-#-Compartmentalization line-
-dir.create(session$token)
-
 # Selected entries for download will be determined by the tab selected.
 download_table_selected <- reactive({
   if(input$Alignment2 == 'Reference'){

@@ -1,7 +1,7 @@
 ###################.
 # DESCRIPTION:
 #
-# This script stores different multiporpouse functions required
+# This script stores different multipurpose functions required
 # by different scripts. A function is declared here if the extension of it
 # is larger than 5 code lines or if it serves multiple scripts.
 #

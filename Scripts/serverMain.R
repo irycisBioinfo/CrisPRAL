@@ -4,6 +4,10 @@
 #Combines all mosaic script analyser and Lazy panel filtering.
 ##########################################################################
 serverMain <- function(input, output, session) {
+
+#-Compartmentalization line-
+dir.create(str_c('sessions/',session$token))
+        
  #Uncomment for app to stop when session if closed:
  
  # session$onSessionEnded(function() {
