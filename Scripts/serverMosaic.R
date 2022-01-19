@@ -664,10 +664,12 @@ callModule(downloadFASTA, 'downloadFASTAS',
 callModule(downloadFASTA, 'downloadFASTAS_clstr',
            clustersStringSet, input_filename_clstrs)
 
+
+
 session$onSessionEnded(function() {
- 
- #Delete dir with data on session exit to avoid accumulating files
- system(paste('rm -r ', CompletePATH,'/',session$token, sep = ''))
- # system('rm *.pdf')
- # system('rm *.tex')
+  
+  #Delete dir with data on session exit to avoid accumulating files
+  system(paste('rm -r ', CompletePATH,'/sessions/',session$token, sep = ''))
+  # system('rm *.pdf')
+  # system('rm *.tex')
 })
