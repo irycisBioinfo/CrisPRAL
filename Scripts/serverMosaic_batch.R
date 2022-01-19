@@ -308,8 +308,8 @@ observeEvent(input$Accept_batch,{
   
   withProgress(message = "Performing analisis: ", detail = 'Executing pipeline', {
   
-    datos$tmppipelinedir <- str_c('sessions/',session$token, '/data_MosaicB_', str_sub(tempfile(), start = 21))
-    dir.create(datos$tmppipelinedir, recursive = TRUE)
+    datos$tmppipelinedir <- str_c(session$token, '/data', str_sub(tempfile(), start = 21))
+    dir.create(datos$tmppipelinedir)
     
     # req(input$Reference_batch, input$dir)
     unziped_files <- conditional_input_decision_tree(input$dir)

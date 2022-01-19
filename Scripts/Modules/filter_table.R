@@ -96,7 +96,7 @@ if( !is.null(params.range) ){
 ############################################################################
 
 # total_reads <- Tabla %>% summarise(total_reads = sum(Abundance))
-# score <- data.filtered.score_threshold %>% summarise(low_score_reads = sum(Abundance))
+# score <- data.filtered.score_threshold %>% summarise(threshold_score = sum(Abundance))
 # 
 # wt <- data.filtered.wt %>% summarise(wildtypes = sum(Abundance))
 # mm <- data.filtered.mm %>% summarise(mismatches = sum(Abundance))
@@ -106,7 +106,7 @@ if( !is.null(params.range) ){
 ############################################################################
 
 total_reads <- Tabla %>% summarise(total_reads = sum(Abundance))
-score <- data.filtered.score_threshold %>% summarise(low_score_reads = sum(Abundance))
+score <- data.filtered.score_threshold %>% summarise(threshold_score = sum(Abundance))
 
 # removed wt summarise because its abundance is contained in wt inRange
 # wt <- data.filtered.wt %>% summarise(wildtypes = sum(Abundance))
@@ -139,8 +139,8 @@ wb <- createWorkbook()
 openxlsx::addWorksheet(wb, 'MAIN')
 writeDataTable(wb, Tabla, sheet = 'MAIN')
 
-openxlsx::addWorksheet(wb, paste('low_score_reads -', params.score , sep = ' '))
-writeDataTable(wb, data.filtered.score_threshold, sheet = paste('low_score_reads -', params.score , sep = ' '))
+openxlsx::addWorksheet(wb, paste('threshold_score -', params.score , sep = ' '))
+writeDataTable(wb, data.filtered.score_threshold, sheet = paste('threshold_score -', params.score , sep = ' '))
 
 openxlsx::addWorksheet(wb, 'wildtype')
 writeDataTable(wb, data.filtered.wt, sheet = 'wildtype')

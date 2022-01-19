@@ -93,8 +93,8 @@
     #Makes no sense to check if the required values are present inside a function that will only execute if the required values are present.
     required_values <- list("A Reference sequence is" = input$Reference_VC$name, 'Fastq files are' = input$dir_VC)
     name <- names(required_values[required_values == 'NULL'])
-    datos$tmppipelinedir <- str_c('sessions/',session$token,'/data_SVC_', str_sub(tempfile(), start = 21))
-    dir.create(datos$tmppipelinedir, recursive = TRUE)
+    datos$tmppipelinedir <- str_c('data', str_sub(tempfile(), start = 21))
+    dir.create(datos$tmppipelinedir)
     
     if( any(required_values == 'NULL') ) {
       
