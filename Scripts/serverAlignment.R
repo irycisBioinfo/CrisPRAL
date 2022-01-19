@@ -234,7 +234,7 @@ observeEvent( c( input$tablaR_rows_selected, input$tablaT_rows_selected,
   })
   
   output$unalignedID <- renderText(as.character(
-    datos$namedSequences[tabla_rows_selected(),]$ID))
+    datos$namedSequen ces[tabla_rows_selected(),]$ID))
   
   output$unalignedFASTA <- renderText(as.character(
     datos$namedSequences[tabla_rows_selected(),]$Sequence))
