@@ -238,4 +238,5 @@ observeEvent( c( input$tablaR_rows_selected, input$tablaT_rows_selected,
   
   output$unalignedFASTA <- renderText(as.character(
     datos$namedSequences[tabla_rows_selected(),]$Sequence))
+
   }) # End bracket observeEvent entry selection

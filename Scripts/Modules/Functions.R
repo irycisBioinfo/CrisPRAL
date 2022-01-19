@@ -142,8 +142,7 @@ Position_vector <- function(input, ref, aln){
   # sequence provided.
   #
   # #################
-  
-  
+
   v_length = nchar(input)
   
   tmp = seq(10,100, 10)
@@ -226,8 +225,8 @@ lengthFixing <- function(v_length, pos){
   #
   # Helper function for Position_vector()
   #
-  #############.
-  
+  #############
+
   if (str_sub(pos, v_length, v_length) != ' '){
     v_length = v_length+1
     return(lengthFixing(v_length, pos))
@@ -617,7 +616,7 @@ conditional_input_decision_tree <- function(path_to_files){
         new_file_path <- dir(path_to_files.split.path, pattern = 'fastq$' ,full.names = TRUE)
         # file.rename(str_remove(path_to_files$datapath[i], pattern = '.gz'), path_to_files$name[i])
       }
-    } # Si la extension es la correcta devuelve el string con los paths, si no que descomprima como la opción de entrada múltiple
+    } # Si la extension es la correcta devuelve el string con los paths, si no que descomprima como la opci?n de entrada m?ltiple
     
     return( new_file_path )
   }
