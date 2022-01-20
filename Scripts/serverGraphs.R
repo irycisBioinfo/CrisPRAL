@@ -5,32 +5,11 @@ Graph_Data <- reactive({
   ####################################################################.
   ############# Setting up the Data for plotting #############
   ####################################################################.
-  
-  # incProgress( 1/8 ,detail = 'Mutation Frequency') #User feedback
-  # 
-  # #Extracting Sequences, identificators, sizes and score.
-  # VCSeq = list(as.character(datos$aln))
-  # VCIDs = Tabla() %>% select(ID, score)
-  # # This is the size of the read, not the size of the alignment
-  # SizeList = list(nchar(VCSeq))
-  # 
-  # #Subset Tabla():
-  # 
-  # Tabla() %>% select(ID, Abundance, score)
-  # 
-  # #Bind identificator with sequence and size as to not lose them when we 
-  # #filter by size
-  # Graph_Data <- bind_cols(VCIDs, SizeList, VCSeq)
+
   
   Graph_Data <- Tabla() %>%
     filter(score >= input$score_threshold) %>%
     filter(Abundance >= input$abundance_minimum)
-  
-  #### Why datos$Tabla_Original ?
-  # Graph_Data <- left_join(Graph_Data, datos$Tabla_Original %>% select(ID, Abundance)) %>%
-  #  filter(score >= input$score_threshold) %>% 
-  #  filter(Abundance >= input$abundance_minimum) %>% 
-  #  select(-score) %>% arrange(desc(Abundance))
   
   ######################################.
   ##### Filter by DT column search #####
@@ -87,22 +66,20 @@ observeEvent(input$Visualization,{
 })
 
 observeEvent(input$GG,{
-  # 
-  # browser()
   
   datos$warn = TRUE
  withProgress(message = "Plotting graphs: ", detail = 'Calculating', {
 
   
-  if(!is.null(datos$Tabla_prev) && file.exists(paste(session$token,'/default_charts.Rdata', sep = '')) && 
-     file.exists(session$token,'/defaults_charts_doc.Rdata', sep = '')){
+  if(!is.null(datos$Tabla_prev) && file.exists(paste('./sessions/',session$token,'/default_charts.Rdata', sep = '')) && 
+     file.exists('./sessions/',session$token,'/defaults_charts_doc.Rdata', sep = '')){
    
    if(nrow(datos$Tabla_prev) != nrow(Graph_Data()) && nrow(Graph_Data()) == nrow(datos$Tabla_Original)){
     #This double conditioning while seeming redundant allows the re-processing
     # of graphs in the case saved objects are not loading correctly.
     
-      load(paste(session$token,'/default_charts.Rdata', sep = ''))
-      load(paste(session$token,'/defaults_charts_doc.Rdata', sep = ''))
+      load(paste('./sessions/',session$token,'/default_charts.Rdata', sep = ''))
+      load(paste('./sessions/',session$token,'/defaults_charts_doc.Rdata', sep = ''))
       
       output$Mut_Freq <- renderPlotly({print(MF)})
       output$In_sizes <- renderPlotly({print(IS)})
@@ -236,15 +213,6 @@ observeEvent(input$GG,{
                              transmute(Total = Abundance*n) %>% ungroup() %>%
                              select(-Abundance) %>% group_by(Position, Total)
   
-  # Commented out since it looks like legacy code to be removed eventually
-  
-  # LetterPerPosition_Norm = LetterPerPosition_Total %>% 
-  #                           ungroup() %>% group_by(Position) %>% 
-  #                           mutate_at(vars(Total),funs(./sum(Total))) %>% 
-  #                           ungroup(Position) %>% group_by(Chr, Position) %>%
-  #                           mutate_at(vars(Total), funs(sum(Total))) %>% 
-  #                           group_by(Total, Position) %>% distinct(Chr)
-  
   #New and improved LetterPerPosition
   LetterPerPosition_Norm2 = LetterPerPosition_Total %>% 
                              ungroup() %>% group_by(Position) %>% 
@@ -305,9 +273,7 @@ observeEvent(input$GG,{
   #New name to distinguish between purposes (summary plot vs bar chart)
   Insert_per_position <- left_join(LetterPerPosition_Ref, Insert_per_loci, by = 'Position') %>%
     select(-Total_Count)
-  
-  # Total_Deletions_locations <- Deletion_per_position %>% select(Position, Total) %>% filter(Total != 0)
-  
+
   # Alternative Deletions_locations using alignment data:
   # Deletions_locations <- as_tibble(indel(datos$aln)@deletion) %>% arrange(start) %>% group_by(start) %>% count()
   
@@ -375,7 +341,6 @@ observeEvent(input$GG,{
   
   output$Mut_Freq <- renderPlotly({print(MF)})
   
-  # charts$tmpFileMF <- paste(datos$tmppipelinedir, str_sub(tempfile(fileext = '.pdf'), start = 16), sep = '')
   charts$tmpFileMFhtml <- paste(datos$tmppipelinedir, str_sub(tempfile(fileext = '.html'), start = 16), sep = '')
   charts$tmpFileMFpng <- paste(datos$tmppipelinedir, str_sub(tempfile(fileext = '.png'), start = 16), sep = '')
   tmpFileMFpng <- charts$tmpFileMFpng
@@ -404,7 +369,7 @@ observeEvent(input$GG,{
   ####################################################.
   ############### Deletion Sizes #####################
   ####################################################.
-  
+
   datos$Del_Data = as.data.frame(InDel_Extraction(datos$aln_filtered, datos$unsort_ID_Abundance)[1])
   
   #Fill data will with ceros for the x-axis to not look too short
@@ -425,8 +390,6 @@ observeEvent(input$GG,{
                        tick0 = 0))
   output$Del_sizes <- renderPlotly({print(DS)})
   
-  # charts$tmpFileDS <- paste(datos$tmppipelinedir, str_sub(tempfile(fileext = '.pdf'), start = 16), sep = '')
-  # export(DS, charts$tmpFileDS)
   charts$tmpFileDShtml <- paste(datos$tmppipelinedir, str_sub(tempfile(fileext = '.html'), start = 16), sep = '')
   charts$tmpFileDSpng <- paste(datos$tmppipelinedir, str_sub(tempfile(fileext = '.png'), start = 16), sep = '')
   tmpFileDSpng <- charts$tmpFileDSpng
@@ -460,8 +423,6 @@ observeEvent(input$GG,{
                        tick0 = 0))
   output$In_sizes <- renderPlotly({print(IS)})
   
-  # charts$tmpFileIS <- paste(datos$tmppipelinedir, str_sub(tempfile(fileext = '.pdf'), start = 16), sep = '')
-  # export(IS, charts$tmpFileIS)
   charts$tmpFileIShtml <- paste(datos$tmppipelinedir, str_sub(tempfile(fileext = '.html'), start = 16), sep = '')
   charts$tmpFileISpng <- paste(datos$tmppipelinedir, str_sub(tempfile(fileext = '.png'), start = 16), sep = '')
   tmpFileISpng <- charts$tmpFileISpng
@@ -478,9 +439,7 @@ observeEvent(input$GG,{
    layout(yaxis = list(title = '# of individual reads', range = range),
           xaxis = list(range = c(1, 250)))
   output$In_loc <- renderPlotly({print(IL)})
-  
-  # charts$tmpFileIL <- paste(datos$tmppipelinedir, str_sub(tempfile(fileext = '.pdf'), start = 16), sep = '')
-  # export(IL, charts$tmpFileIL)
+
   charts$tmpFileILhtml <- paste(datos$tmppipelinedir, str_sub(tempfile(fileext = '.html'), start = 16), sep = '')
   charts$tmpFileILpng <- paste(datos$tmppipelinedir, str_sub(tempfile(fileext = '.png'), start = 16), sep = '')
   tmpFileILpng <- charts$tmpFileILpng
@@ -491,9 +450,9 @@ observeEvent(input$GG,{
  })
  
  if(is.null(datos$Tabla_prev) && nrow(Tabla()) == nrow(datos$Tabla_Original)){
-  save(list = c('MF', 'IL','IS','DS','DL', 'Pie_data'), file = paste(session$token,'/default_charts.Rdata', sep = ''))
+  save(list = c('MF', 'IL','IS','DS','DL', 'Pie_data'), file = paste('./sessions/',session$token,'/default_charts.Rdata', sep = ''))
   save(list = c('tmpFilePiepng', 'tmpFileDSpng', 'tmpFileDLpng',
-                'tmpFileISpng', 'tmpFileILpng', 'tmpFileMFpng'), file = paste(session$token,'/defaults_charts_doc.Rdata', sep = ''))
+                'tmpFileISpng', 'tmpFileILpng', 'tmpFileMFpng'), file = paste('./sessions/',session$token,'/defaults_charts_doc.Rdata', sep = ''))
  }
  
  datos$Tabla_prev <- Graph_Data()
