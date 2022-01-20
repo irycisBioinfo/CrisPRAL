@@ -237,8 +237,8 @@ lengthFixing <- function(v_length, pos){
 
 InDel_Extraction <- function(ALN, Abundance){
   
-  Del_Sizes = as_tibble(Biostrings::deletion(ALN)) %>% select(group, width)
-  In_Sizes = as_tibble(Biostrings::insertion(ALN)) %>% select(group, width)
+  Del_Sizes = tibble(as.data.frame(Biostrings::deletion(ALN))) %>% select(group, width)
+  In_Sizes = tibble(as.data.frame(Biostrings::insertion(ALN))) %>% select(group, width)
   
   Del_Data = InDel_Sizes(Abundance, Del_Sizes)
   In_Data = InDel_Sizes(Abundance, In_Sizes)
