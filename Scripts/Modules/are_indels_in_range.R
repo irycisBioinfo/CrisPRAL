@@ -78,7 +78,7 @@ are_dels_range_summary <- rowSums(is_del_data_in_range$in_range) != 0
 indel_in_range_summary <- rowSums(cbind(are_dels_range_summary, are_ins_in_range_summary)) != 0
 
 # Since the order of the data was never altered we can simply bind the new column
-data_with_range_check <- cbind(data, overlaps_with_range = indel_in_range_summary)
+data_with_range_check <- cbind(data, overlaps_with_range.indel = indel_in_range_summary)
 
 return(data_with_range_check)
 }

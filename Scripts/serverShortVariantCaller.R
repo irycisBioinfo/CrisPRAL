@@ -1,5 +1,7 @@
 
 #### TODO : MAKE data be saved in specified session #####.
+#### TODO : Panel or normals #####.
+#### TODO : covStats #####.
 
   observeEvent(input$go_to_single, {
     
@@ -80,7 +82,7 @@
   
   large_indels <- reactive({input$large_indels})
   
-  ################################## RUN #######################################
+  ################################## RUN APP #######################################
   ##############################################################################.
   
   observeEvent(input$Accept_VC,{
@@ -104,7 +106,8 @@
           hr(),
           fluidRow(column(4,offset = 4,
                           div(style='max-width:150px;max-height:150px;width:3%;height:5%;', 
-                              img(src="caution-icon.png", height='150', width='150', align="middle")))),
+                              img(src="caution-icon.png", height='150', width='150', 
+                                  align="middle")))),
           h2(paste(name ," required to align reads." ,sep = ''), align = 'center'),
           easyClose = TRUE,
           footer = NULL
@@ -171,21 +174,46 @@
                           str_c(as.character(datos$tmppipelinedir)), 
                           '-profile server'
     )
+    ###################################
+    command_cov <- function(file_path){
+
+      return(paste0(ScriptsPATH,'/Modules/Covstats ',
+                    file_path,
+                    ' >> ./alignment/stats_coverage.report'))
+
+    }
+    ############## EXECUTING COMMANDS #####################
+    #######################################################
 
     system(command_aligner)
     system(command_SNP)
     if(large_indels()){
       system(command_INDEL)
     }
-
-    
+    # From this point on it is easier to switch to tmppipelinedir
     setwd(datos$tmppipelinedir)
-    final_files <- c(dir('.', pattern = 'final_variant_calling_files', full.names = TRUE),
-                     dir('.', pattern = "Large_indels_variant_calling_files", full.names = TRUE))
-    
+    # browser()
     if(input$remove_duplicates){
-      final_files <- c(final_files, dir('alignment', pattern = '*dups.sort.bam', full.names = TRUE))
-    }else{final_files <- c(final_files, dir('alignment', pattern = '*.sort.bam', full.names = TRUE))}
+      for(file in dir('./alignment', pattern = '*dups.sort.bam$', full.names = TRUE)){
+        system(command_cov(file))
+      }
+    }else{
+      for(file in dir('./alignment', pattern = paste0('*',str_to_lower(input$Aligner),'.sort.bam$'), 
+                      full.names = TRUE)){
+        system(command_cov(file))
+      }
+    }
+    ########## TESTING REPORT #########
+    final_files <- c(dir('.', pattern = 'final_variant_calling_files', full.names = TRUE),
+                    dir('.', pattern = "Large_indels_variant_calling_files", full.names = TRUE),
+                    dir('alignment', pattern = "*.report", full.names = TRUE))
+    ###################################
+    if(input$remove_duplicates){
+      final_files <- c(final_files, dir('alignment', pattern = '*dups.sort.bam', 
+                                            full.names = TRUE))
+    }else{final_files <- c(final_files, dir('alignment', 
+                                            pattern = paste0('*',str_to_lower(input$Aligner),'.sort.bam'), 
+                                            full.names = TRUE))}
     
     path_to_zip_file <- str_c(CompletePATH,'/',as.character(datos$tmppipelinedir),'/','results.zip')
     incProgress( 1/4 ,detail = 'zipping files...')
@@ -200,7 +228,8 @@
         hr(),
         fluidRow(column(4,offset = 4,
                         div(style='max-width:150px;max-height:150px;width:3%;height:5%;', 
-                            img(src='ready_for_download.png', height='150', width='150', align="middle")))),
+                            img(src='ready_for_download.png', height='150', 
+                                width='150', align="middle")))),
         h2(paste("Click to download file." ,sep = ''), align = 'center'),
         fluidRow(column(4,offset = 4.5,
                         callModule(downloadZIP, 'downloadZIP_NF1', data = path_to_zip_file, 'results'))),

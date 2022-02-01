@@ -142,8 +142,7 @@ Position_vector <- function(input, ref, aln){
   # sequence provided.
   #
   # #################
-  
-  
+
   v_length = nchar(input)
   
   tmp = seq(10,100, 10)
@@ -226,8 +225,8 @@ lengthFixing <- function(v_length, pos){
   #
   # Helper function for Position_vector()
   #
-  #############.
-  
+  #############
+
   if (str_sub(pos, v_length, v_length) != ' '){
     v_length = v_length+1
     return(lengthFixing(v_length, pos))
@@ -237,8 +236,8 @@ lengthFixing <- function(v_length, pos){
 
 InDel_Extraction <- function(ALN, Abundance){
   
-  Del_Sizes = as_tibble(Biostrings::deletion(ALN)) %>% select(group, width)
-  In_Sizes = as_tibble(Biostrings::insertion(ALN)) %>% select(group, width)
+  Del_Sizes = tibble(as.data.frame(Biostrings::deletion(ALN))) %>% select(group, width)
+  In_Sizes = tibble(as.data.frame(Biostrings::insertion(ALN))) %>% select(group, width)
   
   Del_Data = InDel_Sizes(Abundance, Del_Sizes)
   In_Data = InDel_Sizes(Abundance, In_Sizes)
@@ -301,7 +300,12 @@ Unzip_file <- function(PATH, fileGZ_path){
 Unravel_Positions <- function(Insert_per_loci, Insert_data){
   
   Total_Count <- c(rep(0,nrow(Insert_per_loci)))
-  
+  # Case there are no inserts
+  if(nrow(Insert_data)==0){
+    Insert_per_loci <- Insert_per_loci %>% add_column(Total_Count)
+    
+  }else{
+    #Case there are some inserts
   for (i in 1:nrow(Insert_data)){
     
     start <- Insert_data['start'][i,]
@@ -313,23 +317,24 @@ Unravel_Positions <- function(Insert_per_loci, Insert_data){
   
   Insert_per_loci <- Insert_per_loci %>% add_column(Total_Count)
   
-  return(Insert_per_loci)
-  
+    return(Insert_per_loci)
+  }
 }
 
-Group_list <- function(data){
+Group_list <- function(data, no_other){
   
   if (typeof(data) == "list"){
     Groups <- c(1:nrow(data))
     for (i in 1:length(Groups)){ Groups[i] <- paste('Group ',i, sep = '') }
+    if(no_other){return(Groups)}else{return(Groups[nrow(data)] <- 'Other')}
     
-    Groups[nrow(data)] <- 'Other'
-    
+    # What is this else about?? I don't know O_O
   }else{
     Groups <- c(1:length(data))
     for (i in 1:length(Groups)){ Groups[i] <- paste('Group ',i, sep = '') }
+    if(no_other){return(Groups)}else{return(Groups[nrow(data)] <- 'Other')}
   }
-  return(Groups)
+  
 }
 
 Clusters_Alignments <- function(Pattern_Seq, Subject_Seq, gapOpening = 10, gapExtension = 0.5, type = "overlap" ){
@@ -611,7 +616,7 @@ conditional_input_decision_tree <- function(path_to_files){
         new_file_path <- dir(path_to_files.split.path, pattern = 'fastq$' ,full.names = TRUE)
         # file.rename(str_remove(path_to_files$datapath[i], pattern = '.gz'), path_to_files$name[i])
       }
-    } # Si la extension es la correcta devuelve el string con los paths, si no que descomprima como la opción de entrada múltiple
+    } # Si la extension es la correcta devuelve el string con los paths, si no que descomprima como la opci?n de entrada m?ltiple
     
     return( new_file_path )
   }
@@ -633,7 +638,7 @@ read.primers <- function(path){
   return(store.primers)
 }
 
-mismatches_break_down <- function(alignment_raw, data){
+mismatches_break_down <- function(alignment_raw, data, interest_range = c()){
   
   #### DESCRIPTION: #####
   #
@@ -649,12 +654,35 @@ mismatches_break_down <- function(alignment_raw, data){
   mmTable <- mmTable %>% select(-PatternStart, -PatternEnd, SubjectEnd)
   mmTable <- mmTable %>% group_by(PatternId)
   mmTable <- mmTable %>% group_by(PatternId) %>% mutate(SNP = str_c(SubjectStart,SubjectSubstring,'>',PatternSubstring))
-  mmTable <- mmTable %>% select(1,6) %>% mutate(SNP = str_c(SNP, collapse = ';')) %>% ungroup() %>% distinct()
+  if(!is.null(interest_range)){
+    mmTable <- mmTable %>% 
+      mutate(overlaps_with_range.SNP = case_when(SubjectStart %in% interest_range ~ TRUE,TRUE ~ FALSE))
+    mmTable <- mmTable %>% 
+      select(1,6,7) %>% mutate(SNP = str_c(SNP, collapse = ';')) %>% 
+      mutate(overlaps_with_range.SNP = case_when(any(overlaps_with_range.SNP) == TRUE ~ TRUE, TRUE ~ FALSE )) %>% 
+      ungroup() %>% 
+      distinct()
+  }else{
+    mmTable <- mmTable %>% 
+      select(1,6) %>% mutate(SNP = str_c(SNP, collapse = ';')) %>% 
+      ungroup() %>% 
+      distinct()
+  }
+  if(!is.null(interest_range)){
+    Unsort_Tabla_SNP <- left_join(
+      alignment_raw$tmp %>% rownames_to_column() %>% 
+        mutate('rowname' = as.integer(rowname)), 
+      mmTable %>% rename(rowname = PatternId), by = 'rowname') %>% column_to_rownames('rowname') %>%
+        mutate(across(starts_with('overlaps'), ~case_when(is.na(.) ~ FALSE, TRUE ~ .))) %>%
+        select(ID,SNP,overlaps_with_range.SNP)
+  }else{
+    Unsort_Tabla_SNP <- left_join(
+      alignment_raw$tmp %>% rownames_to_column() %>% 
+        mutate('rowname' = as.integer(rowname)), 
+      mmTable %>% rename(rowname = PatternId), by = 'rowname') %>% column_to_rownames('rowname') %>% 
+      select(ID,SNP)
+  }
   
-  Unsort_Tabla_SNP <- left_join(alignment_raw$tmp %>% rownames_to_column() %>% 
-                                  mutate('rowname' = as.integer(rowname)), 
-                                mmTable %>% rename(rowname = PatternId), by = 'rowname') %>% 
-    column_to_rownames('rowname') %>% select(ID,SNP)
   final_table <- left_join(data,Unsort_Tabla_SNP, by = 'ID')
   
   return(final_table)

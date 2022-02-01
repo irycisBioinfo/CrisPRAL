@@ -24,8 +24,10 @@ fluidPage(# Application title
   ## Mosaic Finder batch ----
   ###############################################.
   
-  titlePanel( title=(div("Mosaic Finder BATCH", img(src="dna_free.png")))), # titlePanel end bracket
-    mainPanel(width = 9, style="margin-left:4%; margin-right:4%",
+  titlePanel( title="",windowTitle = "Mosaic Finder BATCH"), # titlePanel end bracket
+  fluidRow(column(width = 4),column(div(h1("Mosaic Finder BATCH",img(src="dna_free.png"))),width = 8)),
+    column(width = 1), # Blank column to center MainPanel
+    mainPanel(width = 8, style="margin-left:4%; margin-right:4%",
       wellPanel(
         # checkboxInput("single_end_batch", p(strong("Single end data"))), # Choose between single end or paired end inputs
         
@@ -33,7 +35,7 @@ fluidPage(# Application title
         wellPanel(
         br(),
         fileInput("dir", "Select .fastq data", accept = c('.zip','.gz','.fastq'), multiple = TRUE),
-        br(),br(),
+        hr(),br(),
         fileInput("Reference_batch", "Reference", accept = c('.fasta', '.fastq', '.txt'))
         ), # wellPanel end bracket
         h4("Optional files"),
@@ -42,7 +44,7 @@ fluidPage(# Application title
           ##############################################.
           # Adapter trimming-----
           ##############################################.
-        fluidRow(column(5,
+        fluidRow(column(6,
           navbarPage(title = p(strong('Adapter trimming:')), selected = 'recommended_batch', id = 'Adapter_trimming_batch',
            tabPanel(p(strong('None')), value = 'None_batch'),
            # tabPanel(p(strong('by length')), value = 'length_batch',
@@ -91,7 +93,7 @@ fluidPage(# Application title
           ##############################################.
           #Primer Trimming-----
           ##############################################.
-          column(5,
+          column(6,
             navbarPage(title = p(strong('Primer trimming:')), selected = 'recommended', id = "Primer_trimming_batch",
                tabPanel(p(strong('None')), value = 'None'),
                # tabPanel(p(strong("by length")), value = 'length',
@@ -141,28 +143,31 @@ fluidPage(# Application title
           ) # fluidRow closing bracket
         ), # WellPanel PRIMER trimming closing bracket
         wellPanel(
-          
+        fluidRow(
+          column(6,
           h4('Alignment',icon('question-circle'),id='alignment_type_tooltip'),
           bsTooltip(id = 'alignment_type_tooltip', title = "Alignment Method: 'global' vs 'overlap' Depending on the sequences one alignment may be preferable to the other, the 'global' is prefereable when reads are of very similar length to the reference and end gaps are NOT expected. If sizes vary and some might be smaller than the reference, an overlaping alignment may be beneficial since its much more lenient with leading and trailing end gaps.",
                     placement = "top", trigger = "hover", options = NULL),
           selectInput(inputId = 'alnType_batch', label = h5('Select alignment method') ,selected = 'overlap' ,choices = c('global', 'overlap')),
-
+          ), # column end bracket
+          column(6, 
+                 h4('Score threshold: '),
+                 h5('clusters with score < threshold will be filtered out onto a separate sheet'),
+                 br(),
+                 checkboxInput('detect_theshold', label = ' Auto detect optimun scoring threshold', value = TRUE),
+                 conditionalPanel(condition = "input.detect_theshold == false",
+                                  numericInput(inputId = 'scoring_threshold', 
+                                               value = 0,
+                                               label = "Select a scoring threshold",
+                                               min = 0,
+                                               max = 99999)) # conditional panel end bracket
+          ), # column end bracket
           
-          
-        ),# WellPanel PRIMER trimming closing bracket
+        )),# WellPanel & fluidRow ALIGNMENT closing bracket
         wellPanel(
         fluidRow(
-            column(5, 
-               h4('Score threshold: '),h5('clusters with score < threshold will be filtered out onto a separate sheet'),br(),
-               checkboxInput('detect_theshold', label = ' Auto detect optimun scoring threshold', value = TRUE),
-               conditionalPanel(condition = "input.detect_theshold == false",
-               numericInput(inputId = 'scoring_threshold', 
-                            value = 0,
-                            label = "Select a scoring threshold",
-                            min = 0,
-                            max = 99999)) # conditional panel end bracket
-             ), # column end bracket
-            column(5,
+
+            column(6,
                h4('Indel interest range: '), h5('Clusters with indels within interest range will be selected and printed onto a different sheet'),
                checkboxInput('interest_range_select', label = 'Click to select min and max bounds', value = FALSE),
                br(),
@@ -177,11 +182,12 @@ fluidPage(# Application title
                                label = "Select an upper bound",
                                min = 0,
                                max = 99999)
-                      ),
+                      )), # column end bracket,
+            column(6,
                h4('Other common operations: '),
                checkboxInput(inputId = "print_mismatches", label = 'Append mismatches breakdown to final table', value = FALSE),
                checkboxInput(inputId = "print_sequences", label = 'Append representative sequences to final table (beta)', value = FALSE)
-            ) # column end bracket
+            )
           ) #fluidRow end bracket
         ), #wellPanel end bracket
         

@@ -15,21 +15,24 @@ ui <- fluidPage(
                             ')),
   
   # App title ----
-  titlePanel(div("Single Gene Variant Calling", img(src="search.svg")), windowTitle = "Single Gene Variant Calling"), 
+  titlePanel(title = "",windowTitle = "Single Gene Variant Calling"), 
   
   # Sidebar panel for inputs ----
-  mainPanel(
+  column(width = 2),
+  mainPanel(width = 8,
     wellPanel(
       wellPanel(
+        column(width = 4),
+        column(div(h1("Single Gene Variant Calling",img(src="search.svg"))),width = 8),
         # There's no functionality for single-end right now
         #checkboxInput("single_end", p(strong(" Single end data"))),
-        
-        h4("Input Files"),
+        br(),
+        br(),
+        h3("Input Files"),
         # fileInput("R1", "Reads 1", accept = c('.fastq', '.fastq.gz')),
         #        conditionalPanel(
         #          condition = "input.single_end == false",
         # fileInput("R2", "Reads 2", accept = c('.fastq', '.fastq.gz'))),
-        br(),
         fileInput("dir_VC", "Select .fastq data", accept = c('.gz','fastq'), multiple = TRUE),
         br(),br(),
         fileInput("Reference_VC", "Reference", accept = c('.fasta', '.fastq', '.txt')),
@@ -37,12 +40,12 @@ ui <- fluidPage(
         #<-----
       ), # wellPanel closing bracket
       wellPanel(
-        h4('Pipeline'),
+        h3('Pipeline'),
         selectInput('Aligner', 'Aligner', c('Bowtie2', 'BWA'), selected = 'BWA'),
         selectInput(inputId = 'Variant_Caller', 'Variant Caller', c('GATK', 'freebayes'), selected = 'freebayes'),
         checkboxInput('large_indels', label = ' Look for large indels', value = TRUE),
         br(),
-        h4('Options'),
+        h3('Options'),
         numericInput('min_len_VC', 'Minimun Read Length (all reads below the set minimun will be removed.)',
                      value = 120, min = 0, max = 900, width = '100%'),
         numericInput('min_qual_VC', label = 'Minimun Quality (minimun average quality of accepted reads in Phred scale.)',

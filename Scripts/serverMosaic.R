@@ -53,13 +53,6 @@ Table_to_download <- reactive({
     return(TablaT())
 }})
 
-warningCLSTR <- reactive({if(length(datos$clustersStringSet) > 100){
-    return('Warning: Number of sequences for Multiple Sequence Alignment exceed max computing limit, 100 will be computed but only the first 50 entries will be shown')
-  }else if(length(datos$clustersStringSet) > 50){
-    return('Warning: Number of sequences for Multiple Sequence Alignment exceed max printing limit, only the first 50 entries will be shown')
-  }else{return(FALSE)}
-})
-
 #-Table data made reactive.
 Tabla <- reactive({datos$Tabla})
 TablaT <- reactive({datos$Tabla_Target})
@@ -400,34 +393,67 @@ Check_pair_input_files <- reactive({ #Allow warning to be disabled
 # ############################################################################.
 # TABLE PRINTING ####
 ##############################################################################.
+to_be_hidden_by_default <- reactive({c(grep(colnames(Tabla()), pattern = 'start'),
+                                             grep(colnames(Tabla()), pattern = 'end'),
+                                             grep(colnames(Tabla()), pattern = 'SEQ'))})
 
 output$tablaR <- renderDT(Tabla(), selection = "single", editable = TRUE,
                           filter = 'top',
                           extensions = c('Buttons','FixedColumns','Scroller','ColReorder'), 
-                          options = list(dom = 'Bfrtip', 
+                          options = list(columnDefs = list(list(targets = to_be_hidden_by_default(), visible = FALSE)),
+                                         stateSave = TRUE,
+                                         dom = 'Bfrtip', 
                                          scrollX = TRUE,
                                          deferRender = TRUE, scrollY = 400, scroller = TRUE,
                                          colReorder = TRUE,
                                          search = list(smart = FALSE),
                                          buttons = list('copy', list(extend = 'collection',
                                                                      buttons = list(
-                                                                     list(extend = 'csv', filename = input_filename_results()),
-                                                                     list(extend = 'excel', filename = input_filename_results())),
+                                                                               list(extend = 'csv', filename = input_filename_results()),
+                                                                               list(extend = 'excel', filename = input_filename_results())),
                                                                      text = 'Download'),
                                                         'colvis')), server = TRUE)
 
 output$tablaT <- renderDT(TablaT(), editable = TRUE, selection = "single",
                           filter = 'top',
                           extensions = c('Buttons','FixedColumns','Scroller','ColReorder'), 
-                          options = list(dom = 'Bfrtip', 
+                          options = list(columnDefs = list(list(targets = to_be_hidden_by_default(), visible = FALSE)),
+                                         stateSave = TRUE,
+                                         dom = 'Bfrtip', 
                                          scrollX = TRUE,
                                          deferRender = TRUE, scrollY = 400, scroller = TRUE,
                                          colReorder = TRUE, search = list(smart = FALSE),
-                                         buttons = list('copy', 
-                                                        list(extend = 'collection',
-                                                             buttons = c('csv', 'excel'),
-                                                             text = 'Download'),
+                                         buttons = list('copy', list(extend = 'collection',
+                                                                     buttons = list(
+                                                                       list(extend = 'csv', filename = input_filename_results()),
+                                                                       list(extend = 'excel', filename = input_filename_results())),
+                                                                     text = 'Download'),
                                                         'colvis')), server = TRUE)
+
+col_search_filters <- reactive({
+  
+  keys <- colnames(Tabla())
+  nkeys <- length(keys)
+  col_filters <- vector("list", nkeys)
+  for(i in 1:nkeys){col_filters[[i]] <- input$tablaR_search_columns[i]}
+  col_filters <- setNames(col_filters, keys)
+  return(col_filters)
+
+})
+
+output$formatted_variants <- renderDT(TablaVar(), filter = 'top',
+                                        extensions = c('Buttons','Scroller'),
+                                        rownames = FALSE, selection = 'single',
+                                        options = list(dom = 'Bfrtip',
+                                                       scrollX = TRUE,
+                                                       deferRender = TRUE, scrollY = 200, scroller = TRUE,
+                                                       colReorder = TRUE,
+                                                       search = list(smart = FALSE),
+                                                       buttons = list('copy', list(extend = 'collection',
+                                                                                   buttons = c('csv', 
+                                                                                               'excel'),
+                                                                                   text = 'Download'),
+                                                                      'colvis')), server = TRUE)
 
 #----Alignment and Table filtering dinamic UI----.
 
@@ -563,19 +589,6 @@ clustersMSA <- reactive({
  
 })
 
-
-prettyprintCrashpreventor <- reactive({
- if (nrow(clustersMSA())/50 < 1){
-  
-  c(1:nrow(clustersMSA()))
-  
- }else if(nrow(clustersMSA())/50 > 1){
-  
-  unique(round(seq.int(from = 1, to = nrow(clustersMSA()), length.out = 50)))
-  
- }
-})
-
 #########################################.
 #### FILE NAME LOGIC ####
 #########################################.
@@ -613,6 +626,7 @@ input_filename_clstrs_msa <- reactive({paste(input_filename_clstrs(), '_msa', se
 datos$alignmentdir <- 'empty' #Temporal asignment
 
 output$downloadReport <- downloadHandler(
+  
  filename = function() {
   paste(input_filename_results(),'pdf', sep = '.')
  },
@@ -631,22 +645,6 @@ output$downloadReport <- downloadHandler(
                                           alignments = datos$alignmentdir) )
   file.rename(out, file) }
 )
-
-# output$downloadMSA_clstr <- downloadHandler(
-#  filename = function(){
-#   paste(input_filename_clstrs_msa(), 'pdf', sep = '.')
-#  },
-#  content = function(file) {
-#   tmpFile <- tempfile(pattern = 'msa', tmpdir = '.', fileext = '.pdf')
-#   msaPrettyPrint(clustersMSA(), file = tmpFile, output = "pdf",
-#                  consensusColor="ColdHot", askForOverwrite = FALSE, 
-#                  showLogo="top", showLegend = FALSE,
-#                  subset = prettyprintCrashpreventor(),
-#                  furtherCode=c("\\textbf{Multiple Sequence Alignment: ClustalW} ",
-#                                "\\DNAgroups{GAR,CTY}","\\defconsensus{.}{lower}{upper}",
-#                                "\\showruler{1}{top}"))
-#   file.rename(tmpFile, file)}
-# )
 
 # ############################################################################.
 # CALLMODULES ####
@@ -668,10 +666,12 @@ callModule(downloadFASTA, 'downloadFASTAS',
 callModule(downloadFASTA, 'downloadFASTAS_clstr',
            clustersStringSet, input_filename_clstrs)
 
+
+
 session$onSessionEnded(function() {
- 
- #Delete dir with data on session exit to avoid accumulating files
- system(paste('rm -r ', CompletePATH,'/',session$token, sep = ''))
- # system('rm *.pdf')
- # system('rm *.tex')
+  
+  #Delete dir with data on session exit to avoid accumulating files
+  system(paste('rm -r ', CompletePATH,'/sessions/',session$token, sep = ''))
+  # system('rm *.pdf')
+  # system('rm *.tex')
 })

@@ -48,7 +48,21 @@ rename <- dplyr::rename
 filter <- dplyr::filter
 
 f <- commandArgs(trailingOnly = TRUE)
-# f <- c('/media/bioinfo/Seagate_Expansion_Drive/ALMUDENA_JUL_2020/C_S35_L001_R1_001.fastq', ',-reference', 'TYR\ reference.fasta', '-primers', 'tyr_primers.fasta', '-output', 'results_Almudena2/', '-score_threshold',"detect", '-indel_interest_range', '70-170')
+# f <- c(
+#   '/home/bioinfo/Documentos/CrisPRAL_git/basic_Trials/Mutation_mus_R1_001.fastq',
+#   ',-reference', 'basic_Trials/Reference.fasta',
+#   '-adapters', 'basic_Trials/Adapters-MiSeq.fasta',
+#   '-primers',
+#   'basic_Trials/Primers.fasta',
+#   '-output',
+#   'debugging/',
+#   '-score_threshold',
+#   "detect",
+#   '-indel_interest_range',
+#   '8-14',
+#   '-mismatches',
+#   '-append_sequences')
+
 files <- grep(f, pattern = 'fastq$', value = TRUE)
 
 ######################################################.
@@ -208,8 +222,15 @@ for(file_pair1 in files){
     colnames(cluster) <- c("ClusterN", "Length", "ID", "Identity")
   } 
   
-  allfasta <- read_delim(paste(tmppipelinedir,"/final.fasta" ,sep = ''), 
-                               delim = ' ', col_names =FALSE) %>% select(X1)
+  allfasta <- read_delim(
+    paste(
+      tmppipelinedir,
+      "/final.fasta" ,
+      sep = ''
+    ), 
+    delim = ' ', 
+    col_names =FALSE
+  ) %>% select(X1)
   
   justfasta <- allfasta %>% filter(!str_starts(X1, '>'))
   justIds <- allfasta %>% filter(str_starts(X1, '>'))
@@ -217,9 +238,14 @@ for(file_pair1 in files){
   colnames(allfasta) <- c('ID','SEQ')
   colnames(cluster) <- c("ClusterN", "Length", "ID", "Identity")
   #remove '>' character of fasta identifier
-  allfasta <- allfasta %>% mutate_at(vars(ID), list(~if_else(str_starts(., '>'),
-                                                              true = str_extract(., '(?<=>)[:graph:]+'), 
-                                                              false = .)))
+  allfasta <- allfasta %>% mutate_at(
+    vars(ID), 
+    list(
+      ~if_else(str_starts(., '>'),
+      true = str_extract(., '(?<=>)[:graph:]+'), 
+      false = .)
+    )
+  )
   
   Tabla_raw = cluster %>%
     group_by(ClusterN) %>%
@@ -257,8 +283,20 @@ for(file_pair1 in files){
   ## Identify mismatch positioning and change
   #################################################.
   if(mismatches){
-    Tabla_final <- mismatches_break_down(ls_ClusterAln_Ref, Tabla_final)
+    if(!is.null(interest_range)){
+      Tabla_final <- mismatches_break_down(ls_ClusterAln_Ref, Tabla_final, interest_range)
+    }else{
+      Tabla_final <- mismatches_break_down(ls_ClusterAln_Ref, Tabla_final)}
   }
+  
+  #################################################.
+  ## Identify if indels falls in interest range
+  #################################################.
+  
+  # if(!is.null(interest_range)){
+  #   Tabla_final <- are_mm_in_range(Tabla_final, interest_range)
+  # }
+  
   #################################################.
   ## Append sequences as the last column
   #################################################.
@@ -271,9 +309,16 @@ for(file_pair1 in files){
   ## Filter final table and structure data into different xlsx sheets
   ######################################################################.
   
-  filter.table_results <- filter.table(Tabla = Tabla_final, path = output, name = name, params.score = score_threshold, params.range = interest_range)
+  filter.table_results <- filter.table(
+    Tabla = Tabla_final,
+    path = output,
+    name = name,
+    params.score = score_threshold,
+    params.range = interest_range
+  )
   
   # Save data ready for delivery
-  openxlsx::saveWorkbook(filter.table_results$workbook, paste0(output, name, '.xlsx'), overwrite = TRUE)
+openxlsx::saveWorkbook(filter.table_results$workbook, paste0(output, name, '.xlsx'), overwrite = TRUE)
   
 }
+

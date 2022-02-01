@@ -1,0 +1,37 @@
+#!/bin/bash
+
+version="program version #0.1
+Written by bioinfo-serg."
+
+usage="Usage: $0 [FILE]
+Description
+Computes max, min and average coverage of an alignment file
+
+Mandatory arguments to long options are mandatory for short options too.
+
+      --help        display this help and exit
+      --version     display version information and exit
+
+With no FILE read standard input.
+
+Report bugs to <your therapist>."
+
+case $1 in
+--help)    exec echo "$usage";;
+--version) exec echo "$version";;
+esac
+
+FILENAME=`echo "$1" | cut -d'.' -f2 | cut -d'/' -f3`
+
+echo "Summary coverage stats for the Sample $FILENAME:"
+
+samtools depth -a -d 100000 $1 | cut -f 3 | sort | awk '{(sum+=$1) (median[NR] = $1)} END {
+print "\nAverage =", sum/NR
+if (NR%2) {print "Median =", median[(NR+1) / 2]}else{print "Median =", (median[(NR/2)]+median[(NR/2)+1])/2.0}}'
+
+#Stack code for calculating the mean, the median and the mode:
+
+samtools depth -a -d 100000 $1 | awk 'BEGIN{max=0}{if ($3>0+max) max=$3} END{print "Max =", max}'
+samtools depth -a -d 100000 $1 | awk 'BEGIN{min=10000}{if ($3<0+min) min=$3} END{print "Min =", min}'
+
+echo " "
