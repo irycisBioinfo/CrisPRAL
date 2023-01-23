@@ -15,7 +15,7 @@ serverMain <- function(input, output, session) {
  datos$system_administrator <- "sergio.fern1994@gmail.com"
         
  options( shiny.maxRequestSize = 5000000 * 1024 ^ 2 )
- 
+
  #---Mosaic Analyser SERVER----
  
  source( 'Scripts/serverMosaic.R', local = TRUE )

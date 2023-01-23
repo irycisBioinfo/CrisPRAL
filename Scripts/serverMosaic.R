@@ -595,11 +595,10 @@ clustersMSA <- reactive({
 
 input_filename_generic <- reactive({
   
-  req(input$R1)
+  req(input$R1$name)
   
   paste(
- str_replace(#Removes possible double 
-  #underscore "_"
+ str_replace(#Removes possible double underscore "_"
   str_replace(#Removes Read number ID
    substring(text = input$R1$name, 
              first = 1, 

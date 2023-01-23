@@ -118,22 +118,22 @@
     withProgress(message = "Performing analisis: ",{
     
     command_aligner = paste('nextflow',
-                        './Scripts/nextflow_GenomeMapper.nf',
-                        '--indir',
-                        Files_location(),
-                        '--genome',
-                        input$Reference_VC$datapath,
-                        '--adapters',
-                        '/home/bioinfo/Proyecto_NF1/adapters/TruSeq3-PE-2.fa',
-                        '--paired',
-                        '--aln',
-                        str_to_lower(input$Aligner),
-                        '--remove_duplicates',
-                        input$remove_duplicates,
-                        '--threads 4',
-                        '--outdir',
-                        str_c('./',as.character(datos$tmppipelinedir)),
-	                    	'-profile standard'
+                            './Scripts/nextflow_GenomeMapper.nf',
+                            '--indir',
+                            Files_location(),
+                            '--genome',
+                            input$Reference_VC$datapath,
+                            '--adapters',
+                            '/home/bioinfo/Proyecto_NF1/adapters/TruSeq3-PE-2.fa',
+                            '--paired',
+                            '--aln',
+                            str_to_lower(input$Aligner),
+                            '--remove_duplicates',
+                            input$remove_duplicates,
+                            '--threads 4',
+                            '--outdir',
+                            str_c('./',as.character(datos$tmppipelinedir)),
+			                    	'-profile server'
     )
     
     command_SNP = paste('nextflow',
@@ -152,27 +152,27 @@
                         '--threads 4',
                         '--outdir',
                         str_c(as.character(datos$tmppipelinedir)), 
-                        '-profile standard'
+                        '-profile server'
     )
     
     command_INDEL = paste('nextflow',
-                        './Scripts/nextflow_LargeIndels.nf',
-                        '--indir',
-                        Files_location(),
-                        '--genome',
-                        input$Reference_VC$datapath,
-                        '--adapters',
-                        '/home/bioinfo/Proyecto_NF1/adapters/TruSeq3-PE-2.fa',
-                        '--paired',
-                        '--remove_duplicates',
-                        input$remove_duplicates,
-                        min_alternate_fraction(),
-                        pos_correction(),
-                        exon_mapping(),
-                        '--threads 4',
-                        '--outdir',
-                        str_c(as.character(datos$tmppipelinedir)), 
-                        '-profile standard'
+                          './Scripts/nextflow_LargeIndels.nf',
+                          '--indir',
+                          Files_location(),
+                          '--genome',
+                          input$Reference_VC$datapath,
+                          '--adapters',
+                          '/home/bioinfo/Proyecto_NF1/adapters/TruSeq3-PE-2.fa',
+                          '--paired',
+                          '--remove_duplicates',
+                          input$remove_duplicates,
+                          min_alternate_fraction(),
+                          pos_correction(),
+                          exon_mapping(),
+                          '--threads 4',
+                          '--outdir',
+                          str_c(as.character(datos$tmppipelinedir)), 
+                          '-profile server'
     )
     ###################################
     command_cov <- function(file_path){
