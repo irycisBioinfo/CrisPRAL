@@ -194,7 +194,7 @@ Reference_batch <- reactive({
     }else{
       return(':ERROR: Unknown extension, please make sure that the Reference file has extension .txt or .fasta')
     }
-    
+    browser()# This piece should be conditional for there being primers to trimm by sequence of length, and also should apply to Target.
     system(paste0('cutadapt -n 2 -g ', 
                   as.character(PrimerR1_5_batch()), ' -a ', 
                   as.character(PrimerR1_3_batch()), ' -o ', 
@@ -308,8 +308,9 @@ observeEvent(input$Accept_batch,{
   
   withProgress(message = "Performing analisis: ", detail = 'Executing pipeline', {
   
-    datos$tmppipelinedir <- str_c(session$token, '/data', str_sub(tempfile(), start = 21))
-    dir.create(datos$tmppipelinedir)
+    datos$tmppipelinedir <- paste('sessions/',session$token, '/data', str_sub(tempfile(), start = 21) ,sep = '')
+    
+    dir.create(datos$tmppipelinedir, recursive = TRUE)
     
     # req(input$Reference_batch, input$dir)
     unziped_files <- conditional_input_decision_tree(input$dir)
@@ -338,7 +339,6 @@ observeEvent(input$Accept_batch,{
         sep = ' '
       ), sep = ''
     )
-
     incProgress( 1/2 ,detail = 'may take a while...')
     system(command)
     setwd(datos$tmppipelinedir)

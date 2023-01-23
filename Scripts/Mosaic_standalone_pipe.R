@@ -58,8 +58,6 @@ f <- commandArgs(trailingOnly = TRUE)
 #   'debugging/',
 #   '-score_threshold',
 #   "detect",
-#   '-indel_interest_range',
-#   '8-14',
 #   '-mismatches',
 #   '-append_sequences')
 
@@ -92,6 +90,12 @@ reference_pos <- grep(f, pattern = '-reference')
 if(!is_empty(reference_pos)){
   reference <- f[reference_pos + 1]
 }else{print(errorCondition(message = "mandatory -reference option not found"))}
+
+# Find target
+target_pos <- grep(f, pattern = '-target')
+if(!is_empty(target_pos)){
+  target <- f[target_pos + 1]
+}else{target <- "No target introduced"}
 
 # Find output dir
 output_pos <- grep(f, pattern = '-output')
@@ -263,13 +267,48 @@ for(file_pair1 in files){
   Ref <- readDNAStringSet(reference)
   #Alignment for Sequences with Reference
   ls_ClusterAln_Ref = Clusters_Alignments(Sequences, Ref, type = alignment) #Function in Functions.R module.
-  aln = ls_ClusterAln_Ref$aln
-
   Tabla_final = inner_join(Tabla_raw, ls_ClusterAln_Ref$tmp) %>% 
     mutate(score = round(score,1), Freq = signif(Freq,2)) %>% 
     arrange(desc(Abundance))# %>% select(-width, -start, -end)
   
   rownames(Tabla_final) <- str_c('Cluster', rownames(Tabla_final))
+  
+  ##################################################################.
+  ####################### Target searching #########################
+  ##################################################################.
+  
+  if(file.exists(target)){
+    Tar <- readDNAStringSet(target)
+
+    ls_ClusterAln_Tar = Clusters_Alignments(Sequences, Tar, type = alignment) #Function in Functions.R module.
+    #aln = ls_ClusterAln_Tar$aln
+
+    datos$Tabla_Target = inner_join(datos$Tabla_raw, ls_ClusterAln_Tar$tmp) %>%
+      mutate(score = round(score,1), Freq = signif(Freq,2)) %>%
+      arrange(desc(Abundance))# %>% select(-width,-start,-end) # Remove columns deemed too confusing for a user.
+    
+    ##################################################################.
+    ##### Mismatch extraction and joining for Tabla_Target #####
+    ##################################################################.
+    
+    Tabla_Target <- mismatches_break_down(ls_ClusterAln_Tar, Tabla_Target)
+    
+    Target_Location <- renderText(paste(Target_location()[1], Target_location()[2], sep = ' '))
+    
+    rownames(Tabla_Target) <- str_c('Cluster', rownames(Tabla_Target))
+    
+    Tabla_Target_Original <- Tabla_Target 
+    
+  }else if(target == "No target introduced"){}else if(!file.exists(target)){target = "File error, check extension."}
+  
+ 
+  
+  ##########################.
+  #### OUTPUTING Target ####
+  ##########################.
+  
+  
+
   
   #################################################.
   ## Identify if indels falls in interest range
@@ -278,7 +317,6 @@ for(file_pair1 in files){
   if(!is.null(interest_range)){
     Tabla_final <- are_indels_in_range(Tabla_final, interest_range)
   }
-  
   #################################################.
   ## Identify mismatch positioning and change
   #################################################.
@@ -288,7 +326,6 @@ for(file_pair1 in files){
     }else{
       Tabla_final <- mismatches_break_down(ls_ClusterAln_Ref, Tabla_final)}
   }
-  
   #################################################.
   ## Identify if indels falls in interest range
   #################################################.
@@ -309,8 +346,9 @@ for(file_pair1 in files){
   ## Filter final table and structure data into different xlsx sheets
   ######################################################################.
   
-  filter.table_results <- filter.table(
+  filter.table_results <- filter.table(#custom function
     Tabla = Tabla_final,
+    Target_status = target,
     path = output,
     name = name,
     params.score = score_threshold,

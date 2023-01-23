@@ -93,12 +93,11 @@ observeEvent(input$Accept, {
   
  }
  
- 
  withProgress(message = "Performing analisis: ", detail = 'Clustering, may take a while...', {
   
-  datos$tmppipelinedir <- paste(session$token, '/data', str_sub(tempfile(), start = 21) ,sep = '')
+  datos$tmppipelinedir <- paste('sessions/',session$token, '/data', str_sub(tempfile(), start = 21) ,sep = '')
   
-  dir.create(datos$tmppipelinedir)
+  dir.create(datos$tmppipelinedir, recursive = TRUE)
   
   command = paste(
    CompletePATH,
