@@ -6,7 +6,7 @@ observeEvent(input$go_to_mosaic_batch, {
   
 })
 
- # Selects pipeline given the option "reverse_complement"
+# Selects pipeline given the option "reverse_complement"
 pipeline <- reactive({
   if(input$reverse_complement){
     return("/pipeline_vUMI.pl --r1 ")
@@ -147,11 +147,17 @@ PrimerR2_3_batch <- reactive({
   return(as.character(Primer3_sequences_batch()[1]))
 })
 
+Primer_trimmingF <- reactive({return(input$trimP1_batch)})
+
+Primer_trimmingR <- reactive({return(input$trimP2_batch)})
+
 command.primers <- reactive({
-  if( is.null(Primer_FileInput_batch())){
+  if(is.null(Primer_FileInput_batch())){
     return(NULL)
   }else{return(str_c('-primers ', Primer_FileInput_batch()$datapath))}
 })
+
+command.trimming <- reactive({return(str_c('-trimmingF ', Primer_trimmingF(), ' -trimmingR ', Primer_trimmingR()))})
 
 output$Explicative_TextP_batch <- renderText(paste(
   'The file should contain four lines, two', 
@@ -184,7 +190,7 @@ Reference_batch <- reactive({
     extensionR <- str_split(input$Reference_batch$datapath, '\\.')[[1]][length(str_split(input$Reference_batch$datapath, '\\.')[[1]])]
     lastIndexR <- nchar(extensionR)
     T_Refence_dir = paste0(str_sub(input$Reference_batch$datapath, 1,-(lastIndexR+3)),
-                           'Filtered_Reference.fasta')
+                          'Filtered_Reference.fasta')
     
     if(extensionR == 'txt'){
       RefAsFasta <- paste0(str_sub(input$Reference_batch$datapath, 1,-(lastIndexR+3)) ,'RefAsFasta.fasta')
@@ -326,6 +332,7 @@ observeEvent(input$Accept_batch,{
         Reference_batch(),
         command.adapter(),
         command.primers(),
+        command.trimming(),
         '-alignment',
         input$alnType_batch,
         '-output',

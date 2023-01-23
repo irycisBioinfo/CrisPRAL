@@ -77,6 +77,18 @@ if(!is_empty(primers_pos)){
   store.primers <- read.primers(primers)
 }else{store.primers <- c(F_Primer1 = 'Empty', F_Primer2 = 'Empty', R_Primer1 = 'Empty', R_Primer2 = 'Empty')}
 
+# Find trimming
+trimmingF_pos <- grep(f, pattern = '-trimmingF')
+if(!is_empty(trimmingF_pos)){
+  trimmingF <- f[trimmingF_pos + 1]
+}else{}
+
+# Find trimming
+trimmingR_pos <- grep(f, pattern = '-trimmingR')
+if(!is_empty(trimmingR_pos)){
+  trimmingR <- f[trimmingR_pos + 1]
+}else{}
+
 # Find Adapters
 adapters_pos <- grep(f, pattern = '-adapters')
 if(!is_empty(adapters_pos)){
@@ -187,9 +199,9 @@ for(file_pair1 in files){
       " --R_Primer2 ",
       store.primers['R_Primer2'],
       " --trimP1 ",
-      0,
+      trimmingF,
       " --trimP2 ",
-      0,
+      trimmingR,
       " --cov ",
       1,
       " --id ",
