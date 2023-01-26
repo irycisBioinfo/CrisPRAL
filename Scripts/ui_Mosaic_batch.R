@@ -36,7 +36,9 @@ fluidPage(# Application title
         br(),
         fileInput("dir", "Select .fastq data", accept = c('.zip','.gz','.fastq'), multiple = TRUE),
         hr(),br(),
-        fileInput("Reference_batch", "Reference", accept = c('.fasta', '.fastq', '.txt'))
+        fileInput("Reference_batch", "Reference", accept = c('.fasta', '.fastq', '.txt')),
+        hr(),br(),
+        fileInput("Target_batch", "Target", accept = c('.fasta', '.fastq', '.txt'))
         ), # wellPanel end bracket
         h4("Optional files"),
         wellPanel(

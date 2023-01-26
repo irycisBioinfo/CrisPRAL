@@ -183,7 +183,6 @@ output$checkRP2_batch <- renderText(paste("Read 2, 3' end: ",PrimerR2_3_batch(),
 # ############################################################################.
 # REFERENCE & TARGETS ####
 ##############################################################################.
-
 Reference_batch <- reactive({
   
   if(file_upload$upload_Primer_state_batch == 'uploaded'){
@@ -200,7 +199,7 @@ Reference_batch <- reactive({
     }else{
       return(':ERROR: Unknown extension, please make sure that the Reference file has extension .txt or .fasta')
     }
-    browser()# This piece should be conditional for there being primers to trimm by sequence of length, and also should apply to Target.
+    # This piece should be conditional for there being primers to trimm by sequence of length, and also should apply to Target.
     system(paste0('cutadapt -n 2 -g ', 
                   as.character(PrimerR1_5_batch()), ' -a ', 
                   as.character(PrimerR1_3_batch()), ' -o ', 
@@ -211,6 +210,37 @@ Reference_batch <- reactive({
   }
   else{
     return(input$Reference_batch$datapath)
+  }
+})
+
+Target_batch <- reactive({
+  
+  if(file_upload$upload_Primer_state_batch == 'uploaded'){
+    extensionT <- str_split(input$Target_batch$datapath, '\\.')[[1]][length(str_split(input$Target_batch$datapath, '\\.')[[1]])]
+    lastIndexT <- nchar(extensionT)
+    T_Target_dir = paste0(str_sub(input$Target_batch$datapath, 1,-(lastIndexT+3)),
+                           'Filtered_Target.fasta')
+    
+    if(extensionT == 'txt'){
+      TarAsFasta <- paste0(str_sub(input$Target_batch$datapath, 1,-(lastIndexT+3)) ,'TarAsFasta.fasta')
+      system(paste( 'cp', input$Target_batch$datapath, TarAsFasta, sep = ' '))
+    }else if(extensionT == 'fasta'){
+      TarAsFasta <- input$Target_batch$datapath
+    }else{
+      return(':ERROR: Unknown extension, please make sure that the Reference file has extension .txt or .fasta')
+    }
+    # This piece should be conditional for there being primers to trimm by sequence of length, and also should apply to Target.
+    #And what about adapters?
+    system(paste0('cutadapt -n 2 -g ', 
+                  as.character(PrimerR1_5_batch()), ' -a ', 
+                  as.character(PrimerR1_3_batch()), ' -o ', 
+                  T_Target_dir,' ',
+                  TarAsFasta))
+    
+    return(T_Target_dir)
+  }
+  else{
+    return(input$Target_batch$datapath)
   }
 })
 
@@ -331,6 +361,8 @@ observeEvent(input$Accept_batch,{
         paste(R1_files,collapse = ' '),
         '-reference', 
         Reference_batch(),
+        '-target',
+        Target_batch(),
         command.adapter(),
         command.primers(),
         command.trimming(),
@@ -352,7 +384,7 @@ observeEvent(input$Accept_batch,{
     final_files <- dir('.', pattern = '*.xlsx', full.names = TRUE)
     path_to_zip_file <- str_c(CompletePATH,'/',as.character(datos$tmppipelinedir),'/','results.zip')
     incProgress( 1/4 ,detail = 'zipping files...')
-    zip(path_to_zip_file,files = final_files)
+    zip(path_to_zip_file, files = final_files)
     setwd(CompletePATH)
     
     ###################################.

@@ -17,6 +17,7 @@
 #
 # OPTIONS:
 #
+# -target [FILE]
 # -adapters [FILE]
 # -primers [FILE]
 # 
@@ -295,7 +296,7 @@ for(file_pair1 in files){
     ls_ClusterAln_Tar = Clusters_Alignments(Sequences, Tar, type = alignment) #Function in Functions.R module.
     #aln = ls_ClusterAln_Tar$aln
 
-    datos$Tabla_Target = inner_join(datos$Tabla_raw, ls_ClusterAln_Tar$tmp) %>%
+    Tabla_Target = inner_join(Tabla_raw, ls_ClusterAln_Tar$tmp) %>%
       mutate(score = round(score,1), Freq = signif(Freq,2)) %>%
       arrange(desc(Abundance))# %>% select(-width,-start,-end) # Remove columns deemed too confusing for a user.
     
@@ -305,23 +306,14 @@ for(file_pair1 in files){
     
     Tabla_Target <- mismatches_break_down(ls_ClusterAln_Tar, Tabla_Target)
     
-    Target_Location <- renderText(paste(Target_location()[1], Target_location()[2], sep = ' '))
+    Target_Location <- paste(find_target_location(Tabla_final, Tabla_Target, Tar)[1], find_target_location(Tabla_final, Tabla_Target, Tar)[2], sep = ' ')
     
     rownames(Tabla_Target) <- str_c('Cluster', rownames(Tabla_Target))
     
     Tabla_Target_Original <- Tabla_Target 
     
   }else if(target == "No target introduced"){}else if(!file.exists(target)){target = "File error, check extension."}
-  
- 
-  
-  ##########################.
-  #### OUTPUTING Target ####
-  ##########################.
-  
-  
 
-  
   #################################################.
   ## Identify if indels falls in interest range
   #################################################.
@@ -360,7 +352,7 @@ for(file_pair1 in files){
   
   filter.table_results <- filter.table(#custom function
     Tabla = Tabla_final,
-    Target_status = target,
+    Target_status = Target_Location,
     path = output,
     name = name,
     params.score = score_threshold,
