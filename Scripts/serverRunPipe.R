@@ -96,9 +96,9 @@ observeEvent(input$Accept, {
  withProgress(message = "Performing analisis: ", detail = 'Clustering, may take a while...', {
   
   datos$tmppipelinedir <- paste('sessions/',session$token, '/data', str_sub(tempfile(), start = 21) ,sep = '')
+  if(!dir.exists(datos$tmppipelinedir)){dir.create(datos$tmppipelinedir, recursive = TRUE)}
   
-  dir.create(datos$tmppipelinedir, recursive = TRUE)
-  
+  browser()
   command = paste(
    CompletePATH,
    as.character(pipeline()),
