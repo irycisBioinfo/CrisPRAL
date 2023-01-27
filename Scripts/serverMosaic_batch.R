@@ -244,6 +244,12 @@ Target_batch <- reactive({
   }
 })
 
+command.target <- reactive({
+  
+  if(is.null(input$Target_batch)){return()}else{return(paste0('-target ',Target_batch()[1]))}
+  
+})
+
 # ##########################################################################.
 # MISMATCHES FLAG ####
 # ##########################################################################.
@@ -352,7 +358,6 @@ observeEvent(input$Accept_batch,{
     unziped_files <- conditional_input_decision_tree(input$dir)
     
     # if(unzipped_files == "Unrecognised input"){showModal error; setwd(CompletePath)}
-    
     R1_files <- grep(unziped_files, pattern = '_R1_', value = TRUE)
     command <- str_c(
       ScriptsPATH, '/Mosaic_standalone_pipe.R',
@@ -361,8 +366,7 @@ observeEvent(input$Accept_batch,{
         paste(R1_files,collapse = ' '),
         '-reference', 
         Reference_batch()[1],
-        '-target',
-        Target_batch()[1],
+        command.target(),
         command.adapter(),
         command.primers(),
         command.trimming(),

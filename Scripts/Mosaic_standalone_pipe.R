@@ -312,7 +312,7 @@ for(file_pair1 in files){
     
     Tabla_Target_Original <- Tabla_Target 
     
-  }else if(target == "No target introduced"){}else if(!file.exists(target)){target = "File error, check extension."}
+  }else if(target == "No target introduced"){Target_Location <- target}else if(!file.exists(target)){Target_Location = "File error, check extension."}
 
   #################################################.
   ## Identify if indels falls in interest range
