@@ -115,7 +115,7 @@ if( !is.null(params.range) ){
   # }
   target_print <- tibble(Target_status = Target_status)
   
-  statistics <- bind_cols(total_reads, score, wt,mm,indels,mm_indels, target_print)
+  statistics <- bind_cols(total_reads, score, wt_range,mm,indels,mm_indels, target_print)
   statistics <- statistics %>% mutate('percentage_variants_inRange' = paste0(round(((mismatches_inRange + indels_inRange + indels_and_mm_inRange) / total_reads) *100, digits = 2),'%'))
 
 }else{
